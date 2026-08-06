@@ -162,7 +162,7 @@ body {
     left: 0;
     width: var(--sidebar-width);
     height: 100vh;
-    background: #1B2E1C;  /* explicit dark green from DESIGN.md */
+    background: #1c4b26;  /* explicit dark green from DESIGN.md */
     display: flex;
     flex-direction: column;
     z-index: 1000;
