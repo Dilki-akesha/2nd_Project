@@ -7,14 +7,14 @@ $endDate = $_GET['end'] ?? date('Y-m-d');
     <div class="section-header">
         <div class="section-title-group">
             <h1>Reports Generator</h1>
-            <p>Generate, preview, and export platform operation metrics (CSV Blob download & Print-friendly PDF)</p>
+            <p>Generate, preview, and export platform operation metrics</p>
         </div>
         <div style="display: flex; gap: 12px;" class="no-print">
             <button type="button" class="btn btn-outline" data-export-csv="report-data-table">
-                📥 Export CSV (Blob)
+                Export CSV
             </button>
             <button type="button" class="btn btn-primary" data-trigger-print>
-                🖨️ Print / Save PDF
+                Print / Save PDF
             </button>
         </div>
     </div>

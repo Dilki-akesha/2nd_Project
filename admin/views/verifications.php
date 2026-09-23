@@ -2,7 +2,7 @@
     <div class="section-header">
         <div class="section-title-group">
             <h1>Verification Queue</h1>
-            <p>Review uploaded NIC identity cards for Farmers and BRN business certificates for Courier Partner companies</p>
+            <p>Review uploaded verification documents for Farmers and Courier Partner companies</p>
         </div>
     </div>
 
@@ -115,28 +115,26 @@
                         <tr>
                             <th>Company ID</th>
                             <th>Logistics Company</th>
-                            <th>BRN Number</th>
                             <th>Contact Person</th>
                             <th>District</th>
-                            <th>BRN Certificate</th>
+                            <th>Verification Document</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($pendingCouriers)): ?>
                             <tr>
-                                <td colspan="7" style="text-align: center; padding: 32px; color: var(--color-outline);">No pending courier company applications.</td>
+                                <td colspan="6" style="text-align: center; padding: 32px; color: var(--color-outline);">No pending courier company applications.</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($pendingCouriers as $c): ?>
                                 <tr>
                                     <td>#CP-<?= sprintf('%04d', $c['id']); ?></td>
                                     <td><strong><?= sanitize($c['company_name']); ?></strong><br><span style="font-size:11px; color: var(--color-outline);"><?= sanitize($c['email']); ?></span></td>
-                                    <td><code><?= sanitize($c['brn_number']); ?></code></td>
                                     <td><?= sanitize($c['contact_person']); ?> (<?= sanitize($c['phone']); ?>)</td>
                                     <td><?= sanitize($c['district']); ?></td>
                                     <td>
-                                        <a href="<?= baseUrl(sanitize($c['registration_cert_path'])); ?>" target="_blank" class="btn btn-outline btn-sm">📋 View BRN Cert</a>
+                                        <a href="<?= baseUrl(sanitize($c['verification_document_path'])); ?>" target="_blank" class="btn btn-outline btn-sm">📋 View Document</a>
                                     </td>
                                     <td>
                                         <div style="display: flex; gap: 6px;">
@@ -171,11 +169,11 @@
                                                 <input type="hidden" name="courier_id" value="<?= $c['id']; ?>">
                                                 <input type="hidden" name="status" value="rejected">
                                                 <p style="font-size: 14px; color: var(--color-on-surface);">
-                                                    Specify rejection reason for company <strong><?= sanitize($c['company_name']); ?></strong> (BRN: <?= sanitize($c['brn_number']); ?>):
+                                                    Specify rejection reason for company <strong><?= sanitize($c['company_name']); ?></strong>:
                                                 </p>
                                                 <div class="form-group" style="margin-top: 12px;">
                                                     <label class="form-label" for="rej-reason-c-<?= $c['id']; ?>">Rejection Reason</label>
-                                                    <textarea id="rej-reason-c-<?= $c['id']; ?>" name="rejection_reason" class="form-control" rows="3" placeholder="e.g. BRN PV-number does not match official company registry file..." required></textarea>
+                                                    <textarea id="rej-reason-c-<?= $c['id']; ?>" name="rejection_reason" class="form-control" rows="3" placeholder="e.g. Verification document image is blurry or unreadable..." required></textarea>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">

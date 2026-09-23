@@ -22,6 +22,7 @@ class AuthController {
             exit();
         }
 
+        verifyCsrfToken();
         $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
         $password = $_POST['password'] ?? '';
 
@@ -54,19 +55,14 @@ class AuthController {
         $_SESSION['user_email'] = $user['email'];
         $_SESSION['role'] = $user['role'];
 
-        // Role-based redirects
         switch ($user['role']) {
             case 'admin':
                 header("Location: index.php?page=admin_overview");
                 break;
             case 'buyer':
-                header("Location: buyer/views/dashboard.php");
-                break;
             case 'farmer':
-                header("Location: farmer/views/dashboard.php");
-                break;
             case 'courier':
-                header("Location: courier/views/dashboard.php");
+                header("Location: index.php?success=Login+successful.+Your+Harvestly+account+is+ready.");
                 break;
             default:
                 header("Location: index.php");
@@ -84,6 +80,7 @@ class AuthController {
             exit();
         }
 
+        verifyCsrfToken();
         $fullName = sanitize($_POST['full_name'] ?? '');
         $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
         $password = $_POST['password'] ?? '';
@@ -92,7 +89,7 @@ class AuthController {
         $district = sanitize($_POST['district'] ?? '');
         $address = sanitize($_POST['address'] ?? '');
 
-        if (!$fullName || !$email || empty($password) || !$phone || !$district) {
+        if (!$fullName || !$email || strlen($password) < 8 || $password !== ($_POST['confirm_password'] ?? '') || !$phone || !$district || !$address) {
             header("Location: index.php?page=signup_buyer&error=All+fields+are+required.");
             exit();
         }
@@ -102,7 +99,7 @@ class AuthController {
             exit();
         }
 
-        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        $passwordHash = password_hash($password, PASSWORD_BCRYPT);
         $success = $this->model->registerBuyer($fullName, $email, $passwordHash, $phone, $province, $district, $address);
 
         if ($success) {
@@ -122,6 +119,7 @@ class AuthController {
             exit();
         }
 
+        verifyCsrfToken();
         $fullName = sanitize($_POST['full_name'] ?? '');
         $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
         $password = $_POST['password'] ?? '';
@@ -130,7 +128,7 @@ class AuthController {
         $farmAddress = sanitize($_POST['farm_address'] ?? '');
         $district = sanitize($_POST['district'] ?? '');
 
-        if (!$fullName || !$email || empty($password) || !$phone || !$nicNumber || !$district) {
+        if (!$fullName || !$email || strlen($password) < 8 || $password !== ($_POST['confirm_password'] ?? '') || !$phone || !$nicNumber || !$district || !$farmAddress) {
             header("Location: index.php?page=signup_farmer&error=All+fields+are+required.");
             exit();
         }
@@ -147,7 +145,7 @@ class AuthController {
             exit();
         }
 
-        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        $passwordHash = password_hash($password, PASSWORD_BCRYPT);
         $success = $this->model->registerFarmer($fullName, $email, $passwordHash, $phone, $nicNumber, $farmAddress, $district, $idDocumentPath);
 
         if ($success) {
@@ -159,7 +157,7 @@ class AuthController {
     }
 
     /**
-     * Handle Courier Partner Company Signup (With BRN & Cert Upload)
+     * Handle Courier Partner Company Signup (With Optional Verification Document Upload)
      */
     public function handleCourierSignup() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -167,16 +165,16 @@ class AuthController {
             exit();
         }
 
+        verifyCsrfToken();
         $companyName = sanitize($_POST['company_name'] ?? '');
         $contactPerson = sanitize($_POST['contact_person'] ?? '');
         $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
         $password = $_POST['password'] ?? '';
         $phone = sanitize($_POST['phone'] ?? '');
-        $brnNumber = sanitize($_POST['brn_number'] ?? '');
         $businessAddress = sanitize($_POST['business_address'] ?? '');
         $district = sanitize($_POST['district'] ?? '');
 
-        if (!$companyName || !$contactPerson || !$email || empty($password) || !$brnNumber || !$district) {
+        if (!$companyName || !$contactPerson || !$email || strlen($password) < 8 || $password !== ($_POST['confirm_password'] ?? '') || !$phone || !$businessAddress || !$district) {
             header("Location: index.php?page=signup_courier&error=All+company+fields+are+required.");
             exit();
         }
@@ -186,18 +184,21 @@ class AuthController {
             exit();
         }
 
-        try {
-            $certPath = handleFileUpload($_FILES['registration_cert'] ?? []);
-        } catch (Exception $e) {
-            header("Location: index.php?page=signup_courier&error=" . urlencode($e->getMessage()));
-            exit();
+        $verificationDocumentPath = null;
+        if (isset($_FILES['verification_document']) && $_FILES['verification_document']['error'] === UPLOAD_ERR_OK) {
+            try {
+            $verificationDocumentPath = handleFileUpload($_FILES['verification_document']);
+            } catch (Exception $e) {
+                header("Location: index.php?page=signup_courier&error=" . urlencode($e->getMessage()));
+                exit();
+            }
         }
 
-        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-        $success = $this->model->registerCourierPartner($companyName, $contactPerson, $email, $passwordHash, $phone, $brnNumber, $businessAddress, $district, $certPath);
+        $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+        $success = $this->model->registerCourierPartner($companyName, $contactPerson, $email, $passwordHash, $phone, $businessAddress, $district, $verificationDocumentPath);
 
         if ($success) {
-            header("Location: index.php?page=pending_approval&message=Courier+Company+registration+submitted.+Your+BRN+certificate+is+in+the+Admin+Verification+Queue.");
+            header("Location: index.php?page=pending_approval&message=Courier+Company+registration+submitted.+Your+verification+document+is+in+the+Admin+Verification+Queue.");
         } else {
             header("Location: index.php?page=signup_courier&error=Failed+to+submit+company+registration.");
         }
@@ -208,6 +209,9 @@ class AuthController {
      * Logout
      */
     public function handleLogout() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            verifyCsrfToken();
+        }
         $_SESSION = [];
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
@@ -218,6 +222,46 @@ class AuthController {
         }
         session_destroy();
         header("Location: index.php?page=login&success=Logged+out+successfully.");
+        exit();
+    }
+
+    public function handlePasswordResetRequest() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: index.php?page=forgot_password");
+            exit();
+        }
+        verifyCsrfToken();
+        $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
+        if (!$email) {
+            header("Location: index.php?page=forgot_password&error=Please+enter+a+valid+email+address.");
+            exit();
+        }
+        $token = $this->model->createPasswordResetToken($email);
+        if (!$token) {
+            header("Location: index.php?page=forgot_password&error=No+account+was+found+for+that+email+address.");
+            exit();
+        }
+        header("Location: index.php?page=reset_password&token=" . urlencode($token));
+        exit();
+    }
+
+    public function handlePasswordReset() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: index.php?page=forgot_password");
+            exit();
+        }
+        verifyCsrfToken();
+        $token = $_POST['token'] ?? '';
+        $password = $_POST['new_password'] ?? '';
+        if (strlen($password) < 8 || $password !== ($_POST['confirm_password'] ?? '')) {
+            header("Location: index.php?page=reset_password&token=" . urlencode($token) . "&error=Passwords+must+match+and+be+at+least+8+characters.");
+            exit();
+        }
+        if (!$this->model->resetPassword($token, password_hash($password, PASSWORD_BCRYPT))) {
+            header("Location: index.php?page=forgot_password&error=That+reset+link+is+invalid+or+expired.");
+            exit();
+        }
+        header("Location: index.php?page=login&success=Password+reset+successfully.+Please+log+in.");
         exit();
     }
 }

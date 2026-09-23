@@ -1,6 +1,6 @@
 /**
  * Harvestly Master Vanilla JavaScript (Zero External Libraries)
- * Handles modals, tabs, table filtering, CSV Blob export, print triggering.
+ * Handles modals, tabs, table filtering, local CSV export, and printing.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,6 +11,22 @@ document.addEventListener('DOMContentLoaded', () => {
   initCSVExport();
   initPDFPrint();
 });
+
+initSidebarScroll();
+
+function initSidebarScroll() {
+  const sidebarNav = document.querySelector('.sidebar-nav');
+  if (!sidebarNav) return;
+
+  const savedScrollTop = sessionStorage.getItem('harvestly-admin-sidebar-scroll');
+  if (savedScrollTop !== null) {
+    sidebarNav.scrollTop = Number(savedScrollTop);
+  }
+
+  window.addEventListener('beforeunload', () => {
+    sessionStorage.setItem('harvestly-admin-sidebar-scroll', String(sidebarNav.scrollTop));
+  });
+}
 
 /**
  * Modal Dialog Handlers
@@ -121,48 +137,32 @@ function initMicroInteractions() {
   });
 }
 
-/**
- * Vanilla JS CSV Blob Export Helper
- */
 function initCSVExport() {
   document.querySelectorAll('[data-export-csv]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      const tableId = btn.getAttribute('data-export-csv');
-      const table = document.getElementById(tableId);
+      const table = document.getElementById(btn.getAttribute('data-export-csv'));
       if (!table) return;
 
-      let csv = [];
-      const rows = table.querySelectorAll('tr');
+      const rows = Array.from(table.querySelectorAll('tr')).filter(row => row.style.display !== 'none');
+      const csv = rows.map(row => Array.from(row.querySelectorAll('th, td')).map(col => {
+        const text = col.innerText.replace(/(\r\n|\n|\r)/gm, ' ').replace(/"/g, '""').trim();
+        return '"' + text + '"';
+      }).join(',')).join('\n');
 
-      rows.forEach(row => {
-        if (row.style.display === 'none') return;
-        let rowData = [];
-        const cols = row.querySelectorAll('th, td');
-        cols.forEach(col => {
-          // Clean text content (remove internal tags/newlines)
-          let text = col.innerText.replace(/(\r\n|\n|\r)/gm, ' ').replace(/"/g, '""');
-          rowData.push('"' + text.trim() + '"');
-        });
-        csv.push(rowData.join(','));
-      });
-
-      const csvString = csv.join('\n');
-      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `Harvestly_Report_${new Date().toISOString().slice(0,10)}.csv`);
+      link.href = url;
+      link.download = `Harvestly_Report_${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     });
   });
 }
 
-/**
- * Native PDF Print Handler
- */
 function initPDFPrint() {
   document.querySelectorAll('[data-trigger-print]').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -171,3 +171,4 @@ function initPDFPrint() {
     });
   });
 }
+

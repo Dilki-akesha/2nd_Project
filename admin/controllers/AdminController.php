@@ -21,6 +21,53 @@ class AdminController {
         $action = $_GET['admin_action'] ?? '';
 
         switch ($action) {
+            /* --- PRODUCT CATEGORIES (ADMIN MAIN CRUD) --- */
+            case 'create_category':
+                verifyCsrfToken();
+                $name = sanitize($_POST['category_name'] ?? '');
+                $desc = sanitize($_POST['description'] ?? '');
+                $status = ($_POST['status'] ?? 'active') === 'inactive' ? 'inactive' : 'active';
+                if (!empty($name)) {
+                    $ok = $this->model->createCategory($name, $desc, $status);
+                    header("Location: index.php?page=admin_categories&" . ($ok ? 'success=Product+category+created+successfully.' : 'error=Unable+to+create+that+category.'));
+                } else {
+                    header("Location: index.php?page=admin_categories&error=Category+name+is+required.");
+                }
+                exit();
+
+            case 'update_category':
+                verifyCsrfToken();
+                $id = intval($_POST['category_id'] ?? 0);
+                $name = sanitize($_POST['category_name'] ?? '');
+                $desc = sanitize($_POST['description'] ?? '');
+                $status = ($_POST['status'] ?? 'active') === 'inactive' ? 'inactive' : 'active';
+                if ($id > 0 && !empty($name)) {
+                    $ok = $this->model->updateCategory($id, $name, $desc, $status);
+                    header("Location: index.php?page=admin_categories&" . ($ok ? 'success=Product+category+updated+successfully.' : 'error=Unable+to+update+that+category.'));
+                } else {
+                    header("Location: index.php?page=admin_categories&error=Failed+to+update+category.");
+                }
+                exit();
+
+            case 'deactivate_category':
+                verifyCsrfToken();
+                $id = intval($_POST['category_id'] ?? 0);
+                if ($id > 0) {
+                    $ok = $this->model->deactivateCategory($id);
+                    header("Location: index.php?page=admin_categories&" . ($ok ? 'success=Category+deactivated.' : 'error=Unable+to+deactivate+that+category.'));
+                }
+                exit();
+
+            case 'delete_category':
+                verifyCsrfToken();
+                $id = intval($_POST['category_id'] ?? 0);
+                if ($id > 0) {
+                    $ok = $this->model->deleteCategory($id);
+                    header("Location: index.php?page=admin_categories&" . ($ok ? 'success=Category+deleted.' : 'error=Category+could+not+be+deleted+because+it+is+in+use.'));
+                }
+                exit();
+
+            /* --- USER MANAGEMENT --- */
             case 'create_user':
                 $role = sanitize($_POST['role'] ?? 'buyer');
                 $data = [
@@ -28,11 +75,6 @@ class AdminController {
                     'email' => filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL),
                     'password' => $_POST['password'] ?? 'user123',
                     'phone' => sanitize($_POST['phone'] ?? ''),
-                    'district' => sanitize($_POST['district'] ?? 'Colombo'),
-                    'address' => sanitize($_POST['address'] ?? ''),
-                    'nic_number' => sanitize($_POST['nic_number'] ?? ''),
-                    'brn_number' => sanitize($_POST['brn_number'] ?? ''),
-                    'contact_person' => sanitize($_POST['contact_person'] ?? ''),
                     'status' => sanitize($_POST['status'] ?? 'active')
                 ];
                 if ($data['email'] && !empty($data['name'])) {
@@ -50,11 +92,6 @@ class AdminController {
                     'name' => sanitize($_POST['name'] ?? ''),
                     'email' => filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL),
                     'phone' => sanitize($_POST['phone'] ?? ''),
-                    'district' => sanitize($_POST['district'] ?? ''),
-                    'address' => sanitize($_POST['address'] ?? ''),
-                    'nic_number' => sanitize($_POST['nic_number'] ?? ''),
-                    'brn_number' => sanitize($_POST['brn_number'] ?? ''),
-                    'contact_person' => sanitize($_POST['contact_person'] ?? ''),
                     'status' => sanitize($_POST['status'] ?? 'active')
                 ];
                 if ($userId > 0 && $data['email']) {
@@ -82,12 +119,13 @@ class AdminController {
                 header("Location: index.php?page=admin_users&success=User+status+updated.");
                 exit();
 
+            /* --- APPROVALS --- */
             case 'verify_farmer':
                 $farmerId = intval($_POST['farmer_id'] ?? 0);
                 $status = $_POST['status'] ?? 'approved';
                 $reason = $_POST['rejection_reason'] ?? null;
                 $this->model->updateFarmerVerification($farmerId, $status, $reason);
-                header("Location: index.php?page=admin_verifications&success=Farmer+verification+updated.");
+                header("Location: index.php?page=admin_farmer_approvals&success=Farmer+verification+updated.");
                 exit();
 
             case 'verify_courier':
@@ -95,9 +133,10 @@ class AdminController {
                 $status = $_POST['status'] ?? 'approved';
                 $reason = $_POST['rejection_reason'] ?? null;
                 $this->model->updateCourierVerification($courierId, $status, $reason);
-                header("Location: index.php?page=admin_verifications&success=Courier+verification+updated.");
+                header("Location: index.php?page=admin_courier_approvals&success=Courier+verification+updated.");
                 exit();
 
+            /* --- LISTINGS & ORDERS --- */
             case 'update_product_status':
                 $productId = intval($_POST['product_id'] ?? 0);
                 $status = $_POST['status'] ?? 'active';
@@ -109,15 +148,34 @@ class AdminController {
                 $orderId = intval($_POST['order_id'] ?? 0);
                 $courierId = intval($_POST['courier_id'] ?? 0);
                 $this->model->overrideDeliveryAssignment($orderId, $courierId);
-                header("Location: index.php?page=admin_orders&success=Courier+assignment+overridden.");
+                header("Location: index.php?page=admin_pending_assignments&success=Courier+assignment+overridden.");
                 exit();
 
-            case 'resolve_dispute':
+            /* --- DISTRICT DISTANCES --- */
+            case 'add_district_distance':
+                $from = sanitize($_POST['from_district'] ?? '');
+                $to = sanitize($_POST['to_district'] ?? '');
+                $km = floatval($_POST['distance_km'] ?? 0);
+                $this->model->createDistrictDistance($from, $to, $km);
+                header("Location: index.php?page=admin_district_distances&success=District+distance+pair+added.");
+                exit();
+
+            case 'update_district_distance':
+                $id = intval($_POST['distance_id'] ?? 0);
+                $from = sanitize($_POST['from_district'] ?? '');
+                $to = sanitize($_POST['to_district'] ?? '');
+                $km = floatval($_POST['distance_km'] ?? 0);
+                $this->model->updateDistrictDistance($id, $from, $to, $km);
+                header("Location: index.php?page=admin_district_distances&success=District+distance+updated.");
+                exit();
+
+            /* --- COMPLAINTS, NOTIFICATIONS, SETTINGS & PROFILE --- */
+            case 'resolve_complaint':
                 $complaintId = intval($_POST['complaint_id'] ?? 0);
                 $status = $_POST['status'] ?? 'resolved';
                 $notes = $_POST['resolution_notes'] ?? '';
                 $this->model->resolveComplaint($complaintId, $status, $notes);
-                header("Location: index.php?page=admin_disputes&success=Dispute+resolved.");
+                header("Location: index.php?page=admin_complaints&success=Complaint+resolved.");
                 exit();
 
             case 'send_notification':
@@ -129,25 +187,28 @@ class AdminController {
                 header("Location: index.php?page=admin_notifications&success=Notification+dispatched.");
                 exit();
 
-            case 'update_zone_fee':
-                $tierId = intval($_POST['tier_id'] ?? 0);
-                $baseFee = floatval($_POST['base_fee'] ?? 0);
-                $perKgFee = floatval($_POST['per_kg_fee'] ?? 0);
-                $this->model->updateZoneFeeTier($tierId, $baseFee, $perKgFee);
-                header("Location: index.php?page=admin_regions_hubs&success=Zone+fee+matrix+updated.");
-                exit();
-
             case 'update_settings':
                 $settings = [
                     'commission_rate' => sanitize($_POST['commission_rate'] ?? '12.0'),
-                    'tier_base_fee_western' => sanitize($_POST['tier_base_fee_western'] ?? '150.00'),
-                    'tier_base_fee_central' => sanitize($_POST['tier_base_fee_central'] ?? '220.00'),
-                    'tier_base_fee_southern' => sanitize($_POST['tier_base_fee_southern'] ?? '190.00'),
-                    'tier_base_fee_northern' => sanitize($_POST['tier_base_fee_northern'] ?? '250.00'),
-                    'auto_release_timeout_hours' => sanitize($_POST['auto_release_timeout_hours'] ?? '48')
+                    'delivery_base_fee' => sanitize($_POST['delivery_base_fee'] ?? '0.00'),
+                    'delivery_per_km_rate' => sanitize($_POST['delivery_per_km_rate'] ?? '0.00'),
                 ];
                 $this->model->updatePlatformSettings($settings);
-                header("Location: index.php?page=admin_settings&success=Platform+settings+saved+to+database.");
+                header("Location: index.php?page=admin_settings&success=Platform+settings+saved.");
+                exit();
+
+            case 'update_admin_profile':
+                $adminId = $_SESSION['user_id'] ?? 1;
+                $name = sanitize($_POST['full_name'] ?? '');
+                $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
+                $pass = !empty($_POST['new_password']) ? $_POST['new_password'] : null;
+                if ($email && $name) {
+                    $this->model->updateAdminProfile($adminId, $name, $email, $pass);
+                    $_SESSION['user_name'] = $name;
+                    header("Location: index.php?page=admin_profile&success=Profile+updated+successfully.");
+                } else {
+                    header("Location: index.php?page=admin_profile&error=Invalid+profile+input.");
+                }
                 exit();
         }
     }
@@ -170,7 +231,17 @@ class AdminController {
                 require __DIR__ . '/../views/users.php';
                 break;
 
-            case 'admin_verifications':
+            case 'admin_farmer_approvals':
+                $pendingFarmers = $this->model->getPendingFarmers();
+                require __DIR__ . '/../views/farmer_approvals.php';
+                break;
+
+            case 'admin_courier_approvals':
+                $pendingCouriers = $this->model->getPendingCouriers();
+                require __DIR__ . '/../views/courier_approvals.php';
+                break;
+
+            case 'admin_verifications': // Legacy wrapper
                 $pendingFarmers = $this->model->getPendingFarmers();
                 $pendingCouriers = $this->model->getPendingCouriers();
                 require __DIR__ . '/../views/verifications.php';
@@ -181,31 +252,53 @@ class AdminController {
                 require __DIR__ . '/../views/listings.php';
                 break;
 
+            case 'admin_categories': // Admin CRUD Feature
+                $search = $_GET['search'] ?? '';
+                $status = $_GET['status'] ?? 'all';
+                $categories = $this->model->getAllCategories($search, $status);
+                require __DIR__ . '/../views/categories.php';
+                break;
+
             case 'admin_orders':
                 $orders = $this->model->getAllOrders();
                 $couriers = $this->model->getAllUsers('courier', 'approved');
                 require __DIR__ . '/../views/orders.php';
                 break;
 
-            case 'admin_disputes':
-                $complaints = $this->model->getAllComplaints();
-                require __DIR__ . '/../views/disputes.php';
+            case 'admin_deliveries':
+                $deliveries = $this->model->getAllDeliveries();
+                require __DIR__ . '/../views/deliveries.php';
                 break;
 
-            case 'admin_reports':
-                $reportType = $_GET['type'] ?? 'orders';
-                $startDate = $_GET['start'] ?? date('Y-m-01');
-                $endDate = $_GET['end'] ?? date('Y-m-d');
-                $reportData = $this->model->generateReportData($reportType, $startDate, $endDate);
-                require __DIR__ . '/../views/reports.php';
+            case 'admin_pending_assignments':
+                $pendingOrders = $this->model->getPendingAssignments();
+                $couriers = $this->model->getAllUsers('courier', 'approved');
+                require __DIR__ . '/../views/pending_assignments.php';
                 break;
 
-            case 'admin_regions_hubs':
-                $districts = $this->model->getDistricts();
-                $tiers = $this->model->getZoneFeeTiers();
-                $hubs = $this->model->getHubs();
-                $coverage = $this->model->getCourierCoverage();
+            case 'admin_district_distances':
+                $fromDistrict = sanitize($_GET['from_district'] ?? '');
+                $toDistrict = sanitize($_GET['to_district'] ?? '');
+                $distances = $this->model->getAllDistrictDistances($fromDistrict, $toDistrict);
+                require __DIR__ . '/../views/district_distances.php';
+                break;
+
+            case 'admin_regions_hubs': // Legacy wrapper
+                $districts = [];
+                $tiers = [];
+                $hubs = [];
+                $coverage = [];
                 require __DIR__ . '/../views/regions_hubs.php';
+                break;
+
+            case 'admin_complaints':
+                $complaints = $this->model->getAllComplaints();
+                require __DIR__ . '/../views/complaints.php';
+                break;
+
+            case 'admin_payments':
+                $payments = $this->model->getAllPayments();
+                require __DIR__ . '/../views/payments.php';
                 break;
 
             case 'admin_settlements':
@@ -221,6 +314,19 @@ class AdminController {
             case 'admin_settings':
                 $settings = $this->model->getPlatformSettings();
                 require __DIR__ . '/../views/settings.php';
+                break;
+
+            case 'admin_reports':
+                $reportType = $_GET['type'] ?? 'orders';
+                $startDate = $_GET['start'] ?? date('Y-m-01');
+                $endDate = $_GET['end'] ?? date('Y-m-d');
+                $reportData = $this->model->generateReportData($reportType, $startDate, $endDate);
+                require __DIR__ . '/../views/reports.php';
+                break;
+
+            case 'admin_profile':
+                $adminProfile = $this->model->getAdminProfile($_SESSION['user_id'] ?? 1);
+                require __DIR__ . '/../views/profile.php';
                 break;
 
             default:

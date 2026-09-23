@@ -46,15 +46,15 @@
         <div class="kpi-card">
             <div class="kpi-icon-box">⚠️</div>
             <div class="kpi-data">
-                <span class="kpi-value" style="color: var(--color-error);"><?= number_format($kpis['active_disputes']); ?></span>
-                <span class="kpi-label">Active Disputes</span>
+                <span class="kpi-value kpi-value-danger"><?= number_format($kpis['active_complaints']); ?></span>
+                <span class="kpi-label">Open Complaints</span>
             </div>
         </div>
 
         <div class="kpi-card">
             <div class="kpi-icon-box">📜</div>
             <div class="kpi-data">
-                <span class="kpi-value" style="color: var(--color-warning);"><?= number_format($kpis['pending_verifications']); ?></span>
+                <span class="kpi-value kpi-value-warning"><?= number_format($kpis['pending_verifications']); ?></span>
                 <span class="kpi-label">Pending Verification</span>
             </div>
         </div>
@@ -69,12 +69,15 @@
     </div>
 
     <!-- Charts & Trends Section -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px;">
+    <div class="overview-grid">
         <!-- HTML Bar Chart - Order Volume Trend -->
         <div class="chart-container">
             <div class="chart-header">
-                <h3 style="font-size: 16px; font-weight: 700;">Weekly Order Volume Trend</h3>
-                <span style="font-size: 12px; color: var(--color-outline);">Orders per day (This week)</span>
+                <div>
+                    <h3>Weekly Order Volume Trend</h3>
+                    <span>Orders per day (This week)</span>
+                </div>
+                <span class="chart-summary">Marketplace activity</span>
             </div>
             <div class="bar-chart">
                 <div class="bar-col">
@@ -116,17 +119,17 @@
         </div>
 
         <!-- Recent Activity Feed -->
-        <div style="background: #fff; border: 1px solid var(--color-outline-variant); border-radius: var(--radius-lg); padding: 24px;">
-            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Recent Activity Feed</h3>
-            <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="activity-panel">
+            <h3>Recent Activity Feed</h3>
+            <div class="activity-list">
                 <?php if (empty($activities)): ?>
-                    <p style="font-size: 13px; color: var(--color-outline);">No recent activity logged.</p>
+                    <p class="empty-state">No recent activity logged.</p>
                 <?php else: ?>
                     <?php foreach ($activities as $act): ?>
-                        <div style="padding-bottom: 10px; border-bottom: 1px solid var(--color-outline-variant); font-size: 13px;">
-                            <div style="font-weight: 700; color: var(--color-primary);"><?= sanitize($act['type']); ?></div>
-                            <div style="color: var(--color-on-surface); margin-top: 2px;"><?= sanitize($act['detail']); ?></div>
-                            <div style="font-size: 11px; color: var(--color-outline); margin-top: 2px;"><?= date('M d, H:i', strtotime($act['created_at'])); ?></div>
+                        <div class="activity-item">
+                            <div class="activity-type"><?= sanitize($act['type']); ?></div>
+                            <div class="activity-detail"><?= sanitize($act['detail']); ?></div>
+                            <div class="activity-time"><?= date('M d, H:i', strtotime($act['created_at'])); ?></div>
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>

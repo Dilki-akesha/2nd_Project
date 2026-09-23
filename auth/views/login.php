@@ -23,13 +23,17 @@ $success = isset($_GET['success']) ? sanitize($_GET['success']) : null;
         <?php endif; ?>
 
         <form action="index.php?action=login" method="POST">
+            <?= csrfField(); ?>
             <div class="form-group">
                 <label class="form-label" for="login-email">Email Address</label>
                 <input type="email" id="login-email" name="email" class="form-control" placeholder="name@domain.com" required>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="login-password">Password</label>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label class="form-label" for="login-password">Password</label>
+                    <a href="index.php?page=forgot_password" style="font-size: 12px; color: var(--color-primary); font-weight: 600; text-decoration: none;">Forgot Password?</a>
+                </div>
                 <input type="password" id="login-password" name="password" class="form-control" placeholder="••••••••" required>
             </div>
 

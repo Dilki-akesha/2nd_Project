@@ -6,7 +6,7 @@ $error = $_GET['error'] ?? null;
 <div class="page-content">
     <div class="section-header">
         <div class="section-title-group">
-            <h1>User Management (Complete CRUD)</h1>
+            <h1>User Management</h1>
             <p>Create, view, edit details, manage status, and delete Buyers, Farmers, and Courier Companies</p>
         </div>
         <div>
@@ -144,86 +144,78 @@ $error = $_GET['error'] ?? null;
                                         <div><strong>NIC Number:</strong> <code><?= sanitize($u['nic_number']); ?></code></div>
                                     <?php endif; ?>
 
-                                    <?php if ($u['brn_number']): ?>
-                                        <div><strong>BRN Number:</strong> <code><?= sanitize($u['brn_number']); ?></code></div>
-                                    <?php endif; ?>
+                                        <?php if (isset($u['contact_person']) && $u['contact_person']): ?>
+                                            <div><strong>Contact Person:</strong> <?= sanitize($u['contact_person']); ?></div>
+                                        <?php endif; ?>
 
-                                    <?php if (isset($u['contact_person']) && $u['contact_person']): ?>
-                                        <div><strong>Contact Person:</strong> <?= sanitize($u['contact_person']); ?></div>
-                                    <?php endif; ?>
+                                        <?php if ($u['document_path']): ?>
+                                            <div style="margin-top: 8px;">
+                                                <strong>Verification Attachment:</strong>
+                                                <a href="<?= baseUrl(sanitize($u['document_path'])); ?>" target="_blank" style="color: var(--color-primary); font-weight: 700; display: block; margin-top: 4px;">
+                                                    📄 View Uploaded Verification Document
+                                                </a>
+                                            </div>
+                                        <?php endif; ?>
 
-                                    <?php if ($u['document_path']): ?>
-                                        <div style="margin-top: 8px;">
-                                            <strong>Verification Attachment:</strong>
-                                            <a href="<?= baseUrl(sanitize($u['document_path'])); ?>" target="_blank" style="color: var(--color-primary); font-weight: 700; display: block; margin-top: 4px;">
-                                                📄 View Uploaded Verification Document
-                                            </a>
-                                        </div>
-                                    <?php endif; ?>
-
-                                    <div><strong>Account Status:</strong> <span class="badge badge-info"><?= ucfirst(sanitize($u['status'])); ?></span></div>
-                                    <div><strong>Registered Date:</strong> <?= date('Y-m-d H:i:s', strtotime($u['created_at'])); ?></div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-outline btn-sm" data-modal-close>Close</button>
+                                        <div><strong>Account Status:</strong> <span class="badge badge-info"><?= ucfirst(sanitize($u['status'])); ?></span></div>
+                                        <div><strong>Registered Date:</strong> <?= date('Y-m-d H:i:s', strtotime($u['created_at'])); ?></div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline btn-sm" data-modal-close>Close</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Modal: UPDATE/EDIT USER DETAILS -->
-                        <div class="modal-backdrop" id="modal-edit-<?= $u['role']; ?>-<?= $u['id']; ?>">
-                            <div class="modal-card">
-                                <div class="modal-header">
-                                    <div class="modal-title">Edit User - <?= sanitize($u['name']); ?></div>
-                                    <button type="button" class="modal-close-btn" data-modal-close>&times;</button>
-                                </div>
-                                <form action="index.php?admin_action=update_user_details" method="POST">
-                                    <div class="modal-body">
-                                        <input type="hidden" name="role" value="<?= strtolower($u['role']); ?>">
-                                        <input type="hidden" name="user_id" value="<?= $u['id']; ?>">
+                            <!-- Modal: UPDATE/EDIT USER DETAILS -->
+                            <div class="modal-backdrop" id="modal-edit-<?= $u['role']; ?>-<?= $u['id']; ?>">
+                                <div class="modal-card">
+                                    <div class="modal-header">
+                                        <div class="modal-title">Edit User - <?= sanitize($u['name']); ?></div>
+                                        <button type="button" class="modal-close-btn" data-modal-close>&times;</button>
+                                    </div>
+                                    <form action="index.php?admin_action=update_user_details" method="POST">
+                                        <div class="modal-body">
+                                            <input type="hidden" name="role" value="<?= strtolower($u['role']); ?>">
+                                            <input type="hidden" name="user_id" value="<?= $u['id']; ?>">
 
-                                        <div class="form-group">
-                                            <label class="form-label" for="edit-name-<?= $u['id']; ?>">Name / Company Name</label>
-                                            <input type="text" id="edit-name-<?= $u['id']; ?>" name="name" class="form-control" value="<?= sanitize($u['name']); ?>" required>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="form-label" for="edit-email-<?= $u['id']; ?>">Email Address</label>
-                                            <input type="email" id="edit-email-<?= $u['id']; ?>" name="email" class="form-control" value="<?= sanitize($u['email']); ?>" required>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="form-label" for="edit-phone-<?= $u['id']; ?>">Phone Number</label>
-                                            <input type="text" id="edit-phone-<?= $u['id']; ?>" name="phone" class="form-control" value="<?= sanitize($u['phone']); ?>" required>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="form-label" for="edit-dist-<?= $u['id']; ?>">District</label>
-                                            <input type="text" id="edit-dist-<?= $u['id']; ?>" name="district" class="form-control" value="<?= sanitize($u['district'] ?? 'Colombo'); ?>" required>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="form-label" for="edit-addr-<?= $u['id']; ?>">Address / Farm Location</label>
-                                            <textarea id="edit-addr-<?= $u['id']; ?>" name="address" class="form-control" rows="2" required><?= sanitize($u['detail'] ?? ''); ?></textarea>
-                                        </div>
-
-                                        <?php if ($u['nic_number']): ?>
                                             <div class="form-group">
-                                                <label class="form-label" for="edit-nic-<?= $u['id']; ?>">NIC Number</label>
-                                                <input type="text" id="edit-nic-<?= $u['id']; ?>" name="nic_number" class="form-control" value="<?= sanitize($u['nic_number']); ?>">
+                                                <label class="form-label" for="edit-name-<?= $u['id']; ?>">Name / Company Name</label>
+                                                <input type="text" id="edit-name-<?= $u['id']; ?>" name="name" class="form-control" value="<?= sanitize($u['name']); ?>" required>
                                             </div>
-                                        <?php endif; ?>
 
-                                        <?php if ($u['brn_number']): ?>
                                             <div class="form-group">
-                                                <label class="form-label" for="edit-brn-<?= $u['id']; ?>">BRN Number</label>
-                                                <input type="text" id="edit-brn-<?= $u['id']; ?>" name="brn_number" class="form-control" value="<?= sanitize($u['brn_number']); ?>">
+                                                <label class="form-label" for="edit-email-<?= $u['id']; ?>">Email Address</label>
+                                                <input type="email" id="edit-email-<?= $u['id']; ?>" name="email" class="form-control" value="<?= sanitize($u['email']); ?>" required>
                                             </div>
+
                                             <div class="form-group">
-                                                <label class="form-label" for="edit-contact-<?= $u['id']; ?>">Contact Person</label>
-                                                <input type="text" id="edit-contact-<?= $u['id']; ?>" name="contact_person" class="form-control" value="<?= sanitize($u['contact_person'] ?? $u['name']); ?>">
+                                                <label class="form-label" for="edit-phone-<?= $u['id']; ?>">Phone Number</label>
+                                                <input type="text" id="edit-phone-<?= $u['id']; ?>" name="phone" class="form-control" value="<?= sanitize($u['phone']); ?>" required>
                                             </div>
-                                        <?php endif; ?>
+
+                                            <div class="form-group">
+                                                <label class="form-label" for="edit-dist-<?= $u['id']; ?>">District</label>
+                                                <input type="text" id="edit-dist-<?= $u['id']; ?>" name="district" class="form-control" value="<?= sanitize($u['district'] ?? 'Colombo'); ?>" required>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label class="form-label" for="edit-addr-<?= $u['id']; ?>">Address / Farm Location</label>
+                                                <textarea id="edit-addr-<?= $u['id']; ?>" name="address" class="form-control" rows="2" required><?= sanitize($u['detail'] ?? ''); ?></textarea>
+                                            </div>
+
+                                            <?php if (!empty($u['nic_number'])): ?>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="edit-nic-<?= $u['id']; ?>">NIC Number</label>
+                                                    <input type="text" id="edit-nic-<?= $u['id']; ?>" name="nic_number" class="form-control" value="<?= sanitize($u['nic_number']); ?>">
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <?php if (isset($u['contact_person']) && $u['contact_person']): ?>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="edit-contact-<?= $u['id']; ?>">Contact Person</label>
+                                                    <input type="text" id="edit-contact-<?= $u['id']; ?>" name="contact_person" class="form-control" value="<?= sanitize($u['contact_person'] ?? $u['name']); ?>">
+                                                </div>
+                                            <?php endif; ?>
 
                                         <div class="form-group">
                                             <label class="form-label" for="edit-status-<?= $u['id']; ?>">Account Status</label>
@@ -340,10 +332,6 @@ $error = $_GET['error'] ?? null;
                 </div>
 
                 <div id="role-extra-courier" style="display:none;">
-                    <div class="form-group">
-                        <label class="form-label" for="c-brn">BRN Number (Courier Company)</label>
-                        <input type="text" id="c-brn" name="brn_number" class="form-control" placeholder="PV-0089123">
-                    </div>
                     <div class="form-group">
                         <label class="form-label" for="c-contact-p">Contact Person</label>
                         <input type="text" id="c-contact-p" name="contact_person" class="form-control" placeholder="Contact person name">

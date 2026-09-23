@@ -14,7 +14,7 @@ $message = isset($_GET['message']) ? sanitize($_GET['message']) : 'Your registra
         </p>
 
         <div style="background-color: var(--color-surface-container-low); padding: 16px; border-radius: var(--radius-md); text-align: left; font-size: 13px; color: var(--color-on-surface-variant); margin-bottom: 32px; display: flex; flex-direction: column; gap: 8px;">
-            <div>📌 <strong>Identity & Document Verification:</strong> Administrator verification checks NIC documents for Farmers and official BRN registration certificates for Courier Logistics Partners.</div>
+            <div>📌 <strong>Identity & Document Verification:</strong> Administrator verification checks supporting verification documents for Farmers and Courier Logistics Partners.</div>
             <div>⏱️ <strong>Processing Time:</strong> Applications are evaluated within 24 hours. You will receive an email notification once approved.</div>
         </div>
 

@@ -2,7 +2,7 @@
     <div class="section-header">
         <div class="section-title-group">
             <h1>Platform Settings</h1>
-            <p>Configure platform commission rate, zone delivery base rates, and escrow auto-release timeout</p>
+            <p>Configure platform commission rate, distance-based delivery fees, and the fixed 48-hour completion rule</p>
         </div>
     </div>
 
@@ -25,40 +25,33 @@
             </div>
 
             <h2 style="font-size: 18px; font-weight: 800; color: var(--color-primary); margin-top: 28px; margin-bottom: 16px; border-bottom: 2px solid var(--color-outline-variant); padding-bottom: 8px;">
-                🚚 Delivery-Fee Tier Base Rates
+                🚚 Delivery Fee Configuration
             </h2>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div class="form-group">
-                    <label class="form-label" for="set-w">Zone 1 Base Rate - Western (Rs.)</label>
-                    <input type="number" step="0.01" id="set-w" name="tier_base_fee_western" class="form-control" value="<?= sanitize($settings['tier_base_fee_western'] ?? '150.00'); ?>" required>
+                    <label class="form-label" for="set-base-fee">Base Delivery Fee (Rs.)</label>
+                    <input type="number" step="0.01" min="0" id="set-base-fee" name="delivery_base_fee" class="form-control" value="<?= sanitize($settings['delivery_base_fee'] ?? '0.00'); ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="set-c">Zone 2 Base Rate - Central (Rs.)</label>
-                    <input type="number" step="0.01" id="set-c" name="tier_base_fee_central" class="form-control" value="<?= sanitize($settings['tier_base_fee_central'] ?? '220.00'); ?>" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="set-s">Zone 3 Base Rate - Southern (Rs.)</label>
-                    <input type="number" step="0.01" id="set-s" name="tier_base_fee_southern" class="form-control" value="<?= sanitize($settings['tier_base_fee_southern'] ?? '190.00'); ?>" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="set-n">Zone 4 Base Rate - Northern (Rs.)</label>
-                    <input type="number" step="0.01" id="set-n" name="tier_base_fee_northern" class="form-control" value="<?= sanitize($settings['tier_base_fee_northern'] ?? '250.00'); ?>" required>
+                    <label class="form-label" for="set-per-km-rate">Per Kilometer Rate (Rs.)</label>
+                    <input type="number" step="0.01" min="0" id="set-per-km-rate" name="delivery_per_km_rate" class="form-control" value="<?= sanitize($settings['delivery_per_km_rate'] ?? '0.00'); ?>" required>
                 </div>
             </div>
+
+            <p style="font-size: 13px; color: var(--color-on-surface-variant); margin-top: 4px;">Delivery fee is calculated using the Farmer pickup district and Buyer destination district based on the pre-loaded district distance table.</p>
+            <p style="font-size: 13px; color: var(--color-on-surface-variant); margin-top: 8px;"><strong>Formula:</strong> Delivery Fee = Base Delivery Fee + (District Reference Distance × Per-Km Rate)</p>
+            <ul style="font-size: 13px; color: var(--color-on-surface-variant); margin: 12px 0 0 20px; line-height: 1.6;">
+                <li>All 25 Sri Lankan districts</li>
+                <li>District-to-district reference distances</li>
+                <li>No GPS, maps, zones, or live distance API</li>
+            </ul>
 
             <h2 style="font-size: 18px; font-weight: 800; color: var(--color-primary); margin-top: 28px; margin-bottom: 16px; border-bottom: 2px solid var(--color-outline-variant); padding-bottom: 8px;">
-                ⏱️ Escrow & Auto-Release Policy
+                ⏱️ Delivery Completion Policy
             </h2>
-
-            <div class="form-group">
-                <label class="form-label" for="set-timeout">Confirm Received Auto-Release Timeout (Hours)</label>
-                <input type="number" id="set-timeout" name="auto_release_timeout_hours" class="form-control" value="<?= sanitize($settings['auto_release_timeout_hours'] ?? '48'); ?>" min="24" max="168" required>
-                <span style="font-size: 11px; color: var(--color-outline);">Hours after doorstep delivery before escrow funds automatically release to farmer if buyer does not manually click Confirm Received. (Standard: 48-72h). No OTP is used anywhere in this system.</span>
-            </div>
+            <p style="font-size: 13px; color: var(--color-on-surface-variant);">After a Courier Partner marks an order Delivered, the Buyer can select Confirm Received. If no confirmation is received, the order is automatically marked Completed after 48 hours.</p>
 
             <button type="submit" class="btn btn-primary" style="margin-top: 20px; padding: 12px 32px;">
                 Save Settings to Database

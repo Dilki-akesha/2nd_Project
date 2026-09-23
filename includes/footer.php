@@ -12,47 +12,47 @@ $isAdminPage = strpos($currentPage, 'admin_') === 0;
         <div style="max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px;">
                 <div style="display: flex; flex-direction: column; gap: 16px;">
-                    <div class="logo-brand">
+                    <a href="index.php" class="logo-brand" style="text-decoration: none;">
                         <img src="assets/images/harvestly_logo.jpg" alt="Harvestly Logo" style="height: 40px; width: auto; border-radius: var(--radius-md); object-fit: contain;">
                         <span class="logo-title">Harvestly</span>
-                    </div>
+                    </a>
                     <p style="font-size: 14px; color: var(--color-on-surface-variant); line-height: 1.6;">
                         Empowering Sri Lankan agriculture through transparent, direct farm-to-doorstep trade with zero broker markups.
                     </p>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <strong style="font-size: 15px; color: var(--color-on-surface);">Browse Produce</strong>
-                    <a href="#" style="font-size: 14px; color: var(--color-on-surface-variant);">Nuwara Eliya Vegetables</a>
-                    <a href="#" style="font-size: 14px; color: var(--color-on-surface-variant);">Tropical Fruits & Citrus</a>
-                    <a href="#" style="font-size: 14px; color: var(--color-on-surface-variant);">Organic Greens & Gotu Kola</a>
-                    <a href="#" style="font-size: 14px; color: var(--color-on-surface-variant);">Ceylon Spices & Cinnamon</a>
+                    <strong style="font-size: 15px; color: var(--color-on-surface);">Quick Navigation</strong>
+                    <a href="index.php" style="font-size: 14px; color: var(--color-on-surface-variant); text-decoration: none;">Home</a>
+                    <a href="index.php?page=products" style="font-size: 14px; color: var(--color-on-surface-variant); text-decoration: none;">Browse Products</a>
+                    <a href="index.php#how-it-works" style="font-size: 14px; color: var(--color-on-surface-variant); text-decoration: none;">How It Works</a>
+                    <a href="index.php#about-us" style="font-size: 14px; color: var(--color-on-surface-variant); text-decoration: none;">About Us</a>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <strong style="font-size: 15px; color: var(--color-on-surface);">Company & Trust</strong>
-                    <a href="#" style="font-size: 14px; color: var(--color-on-surface-variant);">About Harvestly</a>
-                    <a href="#" style="font-size: 14px; color: var(--color-on-surface-variant);">Doorstep Delivery Rates</a>
-                    <a href="#" style="font-size: 14px; color: var(--color-on-surface-variant);">Terms of Service</a>
-                    <a href="#" style="font-size: 14px; color: var(--color-on-surface-variant);">Privacy Policy</a>
+                    <strong style="font-size: 15px; color: var(--color-on-surface);">Account & Access</strong>
+                    <a href="index.php?page=login" style="font-size: 14px; color: var(--color-on-surface-variant); text-decoration: none;">Login</a>
+                    <a href="index.php?page=role_select" style="font-size: 14px; color: var(--color-on-surface-variant); text-decoration: none;">Register / Sign Up</a>
+                    <a href="index.php?page=signup_farmer" style="font-size: 14px; color: var(--color-on-surface-variant); text-decoration: none;">Farmer Registration</a>
+                    <a href="index.php?page=signup_courier" style="font-size: 14px; color: var(--color-on-surface-variant); text-decoration: none;">Courier Fleet Registration</a>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <strong style="font-size: 15px; color: var(--color-on-surface);">Customer Support</strong>
-                    <p style="font-size: 14px; color: var(--color-on-surface-variant);">📞 +94 11 759 8400</p>
-                    <p style="font-size: 14px; color: var(--color-on-surface-variant);">✉️ support@harvestly.lk</p>
-                    <p style="font-size: 14px; color: var(--color-on-surface-variant);">📍 Colombo 03, Sri Lanka</p>
+                    <p style="font-size: 14px; color: var(--color-on-surface-variant); margin:0;">📞 +94 11 759 8400</p>
+                    <p style="font-size: 14px; color: var(--color-on-surface-variant); margin:0;">✉️ support@harvestly.lk</p>
+                    <p style="font-size: 14px; color: var(--color-on-surface-variant); margin:0;">📍 Colombo 03, Sri Lanka</p>
                 </div>
             </div>
 
             <div style="padding-top: 24px; border-top: 1px solid var(--color-outline-variant); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; font-size: 13px; color: var(--color-outline);">
                 <p>© 2026 Harvestly Technologies Ltd. All rights reserved. Fresh direct farm-to-doorstep marketplace.</p>
-                <span>SL Registered Business (BRN PV-002941)</span>
+                <span>SL Registered Business</span>
             </div>
         </div>
     </footer>
 <?php endif; ?>
 
-<script src="js/main.js"></script>
+<script src="js/main.js?v=admin-shell-20260923"></script>
 </body>
 </html>

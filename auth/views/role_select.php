@@ -38,7 +38,7 @@
             </div>
             <div>
                 <h3 style="font-size: 20px; font-weight: 700; color: var(--color-on-surface);">Courier Partner</h3>
-                <span class="badge badge-pending" style="margin-top: 6px;">Company BRN Required</span>
+                <span class="badge badge-pending" style="margin-top: 6px;">Company Verification Required</span>
             </div>
             <p style="font-size: 14px; color: var(--color-on-surface-variant); line-height: 1.5;">Registered logistics company? Partner for scheduled farm-to-doorstep delivery routes.</p>
             <span class="btn btn-outline btn-sm" style="margin-top: 8px;">Register Company &rarr;</span>
