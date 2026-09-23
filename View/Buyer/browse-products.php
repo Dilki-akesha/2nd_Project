@@ -22,6 +22,9 @@ $stock =
 $sort =
     $sort ?? "Newest";
 
+$listingType = $listingType ?? "All Listing Types";
+$growingMethod = $growingMethod ?? "All Growing Methods";
+
 $added =
     $added ?? false;
 
@@ -436,6 +439,42 @@ $added =
                 </div>
 
 
+                <!-- LISTING TYPE -->
+
+                <div class="filter-group">
+
+                    <label for="listingType">
+                        Listing Type
+                    </label>
+
+                    <select id="listingType" name="listingType">
+                        <?php foreach (["All Listing Types", "Available Now", "Harvest Soon", "Seasonal"] as $type): ?>
+                            <option value="<?php echo htmlspecialchars($type); ?>" <?php echo $listingType === $type ? "selected" : ""; ?>>
+                                <?php echo htmlspecialchars($type); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+
+                </div>
+
+                <!-- GROWING METHOD -->
+
+                <div class="filter-group">
+
+                    <label for="growingMethod">
+                        Growing Method
+                    </label>
+
+                    <select id="growingMethod" name="growingMethod">
+                        <?php foreach (["All Growing Methods", "Organic", "Conventional"] as $method): ?>
+                            <option value="<?php echo htmlspecialchars($method); ?>" <?php echo $growingMethod === $method ? "selected" : ""; ?>>
+                                <?php echo htmlspecialchars($method); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+
+                </div>
+
                 <!-- CHECKBOXES -->
 
                 <div class="checkbox-group">
@@ -607,6 +646,11 @@ $added =
                         ?>"
                     >
 
+
+                    <!-- Preserve listing type -->
+
+                    <input type="hidden" name="listingType" value="<?php echo htmlspecialchars($listingType); ?>">
+                    <input type="hidden" name="growingMethod" value="<?php echo htmlspecialchars($growingMethod); ?>">
 
                     <!-- Preserve price -->
 

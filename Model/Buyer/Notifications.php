@@ -6,13 +6,37 @@ final class Notifications
 {
     private function map(array $row): array
     {
-        $type = ucfirst(strtolower(trim((string)($row['type'] ?? 'System'))));
+        $rawType = trim((string)($row['type'] ?? 'System'));
+        $typeKey = strtolower($rawType);
+
+        $typeAliases = [
+            'order' => 'Orders',
+            'orders' => 'Orders',
+            'delivery' => 'Delivery',
+            'deliveries' => 'Delivery',
+            'payment' => 'Payments',
+            'payments' => 'Payments',
+            'promotion' => 'Promotions',
+            'promotions' => 'Promotions',
+            'complaint' => 'Complaints',
+            'complaints' => 'Complaints',
+            'review' => 'Reviews',
+            'reviews' => 'Reviews',
+            'system' => 'System',
+        ];
+
+        $type = $typeAliases[$typeKey] ?? ucfirst(strtolower($rawType));
+        if (!in_array($type, ['Orders', 'Delivery', 'Payments', 'Promotions', 'Complaints', 'Reviews', 'System'], true)) {
+            $type = 'System';
+        }
 
         $iconByType = [
             'Orders' => 'shopping_bag',
             'Delivery' => 'local_shipping',
             'Payments' => 'payments',
             'Promotions' => 'local_offer',
+            'Complaints' => 'report_problem',
+            'Reviews' => 'rate_review',
             'System' => 'info',
         ];
 
@@ -21,6 +45,8 @@ final class Notifications
             'Delivery' => 'Track Order',
             'Payments' => 'View Orders',
             'Promotions' => 'Shop Now',
+            'Complaints' => 'View Complaints',
+            'Reviews' => 'View Reviews',
             'System' => 'View Products',
         ];
 
@@ -29,6 +55,8 @@ final class Notifications
             'Delivery' => url('Controller/Buyer/OrdersController.php'),
             'Payments' => url('Controller/Buyer/OrdersController.php'),
             'Promotions' => url('Controller/Buyer/ProductController.php'),
+            'Complaints' => url('Controller/Buyer/ComplaintsController.php'),
+            'Reviews' => url('Controller/Buyer/ReviewsController.php'),
             'System' => url('Controller/Buyer/ProductController.php'),
         ];
 
@@ -42,11 +70,18 @@ final class Notifications
         $row['action'] = trim((string)($row['action_label'] ?? '')) ?: ($defaultAction[$type] ?? 'View');
         $row['action_url'] = trim((string)($row['action_url'] ?? '')) ?: ($defaultUrl[$type] ?? url('Controller/Buyer/DashboardController.php'));
 
-        // Delivery notifications should open the exact order when its number is present.
-        if ($type === 'Delivery' && preg_match('/ORD-[A-Z0-9-]+/i', (string)($row['message'] ?? ''), $match)) {
-            $row['action'] = 'Track Order';
-            $row['action_url'] = url('Controller/Buyer/OrderTrackingController.php?id=' . urlencode($match[0]));
+        // If a notification contains an order number, make the action open that order's tracking page.
+        if (preg_match('/ORD-[A-Z0-9-]+/i', (string)($row['message'] ?? ''), $match)) {
+            $orderId = $match[0];
+            if ($type === 'Delivery') {
+                $row['action'] = 'Track Order';
+                $row['action_url'] = url('Controller/Buyer/OrderTrackingController.php?id=' . urlencode($orderId));
+            } elseif ($type === 'Orders' || $type === 'Payments') {
+                $row['action'] = 'View Order';
+                $row['action_url'] = url('Controller/Buyer/OrderTrackingController.php?id=' . urlencode($orderId));
+            }
         }
+
         $row['time'] = !empty($row['created_at'])
             ? date('M d, Y H:i', strtotime((string)$row['created_at']))
             : 'Just now';

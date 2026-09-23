@@ -7,6 +7,8 @@ require_once __DIR__ . '/Orders.php';
 
 final class Checkout
 {
+    private const SERVICE_FEE = 50.00;
+
     private Cart $cart;
     private Orders $orders;
 
@@ -16,9 +18,9 @@ final class Checkout
         $this->orders = new Orders();
     }
 
-    public function getCartItems(): array
+    public function getCartItems(?string $farmer = null): array
     {
-        return $this->cart->getItems();
+        return $this->cart->getItems($farmer);
     }
 
     public function getSummary(array $items): array
@@ -30,8 +32,9 @@ final class Checkout
         return [
             'subtotal' => $subtotal,
             'quantity' => $quantity,
+            'serviceFee' => self::SERVICE_FEE,
             'deliveryFee' => $deliveryFee,
-            'total' => $subtotal + $deliveryFee,
+            'total' => $subtotal + self::SERVICE_FEE + $deliveryFee,
         ];
     }
 
@@ -43,6 +46,7 @@ final class Checkout
             'city',
             'address',
             'postal',
+            'destination_district',
             'payment',
         ];
 
@@ -73,30 +77,18 @@ final class Checkout
             ];
         }
 
-        if ($payment === 'card') {
-            $cardNumber = preg_replace(
-                '/\D+/',
-                '',
-                (string)($data['cardNumber'] ?? '')
-            );
-            $expiry = trim((string)($data['expiry'] ?? ''));
-            $cvv = preg_replace(
-                '/\D+/',
-                '',
-                (string)($data['cvv'] ?? '')
-            );
+        $districts = [
+            'Ampara','Anuradhapura','Badulla','Batticaloa','Colombo','Galle','Gampaha','Hambantota',
+            'Jaffna','Kalutara','Kandy','Kegalle','Kilinochchi','Kurunegala','Mannar','Matale',
+            'Matara','Monaragala','Mullaitivu','Nuwara Eliya','Polonnaruwa','Puttalam','Ratnapura',
+            'Trincomalee','Vavuniya'
+        ];
 
-            if (
-                strlen($cardNumber) < 13 ||
-                strlen($cardNumber) > 19 ||
-                !preg_match('/^\d{2}\/\d{2}$/', $expiry) ||
-                strlen($cvv) !== 3
-            ) {
-                return [
-                    'valid' => false,
-                    'message' => 'Please enter valid demo card details.',
-                ];
-            }
+        if (!in_array(trim((string)($data['destination_district'] ?? '')), $districts, true)) {
+            return [
+                'valid' => false,
+                'message' => 'Please select a valid destination district.',
+            ];
         }
 
         return [
@@ -113,7 +105,12 @@ final class Checkout
             $data
         );
 
-        $this->cart->clear();
+        $farmer = trim((string)($data['farmer'] ?? ''));
+        if ($farmer !== '') {
+            $this->cart->clearFarmer($farmer);
+        } else {
+            $this->cart->clear();
+        }
 
         return $order;
     }

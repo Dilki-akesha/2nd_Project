@@ -14,9 +14,9 @@ final class Product
     private function normalizeProduct(array $product): array
     {
         if (mb_strtolower(trim((string)($product['name'] ?? ''))) === 'coconut') {
-            $product['image'] = url('assets/coconut-sri-lanka.jpg');
+            $product['image'] = url('assets/coconut-sri-lanka.jpeg');
         }
-        return $this->normalizeProduct($product);
+        return $product;
     }
 
     private function map(array $product): array
@@ -53,6 +53,38 @@ final class Product
         $product = $stmt->fetch();
 
         return $product ? $this->map($product) : null;
+    }
+
+    public function getFarmerStore(string $farmer): ?array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT * FROM products WHERE farmer = ? ORDER BY created_at DESC, id DESC'
+        );
+        $stmt->execute([$farmer]);
+        $rows = $stmt->fetchAll();
+
+        if (!$rows) {
+            return null;
+        }
+
+        $products = array_map(fn(array $row) => $this->map($row), $rows);
+        $ratings = array_values(array_filter(array_map(
+            fn(array $row) => (float)($row['farmer_rating'] ?? 0),
+            $products
+        ), fn(float $rating) => $rating > 0));
+
+        $first = $products[0];
+        $rating = $ratings ? array_sum($ratings) / count($ratings) : (float)$first['rating'];
+
+        return [
+            'name' => $first['farmer'],
+            'rating' => round($rating, 1),
+            'district' => $first['farm'] ?: 'Sri Lanka',
+            'farm' => $first['farm'] ?: '',
+            'experience' => $first['experience'] ?: 'Local Farmer',
+            'delivery' => $first['delivery'] ?: 'Delivery available',
+            'products' => $products,
+        ];
     }
 
     public function create(array $data): int

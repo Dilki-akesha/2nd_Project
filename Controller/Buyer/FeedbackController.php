@@ -17,6 +17,8 @@ $reviewMessage = '';
 $complaintMessage = '';
 $reviews = $model->getReviews();
 $complaints = $model->getComplaints();
+$reviewableOrders = $model->getReviewableOrders();
+$complaintOrders = $model->getComplaintOrders();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = trim((string)($_POST['action'] ?? ''));
@@ -38,6 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'success' => $success,
             'message' => $success ? 'Review updated successfully.' : 'Review could not be updated.',
         ]);
+        exit;
+    }
+
+    if ($action === 'update_complaint') {
+        $success = $model->updateComplaint((int)($_POST['id'] ?? 0), $_POST);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => $success, 'message' => $success ? 'Complaint updated successfully.' : 'Complaint could not be updated.']);
         exit;
     }
 
@@ -63,6 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $reviews = $model->getReviews();
     $complaints = $model->getComplaints();
+    $reviewableOrders = $model->getReviewableOrders();
+    $complaintOrders = $model->getComplaintOrders();
 }
 
 require __DIR__ . '/../../View/Buyer/feedback.php';

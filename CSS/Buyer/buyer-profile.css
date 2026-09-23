@@ -815,3 +815,29 @@ a {
 .logout-link:hover {
     color: #8f1c14;
 }
+
+.profile-error-message {
+    color: #ba1a1a;
+    background: #ffdad6;
+    border-color: #f0b7b2;
+}
+
+.delete-account-btn {
+    border: 1px solid #ba1a1a;
+    background: #fff;
+    color: #ba1a1a;
+    padding: 12px 20px;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 12px;
+}
+
+.delete-account-btn:hover {
+    background: #ffdad6;
+}

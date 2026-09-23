@@ -479,6 +479,58 @@ if (empty($images)) {
             </div>
 
 
+            <!-- PRODUCT DETAILS -->
+
+            <div class="product-meta-card">
+
+                <div class="product-meta-grid">
+
+                    <div class="product-meta-item">
+                        <small>Category</small>
+                        <strong><?php echo htmlspecialchars($product["category"] ?? "Not specified"); ?></strong>
+                    </div>
+
+                    <div class="product-meta-item">
+                        <small>Listing Type</small>
+                        <strong><?php echo htmlspecialchars($product["listing_type"] ?? "Not specified"); ?></strong>
+                    </div>
+
+                    <div class="product-meta-item">
+                        <small>Growing Method</small>
+                        <strong><?php echo htmlspecialchars($product["growing_method"] ?? ($product["organic"] ? "Organic" : "Conventional")); ?></strong>
+                    </div>
+
+                    <div class="product-meta-item">
+                        <small>Quality Grade</small>
+                        <strong><?php
+                            $qualityGrade = trim((string)($product["quality_grade"] ?? ""));
+                            if ($qualityGrade === "" || strcasecmp($qualityGrade, "Farmer Declared") === 0) {
+                                echo "Farmer Declared";
+                            } else {
+                                echo "Farmer Declared: " . htmlspecialchars($qualityGrade);
+                            }
+                        ?></strong>
+                    </div>
+
+                    <div class="product-meta-item">
+                        <small>Freshness</small>
+                        <strong><?php echo !empty($product["fresh"]) ? "Fresh Today" : "Standard Freshness"; ?></strong>
+                    </div>
+
+                    <div class="product-meta-item">
+                        <small>Shelf Life</small>
+                        <strong><?php echo htmlspecialchars($product["shelf_life"] ?? "Not specified"); ?></strong>
+                    </div>
+                    <div class="product-meta-item">
+                        <small>Best Before</small>
+                        <strong><?php echo htmlspecialchars($product["best_before"] ?? "Not specified"); ?></strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
             <!-- DESCRIPTION -->
 
             <p class="description">
@@ -490,6 +542,38 @@ if (empty($images)) {
                 ?>
 
             </p>
+
+
+            <!-- =================================================
+                 DELIVERY DESTINATION
+            ================================================== -->
+
+            <div class="destination-card">
+
+                <div class="destination-field">
+                    <label for="destinationDistrict">Destination District</label>
+                    <select id="destinationDistrict" name="destination_district">
+                        <option value="">Select District</option>
+                        <?php
+                        $districts = [
+                            "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo",
+                            "Galle", "Gampaha", "Hambantota", "Jaffna", "Kalutara",
+                            "Kandy", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar",
+                            "Matale", "Matara", "Monaragala", "Mullaitivu", "Nuwara Eliya",
+                            "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"
+                        ];
+                        foreach ($districts as $district):
+                        ?>
+                            <option value="<?php echo htmlspecialchars($district); ?>"><?php echo htmlspecialchars($district); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="estimated-fee">
+                    <small>Estimated Delivery Fee</small>
+                    <strong id="estimatedDeliveryFee">Calculated at checkout</strong>
+                </div>
+            </div>
 
 
             <!-- =================================================
@@ -692,16 +776,16 @@ if (empty($images)) {
 
                 <div class="farmer-buttons">
 
-                    <button
-                        type="button"
+                    <a
+                        href="<?php echo htmlspecialchars(buyerRoute('FarmerStoreController.php', 'farmer=' . rawurlencode($product['farmer']))); ?>"
                         class="view-store"
                     >
                         View Store
-                    </button>
+                    </a>
 
 
-                    <button
-                        type="button"
+                    <a
+                        href="<?php echo htmlspecialchars(buyerRoute('FarmerContactController.php', 'farmer=' . rawurlencode($product['farmer']))); ?>"
                         class="contact-btn"
                     >
 
@@ -711,7 +795,7 @@ if (empty($images)) {
 
                         Contact
 
-                    </button>
+                    </a>
 
                 </div>
 

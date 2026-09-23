@@ -3,6 +3,33 @@ $buyer = isset($buyer) ? $buyer : [];
 $orderStats = isset($orderStats) ? $orderStats : ['total'=>0,'delivered'=>0,'pending'=>0,'cancelled'=>0];
 $success = isset($success) ? $success : '';
 $error = isset($error) ? $error : '';
+
+$profileImage = trim((string)($buyer['profile_image'] ?? ''));
+$profileImage = $profileImage !== ''
+    ? $profileImage
+    : '/Harvestly/assets/harvestly-logo.jpeg';
+
+$buyerName = (string)($buyer['name'] ?? '');
+$buyerEmail = (string)($buyer['email'] ?? '');
+$buyerPhone = (string)($buyer['phone'] ?? '');
+$buyerCity = (string)($buyer['city'] ?? '');
+$buyerDistrict = (string)($buyer['district'] ?? '');
+$buyerAddress = (string)($buyer['address'] ?? '');
+$buyerJoined = (string)(
+    $buyer['joined']
+    ?? $buyer['created_at']
+    ?? $buyer['registered_at']
+    ?? ''
+);
+
+if ($buyerJoined !== '') {
+    $timestamp = strtotime($buyerJoined);
+    $buyerJoined = $timestamp !== false
+        ? date('F Y', $timestamp)
+        : $buyerJoined;
+} else {
+    $buyerJoined = 'Not available';
+}
 ?>
 
 
@@ -83,13 +110,13 @@ $error = isset($error) ? $error : '';
             <div class="user-menu">
 
                 <img
-                    src="<?php echo $buyer["profile_image"]; ?>"
+                    src="<?php echo htmlspecialchars($profileImage, ENT_QUOTES, "UTF-8"); ?>"
                     alt="Profile"
                     id="navProfileImage"
                 >
 
                 <span>
-                    <?php echo $buyer["name"]; ?>
+                    <?php echo htmlspecialchars($buyerName, ENT_QUOTES, "UTF-8"); ?>
                 </span>
 
                 <a
@@ -121,64 +148,15 @@ $error = isset($error) ? $error : '';
 
             <ul>
 
-                <li>
-
-                    <a href="/Harvestly/Controller/Buyer/DashboardController.php">
-
-                        <span class="material-symbols-outlined">
-                            home
-                        </span>
-
-                        <span>Home</span>
-
-                    </a>
-
-                </li>
-
-                <li>
-
-                    <a href="/Harvestly/Controller/Buyer/OrdersController.php">
-
-                        <span class="material-symbols-outlined">
-                            receipt_long
-                        </span>
-
-                        <span>Orders</span>
-
-                    </a>
-
-                </li>
-
-                <li>
-
-                    <a href="/Harvestly/Controller/Buyer/NotificationsController.php">
-
-                        <span class="material-symbols-outlined">
-                            notifications
-                        </span>
-
-                        <span>Notifications</span>
-
-                    </a>
-
-                </li>
-
-                <li>
-
-                    <a
-                        href="/Harvestly/Controller/Buyer/ProfileController.php"
-                        class="active"
-                    >
-
-                        <span class="material-symbols-outlined">
-                            person
-                        </span>
-
-                        <span>Profile</span>
-
-                    </a>
-
-                </li>
+                <li><a href="/Harvestly/Controller/Buyer/DashboardController.php"><span class="material-symbols-outlined">dashboard</span><span>Dashboard</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/ProductController.php"><span class="material-symbols-outlined">storefront</span><span>Browse Products</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/CartController.php"><span class="material-symbols-outlined">shopping_cart</span><span>Cart</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/OrdersController.php" ><span class="material-symbols-outlined">receipt_long</span><span>My Orders</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/FeedbackController.php"><span class="material-symbols-outlined">rate_review</span><span>Reviews</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/FeedbackController.php"><span class="material-symbols-outlined">report_problem</span><span>Complaints</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/NotificationsController.php"><span class="material-symbols-outlined">notifications</span><span>Notifications</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/ProfileController.php" class="active"><span class="material-symbols-outlined">person</span><span>Profile</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/LogoutController.php"><span class="material-symbols-outlined">logout</span><span>Logout</span></a></li>
 
             </ul>
 
@@ -216,6 +194,20 @@ $error = isset($error) ? $error : '';
 
         <?php endif; ?>
 
+        <?php if ($error): ?>
+
+            <div class="success-message profile-error-message">
+
+                <span class="material-symbols-outlined">
+                    error
+                </span>
+
+                <?php echo htmlspecialchars($error, ENT_QUOTES, "UTF-8"); ?>
+
+            </div>
+
+        <?php endif; ?>
+
 
         <!-- PROFILE CARD -->
 
@@ -226,7 +218,7 @@ $error = isset($error) ? $error : '';
                 <div class="profile-image-wrapper">
 
                     <img
-                        src="<?php echo $buyer["profile_image"]; ?>"
+                        src="<?php echo htmlspecialchars($profileImage, ENT_QUOTES, "UTF-8"); ?>"
                         id="profilePreview"
                         alt="Buyer Profile"
                     >
@@ -247,7 +239,7 @@ $error = isset($error) ? $error : '';
                 <div class="profile-title">
 
                     <h2>
-                        <?php echo $buyer["name"]; ?>
+                        <?php echo htmlspecialchars($buyerName, ENT_QUOTES, "UTF-8"); ?>
                     </h2>
 
                     <p>
@@ -314,7 +306,7 @@ $error = isset($error) ? $error : '';
                         <input
                             type="text"
                             name="name"
-                            value="<?php echo $buyer["name"]; ?>"
+                            value="<?php echo htmlspecialchars($buyerName, ENT_QUOTES, "UTF-8"); ?>"
                             required
                         >
 
@@ -328,7 +320,7 @@ $error = isset($error) ? $error : '';
                         <input
                             type="email"
                             name="email"
-                            value="<?php echo $buyer["email"]; ?>"
+                            value="<?php echo htmlspecialchars($buyerEmail, ENT_QUOTES, "UTF-8"); ?>"
                             required
                         >
 
@@ -342,7 +334,7 @@ $error = isset($error) ? $error : '';
                         <input
                             type="text"
                             name="phone"
-                            value="<?php echo $buyer["phone"]; ?>"
+                            value="<?php echo htmlspecialchars($buyerPhone, ENT_QUOTES, "UTF-8"); ?>"
                         >
 
                     </div>
@@ -350,7 +342,7 @@ $error = isset($error) ? $error : '';
 
                     <div class="form-group">
 
-                        <label>Registered City</label>
+                        <label>City</label>
 
                         <select name="city">
 
@@ -393,23 +385,33 @@ $error = isset($error) ? $error : '';
 
                         <label>District</label>
 
-                        <select name="district">
+                        <select name="district" required>
 
-                            <option
-                                <?php echo $buyer["district"] === "Colombo" ? "selected" : ""; ?>
-                            >
-                                Colombo
-                            </option>
-
-                            <option>Kandy</option>
-
-                            <option>Galle</option>
-
-                            <option>Ratnapura</option>
-
-                            <option>Gampaha</option>
-
-                            <option>Kalutara</option>
+                            <option value="Ampara" <?php echo $buyerDistrict === "Ampara" ? "selected" : ""; ?>>Ampara</option>
+                            <option value="Anuradhapura" <?php echo $buyerDistrict === "Anuradhapura" ? "selected" : ""; ?>>Anuradhapura</option>
+                            <option value="Badulla" <?php echo $buyerDistrict === "Badulla" ? "selected" : ""; ?>>Badulla</option>
+                            <option value="Batticaloa" <?php echo $buyerDistrict === "Batticaloa" ? "selected" : ""; ?>>Batticaloa</option>
+                            <option value="Colombo" <?php echo $buyerDistrict === "Colombo" ? "selected" : ""; ?>>Colombo</option>
+                            <option value="Galle" <?php echo $buyerDistrict === "Galle" ? "selected" : ""; ?>>Galle</option>
+                            <option value="Gampaha" <?php echo $buyerDistrict === "Gampaha" ? "selected" : ""; ?>>Gampaha</option>
+                            <option value="Hambantota" <?php echo $buyerDistrict === "Hambantota" ? "selected" : ""; ?>>Hambantota</option>
+                            <option value="Jaffna" <?php echo $buyerDistrict === "Jaffna" ? "selected" : ""; ?>>Jaffna</option>
+                            <option value="Kalutara" <?php echo $buyerDistrict === "Kalutara" ? "selected" : ""; ?>>Kalutara</option>
+                            <option value="Kandy" <?php echo $buyerDistrict === "Kandy" ? "selected" : ""; ?>>Kandy</option>
+                            <option value="Kegalle" <?php echo $buyerDistrict === "Kegalle" ? "selected" : ""; ?>>Kegalle</option>
+                            <option value="Kilinochchi" <?php echo $buyerDistrict === "Kilinochchi" ? "selected" : ""; ?>>Kilinochchi</option>
+                            <option value="Kurunegala" <?php echo $buyerDistrict === "Kurunegala" ? "selected" : ""; ?>>Kurunegala</option>
+                            <option value="Mannar" <?php echo $buyerDistrict === "Mannar" ? "selected" : ""; ?>>Mannar</option>
+                            <option value="Matale" <?php echo $buyerDistrict === "Matale" ? "selected" : ""; ?>>Matale</option>
+                            <option value="Matara" <?php echo $buyerDistrict === "Matara" ? "selected" : ""; ?>>Matara</option>
+                            <option value="Monaragala" <?php echo $buyerDistrict === "Monaragala" ? "selected" : ""; ?>>Monaragala</option>
+                            <option value="Mullaitivu" <?php echo $buyerDistrict === "Mullaitivu" ? "selected" : ""; ?>>Mullaitivu</option>
+                            <option value="Nuwara Eliya" <?php echo $buyerDistrict === "Nuwara Eliya" ? "selected" : ""; ?>>Nuwara Eliya</option>
+                            <option value="Polonnaruwa" <?php echo $buyerDistrict === "Polonnaruwa" ? "selected" : ""; ?>>Polonnaruwa</option>
+                            <option value="Puttalam" <?php echo $buyerDistrict === "Puttalam" ? "selected" : ""; ?>>Puttalam</option>
+                            <option value="Ratnapura" <?php echo $buyerDistrict === "Ratnapura" ? "selected" : ""; ?>>Ratnapura</option>
+                            <option value="Trincomalee" <?php echo $buyerDistrict === "Trincomalee" ? "selected" : ""; ?>>Trincomalee</option>
+                            <option value="Vavuniya" <?php echo $buyerDistrict === "Vavuniya" ? "selected" : ""; ?>>Vavuniya</option>
 
                         </select>
 
@@ -418,18 +420,27 @@ $error = isset($error) ? $error : '';
 
                     <div class="form-group full-width">
 
-                        <label>Delivery Address</label>
+                        <label>Address</label>
 
                         <textarea
                             name="address"
                             rows="3"
                             required
-                        ><?php echo $buyer["address"]; ?></textarea>
+                        ><?php echo htmlspecialchars($buyerAddress, ENT_QUOTES, "UTF-8"); ?></textarea>
 
                     </div>
 
                 </div>
 
+
+                <button
+                    type="button"
+                    class="delete-account-btn"
+                    onclick="deleteBuyerAccount()"
+                >
+                    <span class="material-symbols-outlined">delete</span>
+                    Delete Account
+                </button>
 
                 <div class="form-actions">
 
@@ -458,6 +469,15 @@ $error = isset($error) ? $error : '';
 
                 </div>
 
+            </form>
+
+            <form
+                method="POST"
+                id="deleteAccountForm"
+                action="/Harvestly/Controller/Buyer/ProfileController.php"
+                hidden
+            >
+                <input type="hidden" name="action" value="delete_account">
             </form>
 
         </section>
@@ -599,7 +619,7 @@ $error = isset($error) ? $error : '';
                     <strong>Member Since</strong>
 
                     <p>
-                        <?php echo $buyer["joined"]; ?>
+                        <?php echo htmlspecialchars($buyerJoined, ENT_QUOTES, "UTF-8"); ?>
                     </p>
 
                 </div>

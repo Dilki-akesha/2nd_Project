@@ -51,6 +51,80 @@ body {
 }
 
 
+
+/* BUYER NAVIGATION */
+.tracking-shell {
+    display: flex;
+    align-items: flex-start;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 25px 60px;
+    gap: 25px;
+}
+
+.buyer-sidebar {
+    width: 220px;
+    flex: 0 0 220px;
+    position: sticky;
+    top: 20px;
+}
+
+.buyer-sidebar .sidebar-card {
+    background: #fff;
+    border: 1px solid #e2e8e4;
+    border-radius: 14px;
+    padding: 10px;
+    box-shadow: 0 8px 24px rgba(21,53,42,.05);
+}
+
+.buyer-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.buyer-sidebar li {
+    margin: 3px 0;
+}
+
+.buyer-sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 12px;
+    border-radius: 9px;
+    text-decoration: none;
+    color: #52645d;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background .15s ease, color .15s ease;
+}
+
+.buyer-sidebar a:hover {
+    background: #f0f7f3;
+    color: #075b39;
+}
+
+.buyer-sidebar a.active {
+    background: #e4f4ea;
+    color: #075b39;
+}
+
+.buyer-sidebar .nav-icon {
+    width: 22px;
+    text-align: center;
+    font-size: 19px;
+    line-height: 1;
+}
+
+/* Let the tracking content use the remaining space. */
+.tracking-shell > .tracking-container {
+    flex: 1;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
 /* MAIN */
 
 .tracking-container {
@@ -316,6 +390,45 @@ body {
 
 
 /* MOBILE */
+
+
+@media (max-width: 800px) {
+    .tracking-shell {
+        display: block;
+        padding: 15px;
+    }
+
+    .buyer-sidebar {
+        width: 100%;
+        position: static;
+        margin-bottom: 18px;
+    }
+
+    .buyer-sidebar .sidebar-card {
+        overflow-x: auto;
+        padding: 7px;
+    }
+
+    .buyer-sidebar ul {
+        display: flex;
+        gap: 5px;
+        min-width: max-content;
+    }
+
+    .buyer-sidebar li {
+        margin: 0;
+    }
+
+    .buyer-sidebar a {
+        white-space: nowrap;
+        padding: 9px 11px;
+        font-size: 12px;
+    }
+
+    .tracking-shell > .tracking-container {
+        width: 100%;
+    }
+}
 
 @media (max-width: 800px) {
 

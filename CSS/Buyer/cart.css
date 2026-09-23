@@ -1220,3 +1220,92 @@ img {
     }
 
 }
+
+/* Farmer-grouped cart checkout */
+.farmer-cart-group {
+    background: var(--surface);
+    border: 1px solid rgba(193, 201, 191, 0.75);
+    border-radius: var(--radius-md);
+    padding: 20px;
+}
+
+.farmer-cart-group + .farmer-cart-group {
+    margin-top: 16px;
+}
+
+.farmer-cart-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(193, 201, 191, 0.55);
+}
+
+.farmer-group-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+}
+
+.farmer-cart-group-header h2 {
+    color: var(--primary);
+    font-family: "Hanken Grotesk", sans-serif;
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.farmer-group-count {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.farmer-cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.farmer-cart-items .cart-item {
+    box-shadow: none;
+    border: 1px solid rgba(193, 201, 191, 0.5);
+}
+
+.farmer-group-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.farmer-checkout-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 10px;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    transition: transform .2s ease, opacity .2s ease;
+}
+
+.farmer-checkout-button:hover {
+    opacity: .92;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+    .farmer-cart-group { padding: 14px; }
+    .farmer-cart-group-header { align-items: flex-start; }
+    .farmer-group-footer { justify-content: stretch; }
+    .farmer-checkout-button { width: 100%; }
+}

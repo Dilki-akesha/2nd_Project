@@ -186,86 +186,15 @@ if (!isset($orders) || !is_array($orders)) {
 
             <ul>
 
-
-                <!-- Dashboard -->
-
-                <li>
-
-                    <a
-                        href="/Harvestly/Controller/Buyer/DashboardController.php"
-                    >
-
-                        <span class="material-symbols-outlined">
-                            dashboard
-                        </span>
-
-                        <span>
-                            Dashboard
-                        </span>
-
-                    </a>
-
-                </li>
-
-
-                <!-- Orders -->
-
-                <li>
-
-                    <a
-                        href="/Harvestly/Controller/Buyer/OrdersController.php"
-                        class="active"
-                    >
-
-                        <span class="material-symbols-outlined">
-                            receipt_long
-                        </span>
-
-                        <span>
-                            Orders
-                        </span>
-
-                    </a>
-
-                </li>
-
-
-                <!-- Wishlist -->
-
-                <li>
-
-                    <a href="/Harvestly/Controller/Buyer/ProductController.php">
-
-                        <span class="material-symbols-outlined">
-                            favorite
-                        </span>
-
-                        <span>
-                            Wishlist
-                        </span>
-
-                    </a>
-
-                </li>
-
-
-                <!-- Settings -->
-
-                <li>
-
-                    <a href="/Harvestly/Controller/Buyer/ProfileController.php">
-
-                        <span class="material-symbols-outlined">
-                            settings
-                        </span>
-
-                        <span>
-                            Settings
-                        </span>
-
-                    </a>
-
-                </li>
+                <li><a href="/Harvestly/Controller/Buyer/DashboardController.php"><span class="material-symbols-outlined">dashboard</span><span>Dashboard</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/ProductController.php"><span class="material-symbols-outlined">storefront</span><span>Browse Products</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/CartController.php"><span class="material-symbols-outlined">shopping_cart</span><span>Cart</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/OrdersController.php" class="active"><span class="material-symbols-outlined">receipt_long</span><span>My Orders</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/FeedbackController.php"><span class="material-symbols-outlined">rate_review</span><span>Reviews</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/FeedbackController.php"><span class="material-symbols-outlined">report_problem</span><span>Complaints</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/NotificationsController.php"><span class="material-symbols-outlined">notifications</span><span>Notifications</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/ProfileController.php"><span class="material-symbols-outlined">person</span><span>Profile</span></a></li>
+                <li><a href="/Harvestly/Controller/Buyer/LogoutController.php"><span class="material-symbols-outlined">logout</span><span>Logout</span></a></li>
 
             </ul>
 

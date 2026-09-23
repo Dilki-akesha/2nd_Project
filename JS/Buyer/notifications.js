@@ -10,6 +10,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileMenuButton = document.getElementById('mobileMenuButton');
     const mobileMenu = document.getElementById('mobileMenu');
     const settingsButton = document.getElementById('settingsButton');
+    const notificationButton = document.getElementById('notificationButton');
+
+    function unreadCards() {
+        return document.querySelectorAll('.notification-card.unread');
+    }
+
+    function updateUnreadCount() {
+        const unread = unreadCards().length;
+        const number = document.querySelector('.unread-card .summary-number');
+
+        if (number) {
+            number.textContent = unread;
+        }
+
+        // Keep the header/mobile badge synchronized with the current unread count.
+        document.querySelectorAll('.notification-count-badge').forEach(badge => {
+            if (unread === 0) {
+                badge.remove();
+                return;
+            }
+
+            badge.textContent = unread > 99 ? '99+' : String(unread);
+        });
+
+        if (markAllReadButton) {
+            markAllReadButton.disabled = unread === 0;
+            markAllReadButton.innerHTML = unread === 0
+                ? '<span class="material-symbols-outlined">done</span> All Read'
+                : '<span class="material-symbols-outlined">done_all</span> Mark All as Read';
+        }
+    }
 
     function applyFilters() {
         const activeTab = document.querySelector('.filter-tab.active');
@@ -17,17 +48,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const search = (searchInput?.value || '').trim().toLowerCase();
 
         notificationCards.forEach(card => {
-            const type = card.dataset.type || '';
+            const isUnread = card.classList.contains('unread');
             const text = card.textContent.toLowerCase();
-            const promotion = card.classList.contains('promotion-card');
 
-            const matchesFilter =
-                filter === 'All' ||
-                type === filter ||
-                (filter === 'Promotions' && promotion);
+            let matchesFilter = true;
+
+            if (filter === 'Unread') {
+                matchesFilter = isUnread;
+            } else if (filter === 'Read') {
+                matchesFilter = !isUnread;
+            }
 
             const matchesSearch = search === '' || text.includes(search);
-
             card.style.display = matchesFilter && matchesSearch ? 'flex' : 'none';
         });
     }
@@ -55,20 +87,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return result;
     }
 
-    function updateUnreadCount() {
-        const unread = document.querySelectorAll('.notification-card.unread').length;
-        const number = document.querySelector('.summary-card:nth-child(2) .summary-number');
-
-        if (number) {
-            number.textContent = unread;
-        }
-    }
-
     function markCardAsRead(card) {
         card.classList.remove('unread', 'high-priority');
         card.classList.add('read');
         card.querySelector('.unread-dot')?.remove();
         updateUnreadCount();
+        applyFilters();
+    }
+
+    async function markOneRead(card) {
+        if (!card || !card.classList.contains('unread')) {
+            return true;
+        }
+
+        const id = card.dataset.id;
+        if (!id) {
+            return false;
+        }
+
+        await sendAction('read', id);
+        markCardAsRead(card);
+        return true;
     }
 
     filterTabs.forEach(tab => {
@@ -81,51 +120,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
     searchInput?.addEventListener('input', applyFilters);
 
+    // Clicking a notification marks it as read.
     notificationCards.forEach(card => {
         card.addEventListener('click', async event => {
             if (event.target.closest('.notification-action')) {
                 return;
             }
 
-            const id = card.dataset.id;
-            if (!id || !card.classList.contains('unread')) {
-                return;
-            }
-
             try {
-                await sendAction('read', id);
-                markCardAsRead(card);
+                await markOneRead(card);
             } catch (error) {
                 console.error(error);
             }
         });
     });
 
+    // Mark every notification as read.
     markAllReadButton?.addEventListener('click', async () => {
         try {
             await sendAction('read_all');
 
-            notificationCards.forEach(markCardAsRead);
-            markAllReadButton.innerHTML =
-                '<span class="material-symbols-outlined">done</span> All Read';
+            notificationCards.forEach(card => {
+                card.classList.remove('unread', 'high-priority');
+                card.classList.add('read');
+                card.querySelector('.unread-dot')?.remove();
+            });
+
+            updateUnreadCount();
+            applyFilters();
         } catch (error) {
             alert(error.message || 'Unable to mark notifications as read.');
         }
     });
 
+    // Action buttons mark the notification read first, then navigate.
     document.querySelectorAll('.notification-action').forEach(button => {
-        button.addEventListener('click', event => {
+        button.addEventListener('click', async event => {
             event.stopPropagation();
+
+            const card = button.closest('.notification-card');
             const target = button.dataset.url;
 
-            if (target) {
-                window.location.href = target;
+            try {
+                if (card) {
+                    await markOneRead(card);
+                }
+
+                if (target) {
+                    window.location.href = target;
+                }
+            } catch (error) {
+                console.error(error);
+                if (target) {
+                    window.location.href = target;
+                }
             }
         });
     });
 
     cartButton?.addEventListener('click', () => {
         window.location.href = '/Harvestly/Controller/Buyer/CartController.php';
+    });
+
+    notificationButton?.addEventListener('click', () => {
+        window.location.reload();
     });
 
     mobileMenuButton?.addEventListener('click', () => {
@@ -137,17 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-
     settingsButton?.addEventListener('click', () => {
         window.location.href = '/Harvestly/Controller/Buyer/ProfileController.php';
     });
 
-    document.querySelectorAll('.preference-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-            checkbox.closest('.preference-row')
-                ?.classList.toggle('disabled-preference', !checkbox.checked);
-        });
-    });
-
+    updateUnreadCount();
     applyFilters();
 });

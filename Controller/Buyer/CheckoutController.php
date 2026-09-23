@@ -11,6 +11,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json; charset=utf-8');
 
     try {
+        // Harvestly uses one checkout for the entire buyer cart, even when
+        // the cart contains products from multiple farmers.
+        $farmer = '';
         $items = $checkoutModel->getCartItems();
         $summary = $checkoutModel->getSummary($items);
 
@@ -57,7 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+$farmer = '';
 $cartItems = $checkoutModel->getCartItems();
+
+if (count($cartItems) === 0) {
+    redirect('Controller/Buyer/CartController.php');
+}
 $summary = $checkoutModel->getSummary($cartItems);
 
 if ($summary['quantity'] <= 0) {
@@ -65,6 +73,7 @@ if ($summary['quantity'] <= 0) {
 }
 
 $subtotal = $summary['subtotal'];
+$serviceFee = $summary['serviceFee'];
 $deliveryFee = $summary['deliveryFee'];
 $total = $summary['total'];
 $totalQuantity = $summary['quantity'];

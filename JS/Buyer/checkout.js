@@ -6,9 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const paymentMethods = document.querySelectorAll(".payment-method");
     const cardDetails = document.getElementById("cardDetails");
     const bankDetails = document.getElementById("bankDetails");
-    const cardNumber = document.getElementById("cardNumber");
-    const expiry = document.getElementById("expiry");
-    const cvv = document.getElementById("cvv");
     const phone = document.getElementById("phone") || form?.querySelector('[name="phone"]');
     const modal = document.getElementById("successModal");
     const successOrderId = document.getElementById("successOrderId");
@@ -22,15 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
             option.classList.toggle("selected", radio?.value === method);
         });
 
-        const isCard = method === "card";
-        const isBank = method === "bank";
-
-        cardDetails?.classList.toggle("hidden", !isCard);
-        bankDetails?.classList.toggle("hidden", !isBank);
-
-        if (cardNumber) cardNumber.required = isCard;
-        if (expiry) expiry.required = isCard;
-        if (cvv) cvv.required = isCard;
+        // No card number / expiry / CVV fields are collected by Harvestly.
+        cardDetails?.classList.toggle("hidden", method !== "card");
+        bankDetails?.classList.toggle("hidden", method !== "bank");
     }
 
     paymentMethods.forEach(option => {
@@ -44,21 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const selected = form.querySelector('input[name="payment"]:checked');
     setPaymentMethod(selected?.value || "card");
-
-    cardNumber?.addEventListener("input", function () {
-        let value = this.value.replace(/\D/g, "").slice(0, 16);
-        this.value = value.replace(/(.{4})/g, "$1 ").trim();
-    });
-
-    expiry?.addEventListener("input", function () {
-        let value = this.value.replace(/\D/g, "").slice(0, 4);
-        if (value.length > 2) value = value.slice(0, 2) + "/" + value.slice(2);
-        this.value = value;
-    });
-
-    cvv?.addEventListener("input", function () {
-        this.value = this.value.replace(/\D/g, "").slice(0, 3);
-    });
 
     phone?.addEventListener("input", function () {
         this.value = this.value.replace(/[^\d+ ]/g, "").slice(0, 15);
@@ -85,25 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        if (payment.value === "card") {
-            const digits = (cardNumber?.value || "").replace(/\D/g, "");
-            if (digits.length < 13 || digits.length > 19) {
-                alert("Please enter a valid demo card number.");
-                cardNumber?.focus();
-                return;
-            }
-            if (!/^\d{2}\/\d{2}$/.test(expiry?.value || "")) {
-                alert("Please enter expiry date as MM/YY.");
-                expiry?.focus();
-                return;
-            }
-            if (!/^\d{3}$/.test(cvv?.value || "")) {
-                alert("Please enter a 3-digit CVV.");
-                cvv?.focus();
-                return;
-            }
-        }
-
         confirmButton.disabled = true;
         const originalHTML = confirmButton.innerHTML;
         confirmButton.innerHTML = '<span>Processing...</span><span class="material-symbols-outlined">hourglass_top</span>';
@@ -116,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             const data = await response.json();
-            if (!response.ok || !data.success) throw new Error(data.message || "Unable to place order.");
+            if (!response.ok || !data.success) throw new Error(data.message || "Unable to place the order.");
 
             if (successOrderId) successOrderId.textContent = "#" + data.order.id;
             if (modal) {

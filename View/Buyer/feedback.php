@@ -172,6 +172,22 @@ $complaintMessage = $complaintMessage ?? '';
                   action="/Harvestly/Controller/Buyer/FeedbackController.php"
                   id="reviewForm">
 
+                <div class="form-group review-order-picker">
+                    <label for="reviewOrder">Completed Order</label>
+                    <select name="order_id" id="reviewOrder" required>
+                        <option value="" selected disabled>Select a completed order</option>
+                        <?php foreach (($reviewableOrders ?? []) as $reviewOrder): ?>
+                            <option value="<?= htmlspecialchars($reviewOrder['order_number']) ?>">
+                                <?= htmlspecialchars($reviewOrder['order_number']) ?> — Delivered <?= htmlspecialchars(date('M d, Y', strtotime($reviewOrder['delivered_at']))) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (empty($reviewableOrders)): ?>
+                        <small class="rule-note">Only completed orders delivered within the last 14 days can be reviewed.</small>
+                    <?php else: ?>
+                        <small class="rule-note">Reviews are available for 14 days after delivery.</small>
+                    <?php endif; ?>
+                </div>
 
                 <!-- Farmer Rating -->
 
@@ -393,6 +409,19 @@ $complaintMessage = $complaintMessage ?? '';
                 id="complaintForm">
 
 
+                <div class="form-group complaint-order-picker">
+                    <label for="complaintOrder">Order</label>
+                    <select name="order_id" id="complaintOrder" required>
+                        <option value="" selected disabled>Select a recently delivered order</option>
+                        <?php foreach (($complaintOrders ?? []) as $complaintOrder): ?>
+                            <option value="<?= htmlspecialchars($complaintOrder['order_number']) ?>">
+                                <?= htmlspecialchars($complaintOrder['order_number']) ?> — Delivered <?= htmlspecialchars(date('M d, Y H:i', strtotime($complaintOrder['delivered_at']))) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <small class="rule-note">Complaints must be submitted within 24 hours of delivery.</small>
+                </div>
+
                 <!-- Category -->
 
                 <div class="form-group">
@@ -414,21 +443,14 @@ $complaintMessage = $complaintMessage ?? '';
 
                         </option>
 
-                        <option value="quality">
-                            Produce Quality
-                        </option>
+                        <option value="Product Quality">Product Quality</option>
+                        <option value="Damaged Product">Damaged Product</option>
+                        <option value="Wrong Product">Wrong Product</option>
+                        <option value="Incorrect Quantity">Incorrect Quantity</option>
 
-                        <option value="delivery">
-                            Delivery Issues
-                        </option>
+                        <option value="Delivery Issue">Delivery Issue</option>
 
-                        <option value="price">
-                            Pricing / Billing
-                        </option>
-
-                        <option value="other">
-                            Other
-                        </option>
+                        <option value="Other">Other</option>
 
                     </select>
 
@@ -508,6 +530,41 @@ $complaintMessage = $complaintMessage ?? '';
         </section>
 
     </div>
+
+    <section class="history-grid">
+        <div class="history-card">
+            <div class="history-heading"><h2>My Reviews</h2><span><?= count($reviews ?? []) ?></span></div>
+            <?php if (empty($reviews)): ?>
+                <p class="empty-history">No reviews submitted yet.</p>
+            <?php else: ?>
+                <?php foreach ($reviews as $review): ?>
+                    <article class="history-item">
+                        <div><strong><?= htmlspecialchars($review['order_number'] ?? 'Order') ?></strong><span class="status-pill"><?= htmlspecialchars($review['status'] ?? 'Pending') ?></span></div>
+                        <div class="rating-line">Farmer: <?= str_repeat('★', (int)$review['farmer_rating']) ?> &nbsp; Delivery: <?= str_repeat('★', (int)$review['delivery_rating']) ?></div>
+                        <?php if (!empty($review['quality_comment'])): ?><p><?= htmlspecialchars($review['quality_comment']) ?></p><?php endif; ?>
+                        <?php if (!empty($review['delivery_comment'])): ?><p><?= htmlspecialchars($review['delivery_comment']) ?></p><?php endif; ?>
+                        <small><?= htmlspecialchars(date('M d, Y', strtotime($review['created_at']))) ?></small>
+                    </article>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+
+        <div class="history-card">
+            <div class="history-heading"><h2>My Complaints</h2><span><?= count($complaints ?? []) ?></span></div>
+            <?php if (empty($complaints)): ?>
+                <p class="empty-history">No complaints submitted yet.</p>
+            <?php else: ?>
+                <?php foreach ($complaints as $complaint): ?>
+                    <article class="history-item">
+                        <div><strong><?= htmlspecialchars($complaint['order_number'] ?? 'Order') ?></strong><span class="status-pill"><?= htmlspecialchars($complaint['status'] ?? 'Open') ?></span></div>
+                        <p><strong><?= htmlspecialchars($complaint['category']) ?></strong></p>
+                        <p><?= htmlspecialchars($complaint['details']) ?></p>
+                        <small><?= htmlspecialchars(date('M d, Y H:i', strtotime($complaint['created_at']))) ?></small>
+                    </article>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </section>
 
 </main>
 

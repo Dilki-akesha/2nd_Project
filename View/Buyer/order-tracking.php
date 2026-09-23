@@ -20,6 +20,11 @@
         href="<?= $baseUrl ?>/css/Buyer/order-tracking.css"
     >
 
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+        rel="stylesheet"
+    >
+
 </head>
 
 <body data-base-url="<?= htmlspecialchars($baseUrl, ENT_QUOTES) ?>" data-order-id="<?= htmlspecialchars($tracking['id'] ?? '', ENT_QUOTES) ?>">
@@ -110,11 +115,7 @@
         class="logo"
     >
 
-        <img src="/Harvestly/assets/harvestly-logo.png" alt="Harvestly" style="height:34px;width:auto;display:block;object-fit:contain;">
-
-        <span>
-            Harvestly
-        </span>
+        <img src="/Harvestly/assets/harvestly-logo.jpeg" alt="Harvestly" style="height:34px;width:auto;display:block;object-fit:contain;">
 
     </a>
 
@@ -124,7 +125,25 @@
 </header>
 
 
-<main class="tracking-container">
+<div class="tracking-shell">
+
+    <aside class="buyer-sidebar">
+        <div class="sidebar-card">
+            <ul>
+                <li><a href="<?= $baseUrl ?>/Controller/Buyer/DashboardController.php"><span class="material-symbols-outlined nav-icon">dashboard</span><span>Dashboard</span></a></li>
+                <li><a href="<?= $baseUrl ?>/Controller/Buyer/ProductController.php"><span class="material-symbols-outlined nav-icon">storefront</span><span>Browse Products</span></a></li>
+                <li><a href="<?= $baseUrl ?>/Controller/Buyer/CartController.php"><span class="material-symbols-outlined nav-icon">shopping_cart</span><span>Cart</span></a></li>
+                <li><a href="<?= $baseUrl ?>/Controller/Buyer/OrdersController.php" class="active"><span class="material-symbols-outlined nav-icon">receipt_long</span><span>My Orders</span></a></li>
+                <li><a href="<?= $baseUrl ?>/Controller/Buyer/FeedbackController.php"><span class="material-symbols-outlined nav-icon">rate_review</span><span>Reviews</span></a></li>
+                <li><a href="<?= $baseUrl ?>/Controller/Buyer/FeedbackController.php"><span class="material-symbols-outlined nav-icon">report_problem</span><span>Complaints</span></a></li>
+                <li><a href="<?= $baseUrl ?>/Controller/Buyer/NotificationsController.php"><span class="material-symbols-outlined nav-icon">notifications</span><span>Notifications</span></a></li>
+                <li><a href="<?= $baseUrl ?>/Controller/Buyer/ProfileController.php"><span class="material-symbols-outlined nav-icon">person</span><span>Profile</span></a></li>
+                <li><a href="<?= $baseUrl ?>/Controller/Buyer/LogoutController.php"><span class="material-symbols-outlined nav-icon">logout</span><span>Logout</span></a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <main class="tracking-container">
 
 
     <section class="page-header">
@@ -398,6 +417,8 @@
     </div>
 
 </main>
+
+</div>
 
 
 <!-- COMPLAINT MODAL -->

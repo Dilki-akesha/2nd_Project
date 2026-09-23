@@ -474,6 +474,94 @@ a {
 
 
 /* =========================
+   PRODUCT DETAILS
+========================= */
+
+.product-meta-card {
+    margin-bottom: 24px;
+    padding: 16px;
+    border: 1px solid var(--surface-high);
+    border-radius: 12px;
+    background: var(--surface-low);
+}
+
+.product-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 20px;
+}
+
+.product-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.product-meta-item small {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+}
+
+.product-meta-item strong {
+    color: var(--text);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+/* =========================
+   DELIVERY DESTINATION
+========================= */
+
+.destination-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, .8fr);
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    border: 1px solid var(--surface-high);
+    border-radius: 12px;
+    background: white;
+}
+
+.destination-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.destination-field label,
+.estimated-fee small {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.destination-field select {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--outline-light);
+    border-radius: 8px;
+    background: #f7f8f7;
+    color: var(--text);
+    outline: none;
+}
+
+.estimated-fee {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+}
+
+.estimated-fee strong {
+    color: var(--primary);
+    font-size: 14px;
+}
+
+/* =========================
    DESCRIPTION
 ========================= */
 
@@ -699,11 +787,21 @@ a {
 
 .view-store,
 .contact-btn {
-    flex: 1;
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
     height: 40px;
+    box-sizing: border-box;
     border-radius: 999px;
     font-size: 14px;
     font-weight: 700;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    white-space: nowrap;
 }
 
 .view-store {
@@ -720,10 +818,6 @@ a {
     border: 1px solid var(--primary);
     background: transparent;
     color: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
 }
 
 .contact-btn:hover {
@@ -1117,5 +1211,15 @@ a {
 
     .price {
         font-size: 28px;
+    }
+}
+
+@media (max-width: 700px) {
+    .product-meta-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .destination-card {
+        grid-template-columns: 1fr;
     }
 }

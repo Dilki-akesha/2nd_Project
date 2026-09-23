@@ -74,3 +74,40 @@ function resetProfile() {
     }
 
 }
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("profileForm");
+
+    if (!form) return;
+
+    form.addEventListener("submit", function (event) {
+        const email = form.querySelector('[name="email"]');
+        const phone = form.querySelector('[name="phone"]');
+
+        if (email && !email.checkValidity()) {
+            event.preventDefault();
+            email.reportValidity();
+            return;
+        }
+
+        if (phone && phone.value.trim() !== '' && !/^[0-9+\-\s()]{7,20}$/.test(phone.value.trim())) {
+            event.preventDefault();
+            alert("Please enter a valid contact number.");
+            phone.focus();
+        }
+    });
+});
+
+
+function deleteBuyerAccount() {
+    if (!window.confirm(
+        "Delete your Buyer account permanently? This action cannot be undone."
+    )) {
+        return;
+    }
+
+    const form = document.getElementById("deleteAccountForm");
+
+    if (form) {
+        form.submit();
+    }
+}

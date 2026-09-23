@@ -15,6 +15,14 @@ $success = $success ?? false;
 $successOrderId = $successOrderId ?? null;
 
 $error = $error ?? "";
+$farmer = $farmer ?? "";
+$checkoutFarmers = [];
+foreach ($cartItems as $checkoutItem) {
+    $seller = trim((string)($checkoutItem['seller'] ?? ''));
+    if ($seller !== '' && !in_array($seller, $checkoutFarmers, true)) {
+        $checkoutFarmers[] = $seller;
+    }
+}
 
 ?>
 
@@ -120,6 +128,12 @@ $error = $error ?? "";
         Checkout
     </h1>
 
+    <?php if (count($checkoutFarmers) === 1): ?>
+        <p class="checkout-farmer-label">Ordering from <strong><?php echo htmlspecialchars($checkoutFarmers[0]); ?></strong></p>
+    <?php elseif (count($checkoutFarmers) > 1): ?>
+        <p class="checkout-farmer-label">Ordering from <strong><?php echo count($checkoutFarmers); ?> farmers</strong></p>
+    <?php endif; ?>
+
 </div>
 
 
@@ -129,6 +143,8 @@ $error = $error ?? "";
     method="POST"
     class="checkout-grid"
 >
+
+<input type="hidden" name="farmer" value="<?php echo htmlspecialchars($farmer); ?>">
 
 
 <!-- =====================================================
@@ -241,6 +257,42 @@ $error = $error ?? "";
 
 </div>
 
+<div class="form-group full">
+
+<label>
+    Destination District
+</label>
+
+<select name="destination_district" required>
+    <option value="">Select your district</option>
+        <option value="Ampara" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Ampara') ? 'selected' : ''; ?>>Ampara</option>
+        <option value="Anuradhapura" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Anuradhapura') ? 'selected' : ''; ?>>Anuradhapura</option>
+        <option value="Badulla" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Badulla') ? 'selected' : ''; ?>>Badulla</option>
+        <option value="Batticaloa" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Batticaloa') ? 'selected' : ''; ?>>Batticaloa</option>
+        <option value="Colombo" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Colombo') ? 'selected' : ''; ?>>Colombo</option>
+        <option value="Galle" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Galle') ? 'selected' : ''; ?>>Galle</option>
+        <option value="Gampaha" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Gampaha') ? 'selected' : ''; ?>>Gampaha</option>
+        <option value="Hambantota" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Hambantota') ? 'selected' : ''; ?>>Hambantota</option>
+        <option value="Jaffna" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Jaffna') ? 'selected' : ''; ?>>Jaffna</option>
+        <option value="Kalutara" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Kalutara') ? 'selected' : ''; ?>>Kalutara</option>
+        <option value="Kandy" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Kandy') ? 'selected' : ''; ?>>Kandy</option>
+        <option value="Kegalle" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Kegalle') ? 'selected' : ''; ?>>Kegalle</option>
+        <option value="Kilinochchi" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Kilinochchi') ? 'selected' : ''; ?>>Kilinochchi</option>
+        <option value="Kurunegala" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Kurunegala') ? 'selected' : ''; ?>>Kurunegala</option>
+        <option value="Mannar" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Mannar') ? 'selected' : ''; ?>>Mannar</option>
+        <option value="Matale" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Matale') ? 'selected' : ''; ?>>Matale</option>
+        <option value="Matara" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Matara') ? 'selected' : ''; ?>>Matara</option>
+        <option value="Monaragala" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Monaragala') ? 'selected' : ''; ?>>Monaragala</option>
+        <option value="Mullaitivu" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Mullaitivu') ? 'selected' : ''; ?>>Mullaitivu</option>
+        <option value="Nuwara Eliya" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Nuwara Eliya') ? 'selected' : ''; ?>>Nuwara Eliya</option>
+        <option value="Polonnaruwa" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Polonnaruwa') ? 'selected' : ''; ?>>Polonnaruwa</option>
+        <option value="Puttalam" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Puttalam') ? 'selected' : ''; ?>>Puttalam</option>
+        <option value="Ratnapura" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Ratnapura') ? 'selected' : ''; ?>>Ratnapura</option>
+        <option value="Trincomalee" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Trincomalee') ? 'selected' : ''; ?>>Trincomalee</option>
+        <option value="Vavuniya" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Vavuniya') ? 'selected' : ''; ?>>Vavuniya</option>
+</select>
+
+</div>
 
 </div>
 
@@ -293,7 +345,7 @@ $error = $error ?? "";
 </strong>
 
 <span>
-    Pay securely with Visa or Mastercard.
+    Secure card payment will be handled by PayHere Sandbox.
 </span>
 
 </div>
@@ -374,70 +426,15 @@ $error = $error ?? "";
 </div>
 
 
-<!-- CARD DETAILS -->
+<!-- PAYMENT PROCESSING NOTE -->
 
 <div
     id="cardDetails"
     class="card-details"
 >
 
-<div class="form-group full">
-
-<label>
-    Card Number
-</label>
-
-<input
-    type="text"
-    name="cardNumber"
-    id="cardNumber"
-    placeholder="0000 0000 0000 0000"
-    maxlength="19"
->
-
-</div>
-
-
-<div class="card-small-row">
-
-<div class="form-group">
-
-<label>
-    Expiry Date
-</label>
-
-<input
-    type="text"
-    name="expiry"
-    id="expiry"
-    placeholder="MM/YY"
-    maxlength="5"
->
-
-</div>
-
-
-<div class="form-group">
-
-<label>
-    CVV
-</label>
-
-<input
-    type="password"
-    name="cvv"
-    id="cvv"
-    placeholder="123"
-    maxlength="3"
->
-
-</div>
-
-</div>
-
-
 <p class="demo-note">
-    Demo checkout only — no real payment is processed.
+    Card details are not collected here. Credit/debit card payments will be handled securely through PayHere Sandbox when payment integration is enabled.
 </p>
 
 </div>
@@ -600,6 +597,19 @@ Rs.
 <div class="summary-row">
 
 <span>
+    Buyer Service Fee
+</span>
+
+<strong>
+    Rs. <?= number_format($serviceFee) ?>
+</strong>
+
+</div>
+
+
+<div class="summary-row">
+
+<span>
     Delivery Fee
 </span>
 
@@ -631,7 +641,7 @@ Rs.
 >
 
 <span>
-    Confirm Order
+    Proceed to Payment
 </span>
 
 <span class="material-symbols-outlined">

@@ -125,7 +125,11 @@ $totalDeliveries = $totalDeliveries ?? 0;
                     notifications
                 </span>
 
-                <span class="notification-dot"></span>
+                <?php if ($unreadNotifications > 0): ?>
+                    <span class="notification-dot notification-count-badge">
+                        <?php echo $unreadNotifications > 99 ? '99+' : $unreadNotifications; ?>
+                    </span>
+                <?php endif; ?>
 
             </button>
 
@@ -205,7 +209,11 @@ $totalDeliveries = $totalDeliveries ?? 0;
                 notifications
             </span>
 
-            <span class="mobile-notification-dot"></span>
+            <?php if ($unreadNotifications > 0): ?>
+                <span class="mobile-notification-dot notification-count-badge">
+                    <?php echo $unreadNotifications > 99 ? '99+' : $unreadNotifications; ?>
+                </span>
+            <?php endif; ?>
 
         </button>
 
@@ -474,42 +482,18 @@ $totalDeliveries = $totalDeliveries ?? 0;
 
                 <button
                     class="filter-tab"
-                    data-filter="Orders"
+                    data-filter="Unread"
                     type="button"
                 >
-                    Orders
+                    Unread
                 </button>
 
                 <button
                     class="filter-tab"
-                    data-filter="Delivery"
+                    data-filter="Read"
                     type="button"
                 >
-                    Delivery
-                </button>
-
-                <button
-                    class="filter-tab"
-                    data-filter="Payments"
-                    type="button"
-                >
-                    Payments
-                </button>
-
-                <button
-                    class="filter-tab"
-                    data-filter="Promotions"
-                    type="button"
-                >
-                    Promotions
-                </button>
-
-                <button
-                    class="filter-tab"
-                    data-filter="System"
-                    type="button"
-                >
-                    System
+                    Read
                 </button>
 
             </div>

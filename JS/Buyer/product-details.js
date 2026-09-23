@@ -25,6 +25,10 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("favoriteBtn");
 
 
+    const destinationDistrict =
+        document.getElementById("destinationDistrict");
+
+
     const mainProductImage =
         document.getElementById("mainProductImage");
 
@@ -107,6 +111,18 @@ document.addEventListener("DOMContentLoaded", function () {
             buyNowBtn.href =
                 url.toString();
 
+        }
+
+        if (destinationDistrict) {
+            const district = destinationDistrict.value;
+            if (district) {
+                [addCartBtn, buyNowBtn].forEach(function (button) {
+                    if (!button) return;
+                    const link = new URL(button.href, window.location.origin);
+                    link.searchParams.set("destination_district", district);
+                    button.href = link.toString();
+                });
+            }
         }
 
     }
@@ -425,6 +441,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
     );
+
+
+    if (destinationDistrict) {
+        destinationDistrict.addEventListener("change", updateCartLinks);
+    }
+
+
+    [addCartBtn, buyNowBtn].forEach(function (button) {
+        if (!button) return;
+        button.addEventListener("click", function (event) {
+            if (destinationDistrict && !destinationDistrict.value) {
+                event.preventDefault();
+                destinationDistrict.focus();
+                destinationDistrict.setCustomValidity("Please select your destination district.");
+                destinationDistrict.reportValidity();
+            } else if (destinationDistrict) {
+                destinationDistrict.setCustomValidity("");
+            }
+        });
+    });
 
 
     /*

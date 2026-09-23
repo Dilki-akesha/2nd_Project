@@ -86,7 +86,14 @@ final class Buyer
 
     public function delete(int $id): bool
     {
-        $stmt = db()->prepare('DELETE FROM users WHERE id = ? AND role = \'buyer\'');
-        return $stmt->execute([$id]);
+        if ($id <= 0 || $id !== currentBuyerId()) {
+            return false;
+        }
+
+        $stmt = db()->prepare(
+            "DELETE FROM users WHERE id = ? AND role = 'buyer'"
+        );
+
+        return $stmt->execute([$id]) && $stmt->rowCount() > 0;
     }
 }

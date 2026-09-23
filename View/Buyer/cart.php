@@ -10,6 +10,15 @@ $total = $total ?? 0;
 
 $totalQuantity = $totalQuantity ?? 0;
 
+$farmerGroups = [];
+foreach ($cartItems as $cartItem) {
+    $seller = trim((string)($cartItem['seller'] ?? 'Unknown Farmer'));
+    if (!isset($farmerGroups[$seller])) {
+        $farmerGroups[$seller] = [];
+    }
+    $farmerGroups[$seller][] = $cartItem;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -145,7 +154,21 @@ $totalQuantity = $totalQuantity ?? 0;
                 <?php if (count($cartItems) > 0): ?>
 
 
-                    <?php foreach ($cartItems as $item): ?>
+                    <?php foreach ($farmerGroups as $farmerName => $farmerItems): ?>
+
+                        <section class="farmer-cart-group" data-farmer="<?php echo htmlspecialchars($farmerName); ?>">
+
+                            <div class="farmer-cart-group-header">
+                                <div>
+                                    <span class="farmer-group-label">Farmer</span>
+                                    <h2><?php echo htmlspecialchars($farmerName); ?></h2>
+                                </div>
+                                <span class="farmer-group-count"><?php echo count($farmerItems); ?> product<?php echo count($farmerItems) === 1 ? '' : 's'; ?></span>
+                            </div>
+
+                            <div class="farmer-cart-items">
+
+                    <?php foreach ($farmerItems as $item): ?>
 
 
                         <article
@@ -345,6 +368,12 @@ $totalQuantity = $totalQuantity ?? 0;
 
 
                     <?php endforeach; ?>
+
+                            </div>
+
+                        </section>
+
+                <?php endforeach; ?>
 
 
                 <?php endif; ?>

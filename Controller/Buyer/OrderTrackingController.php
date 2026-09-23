@@ -10,7 +10,7 @@ $orderId = trim((string)($_GET['id'] ?? $_GET['order_id'] ?? ''));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'received') {
     $orderId = trim((string)($_POST['order_id'] ?? ''));
-    $order = $ordersModel->updateStatus($orderId, 'Delivered');
+    $order = $ordersModel->updateStatus($orderId, 'Completed');
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['success'=>(bool)$order,'order'=>$order]);
     exit;

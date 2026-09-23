@@ -8,16 +8,35 @@ final class Orders
 
     private const STATUSES = [
         'Order Placed',
+        'Pending Payment',
+        'Paid',
         'Accepted',
+        'Preparing',
+        'Ready for Delivery',
+        'Pending Assignment',
+        'Assigned',
+        'Picked Up',
         'In Transit',
         'Out for Delivery',
         'Delivered',
+        'Completed',
+        'Undeliverable',
         'Cancelled',
     ];
 
     public function __construct()
     {
         $this->db = db();
+        $this->ensureStatusSchema();
+    }
+
+    private function ensureStatusSchema(): void
+    {
+        try {
+            $this->db->exec("ALTER TABLE orders MODIFY status ENUM('Order Placed','Pending Payment','Paid','Accepted','Preparing','Ready for Delivery','Pending Assignment','Assigned','Picked Up','In Transit','Out for Delivery','Delivered','Completed','Undeliverable','Cancelled') NOT NULL DEFAULT 'Order Placed'");
+        } catch (Throwable $e) {
+            // Keep the application usable if the connected DB user cannot alter the schema.
+        }
     }
 
     private function map(array $order): array
@@ -26,20 +45,30 @@ final class Orders
         $order['id'] = $order['order_number'];
         $order['total'] = (float)$order['total'];
         $order['subtotal'] = (float)$order['subtotal'];
+        $order['service_fee'] = (float)($order['service_fee'] ?? 0);
         $order['delivery_fee'] = (float)$order['delivery_fee'];
+        $order['destination_district'] = (string)($order['destination_district'] ?? '');
 
         $itemStmt = $this->db->prepare(
-            'SELECT product_id, name, price, quantity, unit, image
-             FROM order_items
-             WHERE order_id = ?
-             ORDER BY id'
+            "SELECT oi.product_id, oi.name, oi.price, oi.quantity, oi.unit,
+                    CASE
+                        WHEN oi.image IS NULL OR TRIM(oi.image) = ''
+                            THEN p.image
+                        WHEN oi.image LIKE '/Harvestly/%' OR oi.image LIKE 'http://%' OR oi.image LIKE 'https://%'
+                            THEN oi.image
+                        ELSE p.image
+                    END AS image
+             FROM order_items oi
+             LEFT JOIN products p ON p.id = oi.product_id
+             WHERE oi.order_id = ?
+             ORDER BY oi.id"
         );
         $itemStmt->execute([$order['db_id']]);
 
         $order['items'] = $itemStmt->fetchAll();
         foreach ($order['items'] as &$item) {
             if (mb_strtolower(trim((string)($item['name'] ?? ''))) === 'coconut') {
-                $item['image'] = url('assets/coconut-sri-lanka.jpg');
+                $item['image'] = url('assets/coconut-sri-lanka.jpeg');
             }
         }
         unset($item);
@@ -49,10 +78,19 @@ final class Orders
         $status = (string)$order['status'];
         $statusClasses = [
             'Order Placed' => 'placed',
+            'Pending Payment' => 'placed',
+            'Paid' => 'paid',
             'Accepted' => 'accepted',
+            'Preparing' => 'accepted',
+            'Ready for Delivery' => 'ready',
+            'Pending Assignment' => 'pending',
+            'Assigned' => 'assigned',
+            'Picked Up' => 'picked-up',
             'In Transit' => 'transit',
             'Out for Delivery' => 'transit',
             'Delivered' => 'delivered',
+            'Completed' => 'completed',
+            'Undeliverable' => 'cancelled',
             'Cancelled' => 'cancelled',
         ];
 
@@ -62,8 +100,8 @@ final class Orders
             : 'Recently';
 
         $order['button_class'] = $status === 'Cancelled' ? 'tracking' : 'tracking';
-        $order['button'] = $status === 'Cancelled' ? 'View Order' : ($status === 'Delivered' ? 'View Tracking' : 'Track Order');
-        $order['button_icon'] = $status === 'Cancelled' ? 'receipt_long' : ($status === 'Delivered' ? 'check_circle' : 'local_shipping');
+        $order['button'] = $status === 'Cancelled' ? 'View Order' : 'Track Order';
+        $order['button_icon'] = $status === 'Completed' || $status === 'Delivered' ? 'check_circle' : ($status === 'Cancelled' ? 'receipt_long' : 'local_shipping');
 
         return $order;
     }
@@ -85,9 +123,9 @@ final class Orders
 
             $orderStmt = $this->db->prepare(
                 'INSERT INTO orders
-                    (order_number, user_id, full_name, phone, city, address, postal,
-                     payment_method, subtotal, delivery_fee, total, status)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                    (order_number, user_id, full_name, phone, city, address, postal, destination_district,
+                     payment_method, subtotal, service_fee, delivery_fee, total, status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
 
             $orderStmt->execute([
@@ -98,8 +136,10 @@ final class Orders
                 trim((string)$data['city']),
                 trim((string)$data['address']),
                 trim((string)$data['postal']),
+                trim((string)$data['destination_district']),
                 trim((string)$data['payment']),
                 $summary['subtotal'],
+                $summary['serviceFee'],
                 $summary['deliveryFee'],
                 $summary['total'],
                 'Order Placed',
@@ -230,11 +270,17 @@ final class Orders
             return null;
         }
 
-        $stmt = $this->db->prepare(
-            'UPDATE orders
-             SET status = ?
-             WHERE user_id = ? AND order_number = ?'
-        );
+        if ($status === 'Delivered') {
+            $stmt = $this->db->prepare(
+                'UPDATE orders SET status = ?, delivered_at = COALESCE(delivered_at, NOW())
+                 WHERE user_id = ? AND order_number = ?'
+            );
+        } else {
+            $stmt = $this->db->prepare(
+                'UPDATE orders SET status = ?
+                 WHERE user_id = ? AND order_number = ?'
+            );
+        }
         $stmt->execute([$status, currentBuyerId(), $orderNumber]);
 
         return $this->getOrderById($orderNumber);

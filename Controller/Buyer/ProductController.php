@@ -98,19 +98,21 @@ $organic = isset($_GET['organic']);
 $fresh = isset($_GET['fresh']);
 $stock = isset($_GET['stock']);
 $sort = trim((string)($_GET['sort'] ?? 'Newest'));
+$listingType = trim((string)($_GET['listingType'] ?? 'All Listing Types'));
+$growingMethod = trim((string)($_GET['growingMethod'] ?? 'All Growing Methods'));
 
 $products = $productModel->getAllProducts();
 
 $products = array_values(array_filter(
     $products,
-    function (array $product) use ($search, $district, $maxPrice, $organic, $fresh, $stock): bool {
-        $searchText = $product['name'] . ' ' . $product['farmer'];
+    function (array $product) use ($search, $district, $maxPrice, $organic, $fresh, $stock, $listingType, $growingMethod): bool {
+        $searchText = $product['name'] . ' ' . $product['farmer'] . ' ' . ($product['description'] ?? '');
 
         if ($search !== '' && stripos($searchText, $search) === false) {
             return false;
         }
 
-        if ($district !== '' && $district !== 'All Districts' && stripos($product['farmer'], $district) === false) {
+        if ($district !== '' && $district !== 'All Districts' && stripos(($product['farm'] ?? '') . ' ' . $product['farmer'], $district) === false) {
             return false;
         }
 
@@ -128,6 +130,24 @@ $products = array_values(array_filter(
 
         if ($stock && $product['stock'] <= 0) {
             return false;
+        }
+
+        if ($growingMethod !== '' && $growingMethod !== 'All Growing Methods') {
+            $isOrganic = (bool)$product['organic'];
+            if ($growingMethod === 'Organic' && !$isOrganic) {
+                return false;
+            }
+            if ($growingMethod === 'Conventional' && $isOrganic) {
+                return false;
+            }
+        }
+
+        if ($listingType !== '' && $listingType !== 'All Listing Types') {
+            $harvest = mb_strtolower(trim((string)($product['harvest_date'] ?? '')));
+            $type = $product['stock'] <= 0 ? 'Seasonal' : (($product['fresh'] || $harvest === 'today') ? 'Available Now' : 'Harvest Soon');
+            if ($type !== $listingType) {
+                return false;
+            }
         }
 
         return true;

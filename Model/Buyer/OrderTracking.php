@@ -8,10 +8,17 @@ final class OrderTracking
     {
         $statuses = [
             'Order Placed',
+            'Paid',
             'Accepted',
+            'Preparing',
+            'Ready for Delivery',
+            'Pending Assignment',
+            'Assigned',
+            'Picked Up',
             'In Transit',
             'Out for Delivery',
             'Delivered',
+            'Completed',
         ];
 
         $currentIndex = array_search(
@@ -54,7 +61,7 @@ final class OrderTracking
                 fn(array $item) => [
                     'name' => $item['name'],
                     'qty' => 'Qty: ' . $item['quantity'],
-                    'image' => (mb_strtolower(trim((string)$item['name'])) === 'coconut' ? url('assets/coconut-sri-lanka.jpg') : $item['image']),
+                    'image' => (mb_strtolower(trim((string)$item['name'])) === 'coconut' ? url('assets/coconut-sri-lanka.jpeg') : $item['image']),
                 ],
                 $order['items'] ?? []
             ),
