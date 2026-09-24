@@ -187,7 +187,7 @@ function renderLandingPage() {
                     </a>
 
                     <a href="index.php?page=products&category=Leafy+Greens" style="text-decoration:none; background: var(--color-surface-container-low); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--color-outline-variant); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; transition: transform 0.2s;">
-                        <img src="assets/images/leaves.jpg" alt="Leafy Greens" style="width: 100px; height: 100px; object-fit: cover; border-radius: var(--radius-md);">
+                        <img src="assets/images/leafy green.jpg" alt="Leafy Greens" style="width: 100px; height: 100px; object-fit: cover; border-radius: var(--radius-md);">
                         <h3 style="font-size: 18px; font-weight: 700; color: var(--color-on-surface);">Leafy Greens</h3>
                         <span style="font-size: 12px; color: var(--color-outline);">Gotu Kola & Herbs</span>
                     </a>
@@ -222,7 +222,7 @@ function renderLandingPage() {
                     <!-- Product 1: Nuwara Eliya Crisp Carrots -->
                     <article style="background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--color-outline-variant); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow-sm);">
                         <div style="height: 220px; overflow: hidden; position: relative; background: var(--color-surface-container);">
-                            <img src="assets/images/Nuwara Eliya Crisp Carrots.jpg" alt="Nuwara Eliya Crisp Carrots" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="assets/images/carrots.jpg" alt="Nuwara Eliya Crisp Carrots" style="width: 100%; height: 100%; object-fit: cover;">
                             <span class="badge badge-success" style="position: absolute; top: 12px; right: 12px;">Grade A</span>
                             <span class="badge badge-info" style="position: absolute; bottom: 12px; left: 12px;">Available Now</span>
                         </div>
