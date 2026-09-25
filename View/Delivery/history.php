@@ -19,10 +19,12 @@
                     <th>Order ID</th>
                     <th>Farmer</th>
                     <th>Buyer</th>
+                    <th>Origin</th>
+                    <th>Destination</th>
                     <th>Date</th>
                     <th>Status</th>
                     <th>Fee</th>
-                    <th>Earnings</th>
+                    <th>View</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,46 +32,56 @@
                     <td><strong>#HLY-8845</strong></td>
                     <td>Green Valley Farms</td>
                     <td>WholeFoods Central</td>
+                    <td>Nuwara Eliya</td>
+                    <td>Colombo</td>
                     <td>Oct 24, 2023</td>
                     <td><span class="status-badge completed">Completed</span></td>
                     <td>$12.50</td>
-                    <td>$8.75</td>
+                    <td><button class="btn-sm btn-outline view-details-btn" data-order="#HLY-8845">View</button></td>
                 </tr>
                 <tr>
                     <td><strong>#HLY-8832</strong></td>
                     <td>Sunny Ridge Orchards</td>
                     <td>Urban Market Co.</td>
+                    <td>Kandy</td>
+                    <td>Gampaha</td>
                     <td>Oct 25, 2023</td>
                     <td><span class="status-badge completed">Completed</span></td>
                     <td>$15.00</td>
-                    <td>$0.00</td>
+                    <td><button class="btn-sm btn-outline view-details-btn" data-order="#HLY-8832">View</button></td>
                 </tr>
                 <tr>
                     <td><strong>#HLY-8821</strong></td>
                     <td>O'Brien Family Dairy</td>
                     <td>Mercy Hospital</td>
+                    <td>Matale</td>
+                    <td>Colombo</td>
                     <td>Oct 22, 2023</td>
                     <td><span class="status-badge completed">Completed</span></td>
                     <td>$22.00</td>
-                    <td>$15.40</td>
+                    <td><button class="btn-sm btn-outline view-details-btn" data-order="#HLY-8821">View</button></td>
                 </tr>
                 <tr>
                     <td><strong>#HLY-8801</strong></td>
                     <td>Black Soil Gardens</td>
                     <td>Local Harvest Co-op</td>
+                    <td>Galle</td>
+                    <td>Colombo</td>
                     <td>Oct 21, 2023</td>
                     <td><span class="status-badge completed">Completed</span></td>
                     <td>$18.25</td>
-                    <td>$12.78</td>
+                    <td><button class="btn-sm btn-outline view-details-btn" data-order="#HLY-8801">View</button></td>
                 </tr>
                 <tr>
                     <td><strong>#HLY-8794</strong></td>
                     <td>Riverbend Poultry</td>
                     <td>Gourmet Grub</td>
+                    <td>Kurunegala</td>
+                    <td>Colombo</td>
                     <td>Oct 20, 2023</td>
                     <td><span class="status-badge completed">Completed</span></td>
                     <td>$14.50</td>
-                    <td>$10.15</td>
+                    <td><button class="btn-sm btn-outline view-details-btn" data-order="#HLY-8794">View</button></td>
                 </tr>
             </tbody>
         </table>
@@ -85,3 +97,18 @@
         </div>
     </div>
 </div>
+
+<!-- ===== DELIVERY HISTORY — View Details Handler ===== -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.view-details-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const orderId = this.dataset.order || 'Order';
+            if (confirm('View details for ' + orderId + '?\n\nThis will open the Tracking page.')) {
+                window.location.href = '?page=tracking';
+            }
+        });
+    });
+    console.log('✅ History View Details handlers attached');
+});
+</script>

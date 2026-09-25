@@ -1,0 +1,44 @@
+/* ============================================================ */
+/* RESPONSIVE
+/* ============================================================ */
+@media (max-width: 1200px) {
+    .tracking-grid { grid-template-columns: 1fr; }
+    .earnings-grid { grid-template-columns: 1fr; }
+    .complaints-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 992px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+    .topbar-left .menu-toggle { display: block; }
+    .topbar { padding: 0 16px; }
+    .page-content { padding: 16px; }
+    .form-row { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .cards-grid { grid-template-columns: 1fr; }
+    .profile-card .form-actions { flex-wrap: wrap; }
+}
+
+@media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .earnings-summary { grid-template-columns: 1fr 1fr; }
+    .topbar-right .partner-badge { display: none; }
+    .bonus-banner { flex-direction: column; text-align: center; }
+    .login-card { padding: 32px 20px; }
+    .section-header { flex-direction: column; align-items: stretch; }
+    .history-filters { display: flex; flex-direction: column; gap: 8px; }
+    .history-filters input,
+    .history-filters select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--md-outline-variant);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+    }
+    .order-details-grid { flex-direction: column; gap: 8px; }
+    .farm-contact { flex-direction: column; align-items: flex-start; }
+    .farm-contact .contact-name { margin-left: 0; }
+    .commitment-tags { flex-direction: column; gap: 6px; }
+    .verification-badge span { float: none; display: block; margin-top: 4px; }
+}

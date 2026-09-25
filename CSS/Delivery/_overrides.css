@@ -1,0 +1,62 @@
+/* ============================================================ */
+/* BULLETPROOF BUTTON OVERRIDES
+/* ============================================================ */
+
+/* ---- ACCEPT / PRIMARY ---- */
+.btn-sm.btn-accept,
+.btn-sm.btn-accept:hover,
+.btn-sm.btn-accept:focus,
+.btn-sm.btn-accept:active {
+    background-color: #0d631b !important;
+    color: #ffffff !important;
+}
+.btn-sm.btn-accept:hover { background-color: #005312 !important; }
+
+.btn-sm.btn-primary,
+.btn-sm.btn-primary:hover,
+.btn-sm.btn-primary:focus,
+.btn-sm.btn-primary:active {
+    background-color: #0d631b !important;
+    color: #ffffff !important;
+}
+.btn-sm.btn-primary:hover { background-color: #005312 !important; }
+
+/* ---- REJECT ---- */
+.btn-sm.btn-reject { background-color: #ba1a1a !important; color: #ffffff !important; }
+.btn-sm.btn-reject:hover { background-color: #93000a !important; color: #ffffff !important; }
+
+/* ---- WARNING ---- */
+.btn-sm.btn-warning { background-color: #F59E0B !important; color: #ffffff !important; }
+.btn-sm.btn-warning:hover { background-color: #D97706 !important; color: #ffffff !important; }
+
+/* ---- OUTLINE ---- */
+.btn-sm.btn-outline {
+    background-color: transparent !important;
+    color: #40493d !important;
+    border: 1px solid #bfcaba !important;
+}
+.btn-sm.btn-outline:hover {
+    background-color: #d1e9ce !important;
+    color: #0d631b !important;
+    border-color: #0d631b !important;
+}
+
+/* ---- ACTIVE OUTLINE ---- */
+.btn-sm.btn-outline.active {
+    background-color: #0d631b !important;
+    color: #ffffff !important;
+    border-color: #0d631b !important;
+}
+.btn-sm.btn-outline.active:hover {
+    background-color: #0d631b !important;
+    color: #ffffff !important;
+    border-color: #0d631b !important;
+}
+
+/* ---- SECONDARY ---- */
+.btn-secondary { background-color: #e7e8e9 !important; color: #191c1d !important; }
+.btn-secondary:hover { background-color: #d9dadb !important; color: #191c1d !important; }
+
+/* ---- WHITE ---- */
+.btn-white { background-color: #ffffff !important; color: #0d631b !important; }
+.btn-white:hover { background-color: #d1e9ce !important; color: #0d631b !important; }

@@ -1,0 +1,78 @@
+/* ============================================================ */
+/* TABLES
+/* ============================================================ */
+.table-wrap {
+    background: var(--md-surface-container-lowest);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--md-outline-variant);
+    overflow: hidden;
+    box-shadow: var(--shadow-level1);
+    margin-bottom: var(--spacing-stack-loose);
+}
+.table-scroll { overflow-x: auto; }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+}
+table th {
+    text-align: left;
+    padding: 12px 18px;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--md-on-surface-variant);
+    background: var(--md-surface-container);
+    border-bottom: 1px solid var(--md-outline-variant);
+}
+table td {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--md-outline-variant);
+    color: var(--md-on-surface);
+}
+table tbody tr:hover { background: var(--md-surface-container-low); }
+
+.table-footer {
+    padding: 12px 18px;
+    border-top: 1px solid var(--md-outline-variant);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.table-footer span { font-size: 13px; color: var(--md-on-surface-variant); }
+
+.pagination { display: flex; gap: 4px; }
+.pagination .btn-sm.btn-outline { min-width: 32px; justify-content: center; }
+.pagination .btn-sm.btn-outline.active {
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    border-color: var(--md-primary);
+}
+.pagination .btn-sm.btn-outline.active:hover {
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    border-color: var(--md-primary);
+    transform: scale(1.02);
+}
+
+/* ============================================================ */
+/* STATUS BADGES
+/* ============================================================ */
+.status-badge {
+    display: inline-flex;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+}
+.status-badge.pending   { background: #FFF3E0; color: #E65100; }
+.status-badge.transit   { background: #E3F2FD; color: #0D47A1; }
+.status-badge.completed { background: var(--md-secondary-container); color: var(--md-secondary); }
+.status-badge.picked    { background: #EDE7F6; color: #4527A0; }
+.status-badge.progress  { background: #FFF8E1; color: #F57F17; }
+.status-badge.review    { background: #E3F2FD; color: #0D47A1; }
+.status-badge.resolved  { background: var(--md-secondary-container); color: var(--md-secondary); }

@@ -15,12 +15,16 @@
             <div class="detail-row sub">122 Harvest Way, North Plains</div>
             <div class="detail-row"><i class="fas fa-home"></i> <strong>Deliver to:</strong> Sarah Jenkins</div>
             <div class="detail-row sub">456 Pine Street, Apartment 4B</div>
+            <div class="detail-row"><i class="fas fa-arrow-up" style="color: var(--md-primary);"></i> Origin: <strong>Nuwara Eliya District</strong></div>
+            <div class="detail-row"><i class="fas fa-arrow-down" style="color: var(--md-primary);"></i> Destination: <strong>Colombo District</strong></div>
             <div class="detail-row"><i class="fas fa-clock"></i> 8.4 miles · 22 mins</div>
             <div class="detail-row"><i class="fas fa-dollar-sign"></i> Delivery Cost: $12.75</div>
         </div>
         <div class="card-actions">
             <button class="btn-sm btn-outline"><i class="fas fa-phone"></i> Help</button>
-            <button class="btn-sm btn-primary"><i class="fas fa-eye"></i> View Details</button>
+            <button class="btn-sm btn-primary" onclick="window.location.href='?page=tracking'">
+               <i class="fas fa-eye"></i> View Details
+            </button>
         </div>
     </div>
 
@@ -35,12 +39,16 @@
             <div class="detail-row sub">78 Milk Lane, Eastside</div>
             <div class="detail-row"><i class="fas fa-home"></i> <strong>Deliver to:</strong> Artisan Kitchen &amp; Bakery</div>
             <div class="detail-row sub">902 Broad St. Commerce District</div>
+            <div class="detail-row"><i class="fas fa-arrow-up" style="color: var(--md-primary);"></i> Origin: <strong>Gampaha District</strong></div>
+            <div class="detail-row"><i class="fas fa-arrow-down" style="color: var(--md-primary);"></i> Destination: <strong>Colombo District</strong></div>
             <div class="detail-row"><i class="fas fa-clock"></i> 5.1 miles · 14 mins</div>
             <div class="detail-row"><i class="fas fa-dollar-sign"></i> Delivery Cost: $12.75</div>
         </div>
         <div class="card-actions">
             <button class="btn-sm btn-outline"><i class="fas fa-phone"></i> Help</button>
-            <button class="btn-sm btn-primary"><i class="fas fa-eye"></i> View Details</button>
+             <button class="btn-sm btn-primary" onclick="window.location.href='?page=tracking'">
+               <i class="fas fa-eye"></i> View Details
+             </button>
         </div>
     </div>
 
@@ -55,12 +63,16 @@
             <div class="detail-row sub">33 Fruit Valley, South Slope</div>
             <div class="detail-row"><i class="fas fa-home"></i> <strong>Deliver to:</strong> The Healthy Corner</div>
             <div class="detail-row sub">12 High Street, Downtown</div>
+            <div class="detail-row"><i class="fas fa-arrow-up" style="color: var(--md-primary);"></i> Origin: <strong>Nuwara Eliya District</strong></div>
+            <div class="detail-row"><i class="fas fa-arrow-down" style="color: var(--md-primary);"></i> Destination: <strong>Colombo District</strong></div>
             <div class="detail-row"><i class="fas fa-clock"></i> 12.0 miles · 35 mins</div>
             <div class="detail-row"><i class="fas fa-dollar-sign"></i> Delivery Cost: $18.20</div>
         </div>
         <div class="card-actions">
             <button class="btn-sm btn-outline"><i class="fas fa-phone"></i> Help</button>
-            <button class="btn-sm btn-primary"><i class="fas fa-eye"></i> View Details</button>
+             <button class="btn-sm btn-primary" onclick="window.location.href='?page=tracking'">
+                <i class="fas fa-eye"></i> View Details
+             </button>
         </div>
     </div>
 
