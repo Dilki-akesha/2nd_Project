@@ -1,23 +1,33 @@
 <?php
+
+declare(strict_types=1);
+
 require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../Model/Buyer/Orders.php';
-require_once __DIR__ . '/../../Model/Buyer/OrderTracking.php';
 
-$ordersModel = new Orders();
-$trackingModel = new OrderTracking();
-$baseUrl = BASE_URL;
-$orderId = trim((string)($_GET['id'] ?? $_GET['order_id'] ?? ''));
+requireBuyerAuth();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'received') {
-    $orderId = trim((string)($_POST['order_id'] ?? ''));
-    $order = $ordersModel->updateStatus($orderId, 'Completed');
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['success'=>(bool)$order,'order'=>$order]);
-    exit;
+$model = new Orders();
+$orderId = (string)($_GET['id'] ?? $_GET['order_id'] ?? '');
+
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    verifyCsrfToken();
+    $postedOrderId = trim((string)($_POST['order_id'] ?? ''));
+    $ok = $model->updateStatus($postedOrderId, 'COMPLETED');
+    $_SESSION['_buyer_flash'] = [
+        'success' => $ok,
+        'message' => $ok
+            ? 'Thank you. Your order is now Completed.'
+            : 'This order cannot be confirmed. Only a Delivered order can be completed by the Buyer.',
+    ];
+    redirect('Controller/Buyer/OrderTrackingController.php?id=' . urlencode($postedOrderId));
 }
 
-$order = $orderId !== '' ? $ordersModel->getOrderById($orderId) : null;
-$pageTitle = $order ? 'Order Tracking' : 'Order Not Found';
-$tracking = $order ? $trackingModel->getTrackingByOrder($order) : null;
-if (!$order) http_response_code($orderId === '' ? 400 : 404);
+$order = $model->getOrderById($orderId);
+if (!$order) {
+    http_response_code(404);
+}
+$history = $order ? $model->getStatusHistory((int)$order['db_id']) : [];
+$delivery = $order ? $model->getDeliveryForOrder((int)$order['db_id']) : null;
+
 require __DIR__ . '/../../View/Buyer/order-tracking.php';

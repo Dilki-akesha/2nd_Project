@@ -1,0 +1,160 @@
+/* =====================================================================
+   Shared Harvestly shell additions.
+   Keeps the Farmer module visually aligned with the Buyer, Courier
+   Partner and Admin modules. Local/system fonts only, no frameworks.
+   ===================================================================== */
+
+.role-caption {
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: #85917f;
+    margin: -14px 0 10px 14px
+}
+
+.nav a { justify-content: space-between }
+
+.nav a.active,
+.nav a[aria-current] {
+    background: var(--mint);
+    color: var(--green);
+    font-weight: 700
+}
+
+.nav-count {
+    background: var(--green);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center
+}
+
+.bottom-nav form { margin: 0 }
+
+.nav-logout {
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--green);
+    font-weight: 700
+}
+
+.nav-logout:hover { background: var(--mint) }
+
+.user .user-role { font-size: 11px; color: var(--muted) }
+
+/* Flash messages - success and error are visually distinct. */
+.flash {
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border: 1px solid var(--line);
+    background: #f1f5ef
+}
+
+.flash--success { background: #eaf3ea; border-color: #c6dcc6; color: #2a5230 }
+.flash--error { background: #fff0f0; border-color: #f0c4c4; color: #8d3030 }
+
+/* Stat cards - the value is rendered in an <h3>. */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 18px; margin-bottom: 22px }
+.stat-card { display: block }
+.stat-card a { text-decoration: none; color: inherit }
+.stat-card h3 { font-size: 25px; font-weight: 700; margin: 8px 0 0; white-space: nowrap }
+
+/* Status badges, aligned with the Buyer module tones. */
+.status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #edf3ec;
+    color: var(--green);
+    border: 1px solid #cfe0cf;
+    white-space: nowrap
+}
+
+.status-badge.ok { background: #eaf3ea; color: #2a5230; border-color: #c6dcc6 }
+.status-badge.warn { background: #fff6e3; color: #8a5f11; border-color: #ecd9ac }
+.status-badge.info { background: #e9f1f7; color: #26597a; border-color: #c3dcec }
+.status-badge.bad { background: #fff0f0; color: #8d3030; border-color: #f0c4c4 }
+
+/* Notice / info panels. */
+.notice {
+    padding: 14px 18px;
+    border-radius: 10px;
+    background: #f1f5ef;
+    border: 1px solid var(--line);
+    font-size: 14px;
+    line-height: 1.6
+}
+
+.notice.warn { background: #fff6e3; border-color: #ecd9ac; color: #8a5f11 }
+.notice.error { background: #fff0f0; border-color: #f0c4c4; color: #8d3030 }
+
+.empty {
+    padding: 26px 20px;
+    text-align: center;
+    color: var(--muted);
+    background: #fafbf9;
+    border: 1px dashed var(--line);
+    border-radius: 10px
+}
+
+.muted { color: var(--muted) }
+.right { text-align: right }
+.center { text-align: center }
+.nowrap { white-space: nowrap }
+.mt { margin-top: 18px }
+.mb { margin-bottom: 18px }
+.stack { display: grid; gap: 12px }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center }
+.row.between { justify-content: space-between }
+.grow { flex: 1; min-width: 0 }
+
+/* Key/value detail lists. */
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 10px 18px; font-size: 14px }
+.kv dt { color: var(--muted); font-weight: 600 }
+.kv dd { margin: 0; text-align: right; font-weight: 600 }
+
+/* Order progress timeline - the same shape the Buyer order details page uses. */
+.timeline { list-style: none; margin: 0; padding: 0 }
+.timeline li { position: relative; padding: 0 0 20px 30px; border-left: 2px solid var(--line) }
+.timeline li:last-child { border-left-color: transparent; padding-bottom: 0 }
+.timeline li::before {
+    content: "";
+    position: absolute;
+    left: -9px;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #cfd8cb
+}
+.timeline li.done::before { background: var(--green); border-color: var(--green) }
+.timeline li.current::before { background: #fff; border-color: var(--green); box-shadow: 0 0 0 4px var(--mint) }
+.timeline li strong { display: block; font-size: 14px }
+.timeline li.pending strong { color: var(--muted); font-weight: 500 }
+.timeline li small { color: var(--muted); font-size: 12px }
+.timeline li.pending small { color: #9aa79a }
+
+@media (max-width: 900px) {
+    .sidebar { position: relative; width: 100%; border-right: 0; border-bottom: 1px solid var(--line) }
+    .main { margin-left: 0 }
+    .content { padding: 22px 16px }
+    .topbar { height: auto; padding: 14px 18px; flex-wrap: wrap; gap: 12px }
+    .stats-grid { grid-template-columns: repeat(2, 1fr) }
+    .form-grid { grid-template-columns: 1fr }
+    .page-title { flex-direction: column }
+}

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/app.php';
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') verifyCsrfToken();
 require_once __DIR__ . '/../../Model/Buyer/Dashboard.php';
 
 $dashboardModel = new Dashboard();

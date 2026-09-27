@@ -2,186 +2,243 @@
 
 declare(strict_types=1);
 
+/**
+ * Harvestly Buyer reviews and the single common Complaint / Issue workflow.
+ *
+ * reviews has exactly one `rating` column, so a review is a single Buyer rating
+ * for the Farmer and the order. The review window comes from
+ * platform_settings.review_window_days (default 14).
+ */
 final class Feedback
 {
+    private function orderRow(string $publicId): ?array
+    {
+        $id = parseOrderPublicId($publicId);
+        if ($id <= 0) return null;
+        return db_fetch_one(
+            'SELECT order_id, buyer_id, farmer_id, order_status, delivered_at, completed_at, grand_total
+             FROM orders WHERE order_id = ? AND buyer_id = ? LIMIT 1',
+            'ii',
+            [$id, currentBuyerId()]
+        );
+    }
+
+    /** The single order completion timestamp used for the review window. */
+    private function completedAt(array $order): ?string
+    {
+        return $order['completed_at'] ?: ($order['delivered_at'] ?: null);
+    }
+
     public function submitReview(array $data): array
     {
-        $farmerRating = (int)($data['farmer_rating'] ?? 0);
-        $deliveryRating = (int)($data['delivery_rating'] ?? 0);
-        $orderNumber = trim((string)($data['order_id'] ?? ''));
-
-        if ($farmerRating < 1 || $farmerRating > 5 || $deliveryRating < 1 || $deliveryRating > 5) {
-            return ['success' => false, 'message' => 'Please give a rating from 1 to 5 for both areas.'];
-        }
-        if ($orderNumber === '') {
-            return ['success' => false, 'message' => 'Please select a completed order to review.'];
+        requireBuyerAuth();
+        $order = $this->orderRow(trim((string)($data['order_id'] ?? '')));
+        if (!$order || $order['order_status'] !== 'COMPLETED') {
+            return ['success' => false, 'message' => 'Only completed orders can be reviewed.'];
         }
 
-        $order = $this->getReviewableOrder($orderNumber);
-        if (!$order) {
-            return ['success' => false, 'message' => 'Only completed orders within 14 days of delivery can be reviewed.'];
+        $window = reviewWindowDays();
+        $completedAt = $this->completedAt($order);
+        if ($completedAt && strtotime((string)$completedAt) < strtotime('-' . $window . ' days')) {
+            return ['success' => false, 'message' => 'The ' . $window . '-day review window has closed.'];
         }
 
-        $dup = db()->prepare('SELECT id FROM feedback WHERE user_id = ? AND order_id = ? LIMIT 1');
-        $dup->execute([currentBuyerId(), (int)$order['id']]);
-        if ($dup->fetchColumn()) {
+        $exists = (int)db_scalar(
+            'SELECT COUNT(*) FROM reviews WHERE order_id = ?',
+            'i',
+            [(int)$order['order_id']],
+            0
+        );
+        if ($exists > 0) {
             return ['success' => false, 'message' => 'A review has already been submitted for this order.'];
         }
 
-        $stmt = db()->prepare(
-            "INSERT INTO feedback (user_id, order_id, farmer_rating, delivery_rating, quality_comment, delivery_comment, status)
-             VALUES (?, ?, ?, ?, ?, ?, 'Pending')"
-        );
-        $stmt->execute([
-            currentBuyerId(), (int)$order['id'], $farmerRating, $deliveryRating,
-            trim((string)($data['quality_comment'] ?? '')),
-            trim((string)($data['delivery_comment'] ?? '')),
-        ]);
+        $rating = max(1, min(5, (int)($data['rating'] ?? $data['farmer_rating'] ?? 5)));
+        $text = trim((string)($data['review_text'] ?? $data['quality_comment'] ?? ''));
+        if (mb_strlen($text) > 2000) $text = mb_substr($text, 0, 2000);
 
-        return ['success' => true, 'message' => 'Thank you! Your review has been submitted successfully.'];
+        $ok = db_execute(
+            'INSERT INTO reviews (order_id, buyer_id, farmer_id, rating, review_text)
+             VALUES (?, ?, ?, ?, ?)',
+            'iiiis',
+            [(int)$order['order_id'], currentBuyerId(), (int)$order['farmer_id'], $rating, $text]
+        );
+
+        return [
+            'success' => $ok,
+            'message' => $ok ? 'Thank you. Your review has been submitted.' : 'Unable to submit the review.',
+        ];
     }
 
     public function submitComplaint(array $data): array
     {
-        $category = trim((string)($data['category'] ?? ''));
-        $details = trim((string)($data['details'] ?? ''));
-        $orderNumber = trim((string)($data['order_id'] ?? ''));
-        $allowed = ['Product Quality','Damaged Product','Wrong Product','Incorrect Quantity','Delivery Issue','Other'];
+        requireBuyerAuth();
+        $order = $this->orderRow(trim((string)($data['order_id'] ?? '')));
+        if (!$order) return ['success' => false, 'message' => 'Please select one of your orders.'];
 
-        if (!in_array($category, $allowed, true) || $details === '' || $orderNumber === '') {
-            return ['success' => false, 'message' => 'Please select an order, complaint category, and enter details.'];
+        $category = trim((string)($data['category'] ?? 'Other'));
+        if ($category === '') $category = 'Other';
+        if (mb_strlen($category) > 100) $category = mb_substr($category, 0, 100);
+
+        $details = trim((string)($data['details'] ?? $data['description'] ?? ''));
+        if ($details === '') return ['success' => false, 'message' => 'Please describe the issue.'];
+
+        $evidencePath = null;
+        if (!empty($_FILES['photos']['name'])) {
+            try {
+                $evidencePath = handleFileUpload($_FILES['photos'], 'assets/documents/complaints');
+            } catch (Exception $e) {
+                return ['success' => false, 'message' => $e->getMessage()];
+            }
         }
 
-        $stmt = db()->prepare('SELECT id, status, delivered_at FROM orders WHERE order_number = ? AND user_id = ? LIMIT 1');
-        $stmt->execute([$orderNumber, currentBuyerId()]);
-        $order = $stmt->fetch();
-        if (!$order) {
-            return ['success' => false, 'message' => 'The selected order could not be found.'];
-        }
-        if (empty($order['delivered_at'])) {
-            return ['success' => false, 'message' => 'A complaint can be filed after the order is delivered.'];
-        }
-        $hours = (time() - strtotime((string)$order['delivered_at'])) / 3600;
-        if ($hours > 24) {
-            return ['success' => false, 'message' => 'The 24-hour dispute window for this order has expired.'];
-        }
+        $ok = db_execute(
+            "INSERT INTO complaints
+             (order_id, complainant_user_id, complainant_role, category, description, evidence_path, complaint_status)
+             VALUES (?, ?, 'BUYER', ?, ?, ?, 'OPEN')",
+            'iisss',
+            [(int)$order['order_id'], currentBuyerId(), $category, $details, $evidencePath]
+        );
 
-        $evidencePath = $this->storeEvidence($_FILES['photos'] ?? []);
-        $insert = db()->prepare('INSERT INTO complaints (user_id, order_id, category, details, evidence_path) VALUES (?, ?, ?, ?, ?)');
-        $insert->execute([currentBuyerId(), (int)$order['id'], $category, $details, $evidencePath]);
-
-        return ['success' => true, 'message' => 'Your complaint has been submitted successfully.'];
-    }
-
-    private function storeEvidence(array $files): ?string
-    {
-        if (empty($files['name']) || !is_array($files['name'])) return null;
-        $allowed = ['jpg','jpeg','png','webp'];
-        $paths = [];
-        $dir = dirname(__DIR__, 2) . '/uploads/complaints';
-        if (!is_dir($dir)) @mkdir($dir, 0775, true);
-        foreach ($files['name'] as $i => $name) {
-            if (($files['error'][$i] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) continue;
-            $ext = strtolower(pathinfo((string)$name, PATHINFO_EXTENSION));
-            if (!in_array($ext, $allowed, true)) continue;
-            $safe = 'complaint_' . currentBuyerId() . '_' . bin2hex(random_bytes(5)) . '.' . $ext;
-            $target = $dir . '/' . $safe;
-            if (move_uploaded_file($files['tmp_name'][$i], $target)) $paths[] = 'uploads/complaints/' . $safe;
-            if (count($paths) >= 5) break;
-        }
-        return $paths ? implode(',', $paths) : null;
+        return [
+            'success' => $ok,
+            'message' => $ok ? 'Your complaint/issue has been submitted.' : 'Unable to submit the complaint.',
+        ];
     }
 
     public function getReviewableOrders(): array
     {
-        $stmt = db()->prepare(
-            "SELECT o.order_number, o.delivered_at, o.total
+        requireBuyerAuth();
+        $window = reviewWindowDays();
+        $rows = db_fetch_all(
+            "SELECT o.order_id, o.completed_at, o.delivered_at, o.grand_total
              FROM orders o
-             LEFT JOIN feedback f ON f.order_id = o.id AND f.user_id = o.user_id
-             WHERE o.user_id = ? AND o.status = 'Completed'
-               AND o.delivered_at IS NOT NULL
-               AND o.delivered_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)
-               AND f.id IS NULL
-             ORDER BY o.delivered_at DESC"
+             LEFT JOIN reviews r ON r.order_id = o.order_id
+             WHERE o.buyer_id = ? AND o.order_status = 'COMPLETED'
+               AND COALESCE(o.completed_at, o.delivered_at) >= DATE_SUB(NOW(), INTERVAL ? DAY)
+               AND r.review_id IS NULL
+             ORDER BY COALESCE(o.completed_at, o.delivered_at) DESC",
+            'ii',
+            [currentBuyerId(), $window]
         );
-        $stmt->execute([currentBuyerId()]);
-        return $stmt->fetchAll();
+        return array_map(static fn(array $r): array => [
+            'order_id' => (int)$r['order_id'],
+            'order_number' => orderPublicId((int)$r['order_id']),
+            'completed_at' => $r['completed_at'] ?: $r['delivered_at'],
+            'total' => (float)$r['grand_total'],
+        ], $rows);
     }
 
     public function getComplaintOrders(): array
     {
-        $stmt = db()->prepare(
-            "SELECT o.order_number, o.delivered_at, o.total
-             FROM orders o
-             WHERE o.user_id = ? AND o.delivered_at IS NOT NULL
-               AND o.delivered_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-             ORDER BY o.delivered_at DESC"
+        requireBuyerAuth();
+        $rows = db_fetch_all(
+            "SELECT order_id, order_status, delivered_at, grand_total
+             FROM orders
+             WHERE buyer_id = ?
+               AND order_status NOT IN ('PENDING_PAYMENT','CANCELLED','REJECTED')
+             ORDER BY created_at DESC, order_id DESC",
+            'i',
+            [currentBuyerId()]
         );
-        $stmt->execute([currentBuyerId()]);
-        return $stmt->fetchAll();
-    }
-
-    private function getReviewableOrder(string $orderNumber): ?array
-    {
-        $stmt = db()->prepare(
-            "SELECT id, delivered_at FROM orders
-             WHERE order_number = ? AND user_id = ? AND status = 'Completed'
-               AND delivered_at IS NOT NULL
-               AND delivered_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) LIMIT 1"
-        );
-        $stmt->execute([$orderNumber, currentBuyerId()]);
-        return $stmt->fetch() ?: null;
+        return array_map(static fn(array $r): array => [
+            'order_id' => (int)$r['order_id'],
+            'order_number' => orderPublicId((int)$r['order_id']),
+            'order_status' => (string)$r['order_status'],
+            'delivered_at' => $r['delivered_at'],
+            'total' => (float)$r['grand_total'],
+        ], $rows);
     }
 
     public function getReviews(): array
     {
-        $stmt = db()->prepare(
-            'SELECT f.*, o.order_number FROM feedback f LEFT JOIN orders o ON o.id = f.order_id WHERE f.user_id = ? ORDER BY f.created_at DESC, f.id DESC'
+        requireBuyerAuth();
+        return db_fetch_all(
+            'SELECT r.*, o.order_id
+             FROM reviews r
+             JOIN orders o ON o.order_id = r.order_id
+             WHERE r.buyer_id = ?
+             ORDER BY r.created_at DESC, r.review_id DESC',
+            'i',
+            [currentBuyerId()]
         );
-        $stmt->execute([currentBuyerId()]);
-        return $stmt->fetchAll();
     }
 
     public function updateReview(int $id, array $data): bool
     {
-        $stmt = db()->prepare(
-            "UPDATE feedback SET farmer_rating = ?, delivery_rating = ?, quality_comment = ?, delivery_comment = ?, status = 'Pending' WHERE id = ? AND user_id = ?"
+        $window = reviewWindowDays();
+        $exists = db_fetch_one(
+            "SELECT r.review_id
+             FROM reviews r
+             JOIN orders o ON o.order_id = r.order_id
+             WHERE r.review_id = ? AND r.buyer_id = ?
+               AND COALESCE(o.completed_at, o.delivered_at) >= DATE_SUB(NOW(), INTERVAL ? DAY)",
+            'iii',
+            [$id, currentBuyerId(), $window]
         );
-        return $stmt->execute([
-            (int)$data['farmer_rating'], (int)$data['delivery_rating'],
-            trim((string)($data['quality_comment'] ?? '')), trim((string)($data['delivery_comment'] ?? '')),
-            $id, currentBuyerId(),
-        ]);
+        if (!$exists) return false;
+
+        $rating = max(1, min(5, (int)($data['rating'] ?? $data['farmer_rating'] ?? 5)));
+        // The stored review_text is edited verbatim - no label prefixing, so
+        // re-saving an existing review cannot duplicate prefixes.
+        $text = trim((string)($data['review_text'] ?? $data['quality_comment'] ?? ''));
+        if (mb_strlen($text) > 2000) $text = mb_substr($text, 0, 2000);
+
+        return db_execute(
+            'UPDATE reviews SET rating = ?, review_text = ?
+             WHERE review_id = ? AND buyer_id = ?',
+            'isii',
+            [$rating, $text, $id, currentBuyerId()]
+        );
     }
 
     public function deleteReview(int $id): bool
     {
-        $stmt = db()->prepare('DELETE FROM feedback WHERE id = ? AND user_id = ?');
-        return $stmt->execute([$id, currentBuyerId()]);
+        return db_execute(
+            'DELETE FROM reviews WHERE review_id = ? AND buyer_id = ?',
+            'ii',
+            [$id, currentBuyerId()]
+        );
     }
 
     public function getComplaints(): array
     {
-        $stmt = db()->prepare(
-            'SELECT c.*, o.order_number FROM complaints c LEFT JOIN orders o ON o.id = c.order_id WHERE c.user_id = ? ORDER BY c.created_at DESC, c.id DESC'
+        requireBuyerAuth();
+        return db_fetch_all(
+            "SELECT c.*, o.order_id
+             FROM complaints c
+             JOIN orders o ON o.order_id = c.order_id
+             WHERE c.complainant_user_id = ? AND c.complainant_role = 'BUYER'
+             ORDER BY c.created_at DESC, c.complaint_id DESC",
+            'i',
+            [currentBuyerId()]
         );
-        $stmt->execute([currentBuyerId()]);
-        return $stmt->fetchAll();
     }
 
     public function updateComplaint(int $id, array $data): bool
     {
-        $stmt = db()->prepare(
-            "UPDATE complaints SET category = ?, details = ? WHERE id = ? AND user_id = ? AND status = 'Open' AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)"
+        $category = trim((string)($data['category'] ?? ''));
+        $details = trim((string)($data['details'] ?? ''));
+        if ($category === '' || $details === '') return false;
+        if (mb_strlen($category) > 100) $category = mb_substr($category, 0, 100);
+        return db_execute(
+            "UPDATE complaints
+             SET category = ?, description = ?
+             WHERE complaint_id = ? AND complainant_user_id = ?
+               AND complainant_role = 'BUYER' AND complaint_status = 'OPEN'",
+            'ssii',
+            [$category, $details, $id, currentBuyerId()]
         );
-        return $stmt->execute([trim((string)$data['category']), trim((string)$data['details']), $id, currentBuyerId()]);
     }
 
     public function deleteComplaint(int $id): bool
     {
-        $stmt = db()->prepare(
-            "DELETE FROM complaints WHERE id = ? AND user_id = ? AND status = 'Open' AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)"
+        return db_execute(
+            "DELETE FROM complaints
+             WHERE complaint_id = ? AND complainant_user_id = ?
+               AND complainant_role = 'BUYER' AND complaint_status = 'OPEN'",
+            'ii',
+            [$id, currentBuyerId()]
         );
-        return $stmt->execute([$id, currentBuyerId()]);
     }
 }

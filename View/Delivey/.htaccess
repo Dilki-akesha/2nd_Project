@@ -1,0 +1,10 @@
+# Courier Partner view folder. These files are only ever included by
+# Controller/Courier/CourierController.php behind a page whitelist, never
+# requested directly over HTTP.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

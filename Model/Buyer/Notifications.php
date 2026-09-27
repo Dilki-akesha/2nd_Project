@@ -2,179 +2,143 @@
 
 declare(strict_types=1);
 
+/**
+ * Harvestly Buyer notifications.
+ * Simple database notifications only - no push, WebSocket, SMS or email service.
+ */
 final class Notifications
 {
+    private const PER_PAGE = 25;
+
     private function map(array $row): array
     {
-        $rawType = trim((string)($row['type'] ?? 'System'));
-        $typeKey = strtolower($rawType);
+        $typeKey = strtolower(str_replace('_', ' ', trim((string)($row['notification_type'] ?? 'System'))));
 
-        $typeAliases = [
-            'order' => 'Orders',
-            'orders' => 'Orders',
-            'delivery' => 'Delivery',
-            'deliveries' => 'Delivery',
-            'payment' => 'Payments',
-            'payments' => 'Payments',
-            'promotion' => 'Promotions',
-            'promotions' => 'Promotions',
-            'complaint' => 'Complaints',
-            'complaints' => 'Complaints',
-            'review' => 'Reviews',
-            'reviews' => 'Reviews',
-            'system' => 'System',
-        ];
-
-        $type = $typeAliases[$typeKey] ?? ucfirst(strtolower($rawType));
-        if (!in_array($type, ['Orders', 'Delivery', 'Payments', 'Promotions', 'Complaints', 'Reviews', 'System'], true)) {
-            $type = 'System';
-        }
+        $type = match (true) {
+            str_contains($typeKey, 'assignment') => 'Delivery',
+            str_contains($typeKey, 'order') => 'Orders',
+            str_contains($typeKey, 'deliver') => 'Delivery',
+            str_contains($typeKey, 'payment') => 'Payments',
+            str_contains($typeKey, 'complaint'), str_contains($typeKey, 'issue') => 'Issues',
+            str_contains($typeKey, 'review') => 'Reviews',
+            str_contains($typeKey, 'verif'), str_contains($typeKey, 'account') => 'Account',
+            default => 'System',
+        };
 
         $iconByType = [
             'Orders' => 'shopping_bag',
             'Delivery' => 'local_shipping',
             'Payments' => 'payments',
-            'Promotions' => 'local_offer',
-            'Complaints' => 'report_problem',
+            'Issues' => 'report_problem',
             'Reviews' => 'rate_review',
+            'Account' => 'verified_user',
             'System' => 'info',
         ];
 
-        $defaultAction = [
+        $actionByType = [
             'Orders' => 'View Orders',
-            'Delivery' => 'Track Order',
+            'Delivery' => 'View Orders',
             'Payments' => 'View Orders',
-            'Promotions' => 'Shop Now',
-            'Complaints' => 'View Complaints',
+            'Issues' => 'View Issues',
             'Reviews' => 'View Reviews',
-            'System' => 'View Products',
+            'Account' => 'View Profile',
+            'System' => 'Browse Products',
         ];
 
-        $defaultUrl = [
-            'Orders' => url('Controller/Buyer/OrdersController.php'),
-            'Delivery' => url('Controller/Buyer/OrdersController.php'),
-            'Payments' => url('Controller/Buyer/OrdersController.php'),
-            'Promotions' => url('Controller/Buyer/ProductController.php'),
-            'Complaints' => url('Controller/Buyer/ComplaintsController.php'),
-            'Reviews' => url('Controller/Buyer/ReviewsController.php'),
-            'System' => url('Controller/Buyer/ProductController.php'),
+        $urlByType = [
+            'Orders' => buyerRoute('OrdersController.php'),
+            'Delivery' => buyerRoute('OrdersController.php'),
+            'Payments' => buyerRoute('OrdersController.php'),
+            'Issues' => buyerRoute('FeedbackController.php'),
+            'Reviews' => buyerRoute('FeedbackController.php'),
+            'Account' => buyerRoute('ProfileController.php'),
+            'System' => buyerRoute('ProductController.php'),
         ];
 
-        $row['id'] = (int)($row['id'] ?? 0);
+        $row['id'] = (int)($row['notification_id'] ?? 0);
         $row['type'] = $type;
         $row['unread'] = !(bool)($row['is_read'] ?? 0);
-        $row['icon'] = (string)($row['icon'] ?? ($iconByType[$type] ?? 'notifications'));
-        $row['priority'] = (string)($row['priority'] ?? '');
-        $row['high'] = $type === 'Orders' && $row['unread'];
-        $row['promotion'] = $type === 'Promotions';
-        $row['action'] = trim((string)($row['action_label'] ?? '')) ?: ($defaultAction[$type] ?? 'View');
-        $row['action_url'] = trim((string)($row['action_url'] ?? '')) ?: ($defaultUrl[$type] ?? url('Controller/Buyer/DashboardController.php'));
+        $row['icon'] = $iconByType[$type] ?? 'notifications';
+        $row['action'] = $actionByType[$type] ?? 'View';
+        $row['action_url'] = $urlByType[$type] ?? buyerRoute('DashboardController.php');
 
-        // If a notification contains an order number, make the action open that order's tracking page.
-        if (preg_match('/ORD-[A-Z0-9-]+/i', (string)($row['message'] ?? ''), $match)) {
-            $orderId = $match[0];
-            if ($type === 'Delivery') {
-                $row['action'] = 'Track Order';
-                $row['action_url'] = url('Controller/Buyer/OrderTrackingController.php?id=' . urlencode($orderId));
-            } elseif ($type === 'Orders' || $type === 'Payments') {
+        // When a notification refers to one of this Buyer's orders, link straight
+        // to that order's details page.
+        if (!empty($row['related_order_id'])) {
+            $publicId = orderPublicId((int)$row['related_order_id']);
+            if (in_array($type, ['Orders', 'Delivery', 'Payments'], true)) {
                 $row['action'] = 'View Order';
-                $row['action_url'] = url('Controller/Buyer/OrderTrackingController.php?id=' . urlencode($orderId));
+                $row['action_url'] = buyerRoute('OrderTrackingController.php', 'id=' . urlencode($publicId));
             }
         }
 
         $row['time'] = !empty($row['created_at'])
-            ? date('M d, Y H:i', strtotime((string)$row['created_at']))
+            ? date('d M Y, H:i', strtotime((string)$row['created_at']))
             : 'Just now';
 
         return $row;
     }
 
-    public function getAll(): array
+    public function getAll(string $filter = 'all', int $page = 1): array
     {
-        $stmt = db()->prepare(
-            'SELECT * FROM notifications
-             WHERE user_id = ?
-             ORDER BY created_at DESC, id DESC'
+        requireBuyerAuth();
+        $conditions = 'user_id = ?';
+        $types = 'i';
+        $params = [currentBuyerId()];
+
+        if ($filter === 'unread') {
+            $conditions .= ' AND is_read = 0';
+        } elseif ($filter === 'read') {
+            $conditions .= ' AND is_read = 1';
+        }
+
+        $total = (int)db_scalar("SELECT COUNT(*) FROM notifications WHERE $conditions", $types, $params, 0);
+
+        $page = max(1, $page);
+        $offset = ($page - 1) * self::PER_PAGE;
+        $rows = db_fetch_all(
+            "SELECT * FROM notifications
+             WHERE $conditions
+             ORDER BY created_at DESC, notification_id DESC
+             LIMIT ? OFFSET ?",
+            $types . 'ii',
+            array_merge($params, [self::PER_PAGE, $offset])
         );
-        $stmt->execute([currentBuyerId()]);
 
-        return array_map(
-            fn(array $row) => $this->map($row),
-            $stmt->fetchAll()
+        $unreadCount = (int)db_scalar(
+            'SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0',
+            'i',
+            [currentBuyerId()],
+            0
         );
-    }
 
-    public function find(int $id): ?array
-    {
-        $stmt = db()->prepare(
-            'SELECT * FROM notifications WHERE id = ? AND user_id = ? LIMIT 1'
-        );
-        $stmt->execute([$id, currentBuyerId()]);
-        $row = $stmt->fetch();
-
-        return $row ? $this->map($row) : null;
-    }
-
-    public function create(array $data): int
-    {
-        $stmt = db()->prepare(
-            'INSERT INTO notifications
-                (user_id, type, title, message, action_label, action_url, is_read)
-             VALUES (?, ?, ?, ?, ?, ?, 0)'
-        );
-        $stmt->execute([
-            currentBuyerId(),
-            trim((string)($data['type'] ?? 'System')),
-            trim((string)($data['title'] ?? 'Notification')),
-            trim((string)($data['message'] ?? '')),
-            trim((string)($data['action_label'] ?? '')) ?: null,
-            trim((string)($data['action_url'] ?? '')) ?: null,
-        ]);
-
-        return (int)db()->lastInsertId();
+        return [
+            'items' => array_map(fn(array $row) => $this->map($row), $rows),
+            'total' => $total,
+            'unread' => $unreadCount,
+            'page' => $page,
+            'pages' => max(1, (int)ceil($total / self::PER_PAGE)),
+            'filter' => in_array($filter, ['all', 'unread', 'read'], true) ? $filter : 'all',
+        ];
     }
 
     public function markRead(int $id): bool
     {
-        $stmt = db()->prepare(
-            'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?'
+        return db_execute(
+            'UPDATE notifications SET is_read = 1, read_at = NOW()
+             WHERE notification_id = ? AND user_id = ? AND is_read = 0',
+            'ii',
+            [$id, currentBuyerId()]
         );
-        return $stmt->execute([$id, currentBuyerId()]);
     }
 
     public function markAllRead(): bool
     {
-        $stmt = db()->prepare(
-            'UPDATE notifications SET is_read = 1 WHERE user_id = ?'
+        return db_execute(
+            'UPDATE notifications SET is_read = 1, read_at = NOW()
+             WHERE user_id = ? AND is_read = 0',
+            'i',
+            [currentBuyerId()]
         );
-        return $stmt->execute([currentBuyerId()]);
-    }
-
-    public function update(int $id, array $data): bool
-    {
-        $stmt = db()->prepare(
-            'UPDATE notifications
-             SET type = ?, title = ?, message = ?, action_label = ?, action_url = ?, is_read = ?
-             WHERE id = ? AND user_id = ?'
-        );
-
-        return $stmt->execute([
-            trim((string)($data['type'] ?? 'System')),
-            trim((string)($data['title'] ?? 'Notification')),
-            trim((string)($data['message'] ?? '')),
-            trim((string)($data['action_label'] ?? '')) ?: null,
-            trim((string)($data['action_url'] ?? '')) ?: null,
-            !empty($data['is_read']) ? 1 : 0,
-            $id,
-            currentBuyerId(),
-        ]);
-    }
-
-    public function delete(int $id): bool
-    {
-        $stmt = db()->prepare(
-            'DELETE FROM notifications WHERE id = ? AND user_id = ?'
-        );
-        return $stmt->execute([$id, currentBuyerId()]);
     }
 }

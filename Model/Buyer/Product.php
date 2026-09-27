@@ -2,154 +2,164 @@
 
 declare(strict_types=1);
 
+/**
+ * Harvestly Buyer product browsing.
+ * Products shown here always come from the database. When a table has no
+ * records the caller receives an empty array / null and the view renders an
+ * empty state - no fake fallback records are displayed.
+ */
 final class Product
 {
-    private PDO $db;
+    private mysqli $db;
 
     public function __construct()
     {
         $this->db = db();
     }
 
-    private function normalizeProduct(array $product): array
+    private function imageUrl(?string $path, string $name = '', string $category = ''): string
     {
-        if (mb_strtolower(trim((string)($product['name'] ?? ''))) === 'coconut') {
-            $product['image'] = url('assets/coconut-sri-lanka.jpeg');
+        $path = trim((string)$path);
+        if ($path === '') {
+            $path = getProductImage($name, $category);
         }
-        return $product;
+        if (preg_match('#^https?://#i', $path) || str_starts_with($path, '/')) {
+            return $path;
+        }
+        return url($path);
     }
 
-    private function map(array $product): array
+    private function map(array $row): array
     {
-        $product['id'] = (int)$product['id'];
-        $product['price'] = (float)$product['price'];
-        $product['rating'] = (float)$product['rating'];
-        $product['reviews'] = (int)$product['reviews'];
-        $product['fresh'] = (bool)$product['fresh'];
-        $product['organic'] = (bool)$product['organic'];
-        $product['stock'] = (int)$product['stock'];
-        $product['farmer_rating'] = (float)$product['farmer_rating'];
-        $product['images'] = !empty($product['image']) ? [$product['image']] : [];
-        $product['farmerImage'] = '';
+        $row['id'] = (int)$row['id'];
+        $row['farmer_id'] = (int)$row['farmer_id'];
+        $row['price'] = (float)$row['price'];
+        $row['rating'] = (float)($row['rating'] ?? 0);
+        $row['reviews'] = (int)($row['reviews'] ?? 0);
+        $row['organic'] = ($row['growing_method'] ?? '') === 'ORGANIC';
+        $row['stock'] = (float)($row['stock'] ?? 0);
+        $row['image'] = $this->imageUrl($row['image'] ?? '', $row['name'] ?? '', $row['category'] ?? '');
+        $row['harvest_date'] = (string)($row['harvest_date'] ?? '');
+        /*
+         * Shelf-life information is shown ONLY where a valid reference row exists.
+         * When shelf_life_reference_id is NULL this stays null and the view renders
+         * no shelf-life section at all - no placeholder or invented values.
+         */
+        $row['shelf_reference'] = empty($row['shelf_life_reference_id'])
+            ? null
+            : db_fetch_one(
+                'SELECT * FROM shelf_life_references WHERE shelf_life_reference_id=? AND is_active=1',
+                'i',
+                [(int)$row['shelf_life_reference_id']]
+            );
+        return $row;
+    }
 
-        return $product;
+    private function baseSelect(): string
+    {
+        return "
+            SELECT
+                p.product_id AS id, p.shelf_life_reference_id,
+                p.farmer_id,
+                p.product_name AS name,
+                p.unit_price AS price,
+                p.unit_label AS unit,
+                u.full_name AS farmer,
+                COALESCE((
+                    SELECT AVG(r.rating) FROM reviews r WHERE r.farmer_id = p.farmer_id
+                ), 0) AS rating,
+                COALESCE((
+                    SELECT COUNT(*) FROM reviews r WHERE r.farmer_id = p.farmer_id
+                ), 0) AS reviews,
+                p.available_quantity AS stock,
+                (
+                    SELECT pi.image_path
+                    FROM product_images pi
+                    WHERE pi.product_id = p.product_id
+                    ORDER BY pi.is_primary DESC, pi.image_id ASC
+                    LIMIT 1
+                ) AS image,
+                p.description,
+                p.harvest_date,
+                COALESCE(fp.farm_name, u.full_name) AS farm,
+                p.listing_type,
+                p.growing_method,
+                c.category_name AS category,
+                d.district_name AS district
+            FROM products p
+            JOIN users u ON u.user_id = p.farmer_id
+            JOIN product_categories c ON c.category_id = p.category_id
+            JOIN farmer_profiles fp ON fp.farmer_id = p.farmer_id
+            LEFT JOIN districts d ON d.district_id = fp.district_id
+        ";
+    }
+
+    /**
+     * Only listings that an approved, active Farmer in an active category may be
+     * shown to Buyers.
+     */
+    private function visibilityClause(): string
+    {
+        return "WHERE p.listing_status = 'ACTIVE'
+                AND u.account_status = 'ACTIVE'
+                AND fp.verification_status = 'APPROVED'
+                AND c.is_active = 1";
     }
 
     public function getAllProducts(): array
     {
-        $stmt = $this->db->query(
-            'SELECT * FROM products ORDER BY created_at DESC, id DESC'
+        $rows = db_fetch_all(
+            $this->baseSelect() . ' ' . $this->visibilityClause() . '
+             ORDER BY p.created_at DESC, p.product_id DESC'
         );
-
-        return array_map(fn(array $row) => $this->map($row), $stmt->fetchAll());
+        return array_map(fn(array $row) => $this->map($row), $rows);
     }
 
     public function getProductById(int $id): ?array
     {
-        $stmt = $this->db->prepare(
-            'SELECT * FROM products WHERE id = ? LIMIT 1'
+        $row = db_fetch_one(
+            $this->baseSelect() . ' ' . $this->visibilityClause() . '
+             AND p.product_id = ?
+             LIMIT 1',
+            'i',
+            [$id]
         );
-        $stmt->execute([$id]);
-        $product = $stmt->fetch();
-
-        return $product ? $this->map($product) : null;
+        return $row ? $this->map($row) : null;
     }
 
     public function getFarmerStore(string $farmer): ?array
     {
-        $stmt = $this->db->prepare(
-            'SELECT * FROM products WHERE farmer = ? ORDER BY created_at DESC, id DESC'
+        $rows = db_fetch_all(
+            $this->baseSelect() . ' ' . $this->visibilityClause() . '
+             AND u.full_name = ?
+             ORDER BY p.created_at DESC, p.product_id DESC',
+            's',
+            [$farmer]
         );
-        $stmt->execute([$farmer]);
-        $rows = $stmt->fetchAll();
 
-        if (!$rows) {
-            return null;
-        }
+        if (!$rows) return null;
 
         $products = array_map(fn(array $row) => $this->map($row), $rows);
-        $ratings = array_values(array_filter(array_map(
-            fn(array $row) => (float)($row['farmer_rating'] ?? 0),
-            $products
-        ), fn(float $rating) => $rating > 0));
-
         $first = $products[0];
-        $rating = $ratings ? array_sum($ratings) / count($ratings) : (float)$first['rating'];
 
         return [
-            'name' => $first['farmer'],
-            'rating' => round($rating, 1),
-            'district' => $first['farm'] ?: 'Sri Lanka',
-            'farm' => $first['farm'] ?: '',
-            'experience' => $first['experience'] ?: 'Local Farmer',
-            'delivery' => $first['delivery'] ?: 'Delivery available',
+            'name' => (string)$first['farmer'],
+            'rating' => round((float)$first['rating'], 1),
+            'reviewCount' => (int)$first['reviews'],
+            'district' => (string)($first['district'] ?? ''),
+            'farm' => (string)($first['farm'] ?? ''),
             'products' => $products,
         ];
     }
 
-    public function create(array $data): int
+    /** Growing methods actually present, used on the Farmer store summary. */
+    public function growingMethodLabel(?string $method): string
     {
-        $stmt = $this->db->prepare(
-            'INSERT INTO products
-                (name, price, unit, farmer, rating, reviews, fresh, organic, stock,
-                 image, description, harvest_date, farm, farmer_rating, experience, delivery)
-             VALUES (?, ?, ?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)'
-        );
-
-        $stmt->execute([
-            trim((string)$data['name']),
-            max(0, (float)$data['price']),
-            trim((string)$data['unit']),
-            trim((string)$data['farmer']),
-            !empty($data['fresh']) ? 1 : 0,
-            !empty($data['organic']) ? 1 : 0,
-            max(0, (int)($data['stock'] ?? 0)),
-            trim((string)($data['image'] ?? '')),
-            trim((string)($data['description'] ?? '')),
-            trim((string)($data['harvest_date'] ?? 'Today')),
-            trim((string)($data['farm'] ?? $data['farmer'])),
-            trim((string)($data['experience'] ?? '')),
-            trim((string)($data['delivery'] ?? '')),
-        ]);
-
-        return (int)$this->db->lastInsertId();
-    }
-
-    public function update(int $id, array $data): bool
-    {
-        $stmt = $this->db->prepare(
-            'UPDATE products
-             SET name = ?, price = ?, unit = ?, farmer = ?, stock = ?, image = ?,
-                 description = ?, organic = ?, fresh = ?, harvest_date = ?, farm = ?,
-                 experience = ?, delivery = ?
-             WHERE id = ?'
-        );
-
-        return $stmt->execute([
-            trim((string)$data['name']),
-            max(0, (float)$data['price']),
-            trim((string)$data['unit']),
-            trim((string)$data['farmer']),
-            max(0, (int)$data['stock']),
-            trim((string)($data['image'] ?? '')),
-            trim((string)($data['description'] ?? '')),
-            !empty($data['organic']) ? 1 : 0,
-            !empty($data['fresh']) ? 1 : 0,
-            trim((string)($data['harvest_date'] ?? 'Today')),
-            trim((string)($data['farm'] ?? $data['farmer'])),
-            trim((string)($data['experience'] ?? '')),
-            trim((string)($data['delivery'] ?? '')),
-            $id,
-        ]);
-    }
-
-    public function delete(int $id): bool
-    {
-        try {
-            $stmt = $this->db->prepare('DELETE FROM products WHERE id = ?');
-            return $stmt->execute([$id]);
-        } catch (PDOException $e) {
-            return false;
-        }
+        return match ((string)$method) {
+            'ORGANIC' => 'Organic',
+            'CONVENTIONAL' => 'Conventional',
+            'MIXED' => 'Mixed',
+            default => 'Not specified',
+        };
     }
 }

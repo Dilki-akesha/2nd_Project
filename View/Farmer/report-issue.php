@@ -1,111 +1,124 @@
-<?php 
-require 'includes/auth.php';
-require 'includes/layout.php';
+<?php
+require __DIR__ . '/includes/auth.php';
+require __DIR__ . '/includes/layout.php';
 
-if($_SERVER['REQUEST_METHOD']==='POST'){ 
-    $oid=(int)$_POST['order_id'];
-    $cat=trim($_POST['category']);
-    $desc=trim($_POST['description']);
-    $chk=$conn->prepare(
-        'SELECT order_id 
-        FROM orders 
-        WHERE order_id=? AND farmer_id=?
-    ');
-    
-    $chk->bind_param('ii',$oid,$farmer_id);
-    $chk->execute();
-    if(!$chk->get_result()->fetch_assoc()){
-        flash('error','That order does not belong to you.');
-        redirect('report-issue.php');}$path=null;
-        if(!empty($_FILES['evidence']['name'])&&$_FILES['evidence']['error']===UPLOAD_ERR_OK){
-            $ext=strtolower(pathinfo($_FILES['evidence']['name'],PATHINFO_EXTENSION));
-            if(in_array($ext,['jpg','jpeg','png','webp','pdf'])){
-                $fn='issue_'.$farmer_id.'_'.time().'.'.$ext;move_uploaded_file($_FILES['evidence']['tmp_name'],__DIR__.'/uploads/complaints/'.$fn);
-                $path='uploads/complaints/'.$fn;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $orderId = (int)($_POST['order_id'] ?? 0);
+
+    if (!$farmerModel->ownsOrder($orderId, $farmer_id)) {
+        flash('error', 'That order does not belong to you.');
+        farmer_redirect('report-issue.php');
+    }
+
+    $evidencePath = null;
+    if (!empty($_FILES['evidence']['name'])) {
+        try {
+            $evidencePath = handleFileUpload($_FILES['evidence'], 'assets/documents/complaints');
+        } catch (Throwable $uploadError) {
+            flash('error', $uploadError->getMessage());
+            farmer_redirect('report-issue.php');
         }
     }
-        
-    $st=$conn->prepare(
-        "INSERT INTO complaints(order_id,complainant_user_id,complainant_role,category,description,evidence_path) 
-        VALUES (?,?,'FARMER',?,?,?)"
+
+    $ok = $farmerModel->addComplaint(
+        $farmer_id,
+        $orderId,
+        trim((string)($_POST['category'] ?? 'Other')),
+        trim((string)($_POST['description'] ?? '')),
+        $evidencePath
     );
-        
-    $st->bind_param('iisss',$oid,$farmer_id,$cat,$desc,$path);
-    $st->execute();
-    flash('success','Issue submitted.');
-    redirect('report-issue.php');
+    flash($ok ? 'success' : 'error', $ok ? 'Issue submitted.' : 'Please complete the category and description.');
+    farmer_redirect('report-issue.php');
 }
 
-$st=$conn->prepare(
-    "SELECT * FROM complaints 
-    WHERE complainant_user_id=? 
-    AND complainant_role='FARMER' 
-    ORDER BY created_at DESC"
-);
+$complaintOrders = $farmerModel->complaintOrders($farmer_id);
+$complaints = $farmerModel->complaints($farmer_id);
 
-$st->bind_param('i',$farmer_id);
-$st->execute();
-$rows=$st->get_result();
-
-page_top('Report Issue','report-issue');?>
-
-
-
+page_top('Report Issue', 'report-issue');
+?>
 
 <div class="page-title">
     <div>
         <h1>Report Issue</h1>
-        <p>Submit and track farmer support issues.</p>
+        <p>Submit and track issues related to one of your orders. Admin reviews every issue.</p>
     </div>
 </div>
 
-<form class="card" method="post" enctype="multipart/form-data">
-    <div class="form-grid">
-        <div class="field">
-            <label>Order ID</label>
-            <input class="input" type="number" name="order_id" required>
+<div class="card mb">
+    <h2>Submit an Issue</h2>
+    <?php if (!$complaintOrders): ?>
+        <p class="empty">You need at least one order before you can report an order issue.</p>
+    <?php else: ?>
+    <form method="post" enctype="multipart/form-data">
+        <?= csrfField() ?>
+        <div class="form-grid">
+            <div class="field">
+                <label>Order</label>
+                <select class="select" name="order_id" required>
+                    <?php foreach ($complaintOrders as $r): ?>
+                    <option value="<?= (int)$r['order_id'] ?>">
+                        <?= e(orderPublicId((int)$r['order_id'])) ?> &middot; <?= e(farmer_status_label((string)$r['order_status'])) ?> &middot; <?= farmer_money($r['grand_total']) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="field">
+                <label>Category</label>
+                <select class="select" name="category" required>
+                    <option>Delivery Issue</option>
+                    <option>Buyer Issue</option>
+                    <option>Product Issue</option>
+                    <option>Payment / Earnings</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="field full">
+                <label>Description</label>
+                <textarea class="textarea" name="description" rows="4" required></textarea>
+            </div>
+            <div class="field full">
+                <label>Evidence (optional)</label>
+                <input type="file" name="evidence" accept="image/jpeg,image/png,application/pdf">
+                <small class="muted">JPG, PNG or PDF; 5 MB maximum.</small>
+            </div>
         </div>
-        <div class="field">
-            <label>Category</label>
-            <input class="input" name="category" required placeholder="Delivery Issue">
-        </div>
-        <div class="field full">
-            <label>Description</label>
-            <textarea class="textarea" name="description" required></textarea>
-        </div>
-        <div class="field full">
-            <label>Evidence (optional)</label>
-            <input type="file" name="evidence" accept="image/*,.pdf">
-        </div>
-    </div>
-    <button class="btn">Submit Issue</button>
-</form>
+        <button class="btn" type="submit">Submit Issue</button>
+    </form>
+    <?php endif; ?>
+</div>
+
 <div class="card">
-    <h2>Existing Issues</h2>
+    <h2>My Issues</h2>
+    <?php if (!$complaints): ?>
+        <p class="empty">You have not submitted any issues yet.</p>
+    <?php else: ?>
     <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Order</th>
                     <th>Category</th>
+                    <th>Description</th>
                     <th>Status</th>
                     <th>Admin Response</th>
+                    <th>Submitted</th>
                 </tr>
             </thead>
             <tbody>
-                <?php while($r=$rows->fetch_assoc()):?>
-                    <tr>
-                        <td>#<?=$r['complaint_id']?></td>
-                        <td>#HV<?=$r['order_id']?></td>
-                        <td><?=e($r['category'])?></td>
-                        <td><?=e($r['complaint_status'])?></td>
-                        <td><?=e($r['admin_response']?:'-')?></td>
-                    </tr>
-                <?php endwhile;?>
+            <?php foreach ($complaints as $c): ?>
+                <tr>
+                    <td class="nowrap"><?= e(orderPublicId((int)$c['order_id'])) ?></td>
+                    <td><?= e((string)$c['category']) ?></td>
+                    <td style="white-space:normal;min-width:220px"><?= e((string)$c['description']) ?></td>
+                    <td><span class="status-badge <?= e(farmer_status_tone((string)$c['complaint_status'])) ?>"><?= e(farmer_status_label((string)$c['complaint_status'])) ?></span></td>
+                    <td style="white-space:normal;min-width:200px"><?= e((string)($c['admin_response'] ?: '—')) ?></td>
+                    <td class="nowrap"><?= e(date('d M Y', strtotime((string)$c['created_at']))) ?></td>
+                </tr>
+            <?php endforeach; ?>
             </tbody>
         </table>
     </div>
+    <?php endif; ?>
 </div>
 
-<?php page_bottom();?>
+<?php page_bottom(); ?>

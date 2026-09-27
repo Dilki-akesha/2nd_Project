@@ -5,75 +5,43 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../Model/Buyer/Feedback.php';
 
+requireBuyerAuth();
 $model = new Feedback();
-$orderId = trim((string)($_GET['order_id'] ?? $_POST['order_id'] ?? ''));
-if ($orderId === '') {
-    $latestOrderStmt = db()->prepare('SELECT order_number FROM orders WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT 1');
-    $latestOrderStmt->execute([currentBuyerId()]);
-    $orderId = (string)($latestOrderStmt->fetchColumn() ?: '');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrfToken();
+    try {
+        $action = (string)($_POST['action'] ?? '');
+        $id = (int)($_POST['id'] ?? 0);
+
+        if ($action === 'review') {
+            $result = $model->submitReview($_POST);
+        } elseif ($action === 'complaint') {
+            $result = $model->submitComplaint($_POST);
+        } else {
+            $ok = match ($action) {
+                'update_review' => $model->updateReview($id, $_POST),
+                'delete_review' => $model->deleteReview($id),
+                'update_complaint' => $model->updateComplaint($id, $_POST),
+                'delete_complaint' => $model->deleteComplaint($id),
+                default => false,
+            };
+            $result = [
+                'success' => $ok,
+                'message' => $ok ? 'Changes saved.' : 'Unable to make that change.',
+            ];
+        }
+        $_SESSION['_buyer_flash'] = $result;
+    } catch (Throwable $e) {
+        $_SESSION['_buyer_flash'] = ['success' => false, 'message' => $e->getMessage()];
+    }
+    redirect('Controller/Buyer/FeedbackController.php');
 }
-$farmerName = "Sunil's Organic Farm";
-$reviewMessage = '';
-$complaintMessage = '';
+
 $reviews = $model->getReviews();
 $complaints = $model->getComplaints();
 $reviewableOrders = $model->getReviewableOrders();
 $complaintOrders = $model->getComplaintOrders();
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = trim((string)($_POST['action'] ?? ''));
-
-    if ($action === 'delete_review') {
-        $success = $model->deleteReview((int)($_POST['id'] ?? 0));
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode([
-            'success' => $success,
-            'message' => $success ? 'Review deleted successfully.' : 'Review could not be deleted.',
-        ]);
-        exit;
-    }
-
-    if ($action === 'update_review') {
-        $success = $model->updateReview((int)($_POST['id'] ?? 0), $_POST);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode([
-            'success' => $success,
-            'message' => $success ? 'Review updated successfully.' : 'Review could not be updated.',
-        ]);
-        exit;
-    }
-
-    if ($action === 'update_complaint') {
-        $success = $model->updateComplaint((int)($_POST['id'] ?? 0), $_POST);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['success' => $success, 'message' => $success ? 'Complaint updated successfully.' : 'Complaint could not be updated.']);
-        exit;
-    }
-
-    if ($action === 'delete_complaint') {
-        $success = $model->deleteComplaint((int)($_POST['id'] ?? 0));
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode([
-            'success' => $success,
-            'message' => $success ? 'Complaint deleted successfully.' : 'Complaint cannot be deleted now.',
-        ]);
-        exit;
-    }
-
-    if (isset($_POST['submit_review'])) {
-        $result = $model->submitReview($_POST);
-        $reviewMessage = $result['message'];
-    }
-
-    if (isset($_POST['submit_complaint'])) {
-        $result = $model->submitComplaint($_POST);
-        $complaintMessage = $result['message'];
-    }
-
-    $reviews = $model->getReviews();
-    $complaints = $model->getComplaints();
-    $reviewableOrders = $model->getReviewableOrders();
-    $complaintOrders = $model->getComplaintOrders();
-}
+$selectedOrder = parseOrderPublicId((string)($_GET['order_id'] ?? ''));
 
 require __DIR__ . '/../../View/Buyer/feedback.php';

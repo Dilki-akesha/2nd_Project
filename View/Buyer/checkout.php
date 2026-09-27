@@ -1,766 +1,177 @@
 <?php
+require_once __DIR__ . '/../../config/app.php';
+if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) redirect('Controller/Buyer/CheckoutController.php');
+require __DIR__ . '/includes/layout.php';
+buyer_page_top('Checkout', 'CartController.php');
 
-$cartItems = $cartItems ?? [];
-
-$subtotal = (float)($subtotal ?? 0);
-
-$deliveryFee = (float)($deliveryFee ?? 0);
-
-$total = (float)($total ?? 0);
-
-$totalQuantity = (int)($totalQuantity ?? 0);
-
-$success = $success ?? false;
-
-$successOrderId = $successOrderId ?? null;
-
-$error = $error ?? "";
-$farmer = $farmer ?? "";
-$checkoutFarmers = [];
-foreach ($cartItems as $checkoutItem) {
-    $seller = trim((string)($checkoutItem['seller'] ?? ''));
-    if ($seller !== '' && !in_array($seller, $checkoutFarmers, true)) {
-        $checkoutFarmers[] = $seller;
-    }
-}
-
+$canOrder = $quote !== null && $quote['routeAvailable'];
+$baseFee = (float)db_setting('delivery_base_fee', 0);
+$perKm = (float)db_setting('delivery_per_km_rate', 0);
 ?>
 
-<!DOCTYPE html>
-
-<html lang="en">
-
-<head>
-
-<meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<title>Harvestly - Checkout</title>
-
-<link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet"
->
-
-<link
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,0"
-    rel="stylesheet"
->
-
-<link
-    rel="stylesheet"
-    href="/Harvestly/css/Buyer/checkout.css"
->
-
-</head>
-
-
-<body>
-
-
-<div class="checkout-page">
-
-
-<!-- =====================================================
-     HEADER
-====================================================== -->
-
-<header class="checkout-header">
-
-    <a
-        href="/Harvestly/Controller/Buyer/CartController.php"
-        class="back-link"
-    >
-
-        <span class="material-symbols-outlined">
-            arrow_back
-        </span>
-
-        Back to Cart
-
-    </a>
-
-
-    <a
-        href="/Harvestly/Controller/Buyer/DashboardController.php"
-        class="brand"
-    >
-
-        <img src="/Harvestly/assets/harvestly-logo.jpeg" alt="Harvestly" style="height:34px;width:auto;display:block;object-fit:contain;">
-
-    </a>
-
-
-    <div class="header-space"></div>
-
-</header>
-
-
-<!-- =====================================================
-     ERROR
-====================================================== -->
-
-<?php if (!empty($error)): ?>
-
-<div class="checkout-error">
-
-    <?= htmlspecialchars($error) ?>
-
-</div>
-
-<?php endif; ?>
-
-
-<!-- =====================================================
-     MAIN
-====================================================== -->
-
-<main class="checkout-container">
-
-
-<div class="checkout-title">
-
-    <h1>
-        Checkout
-    </h1>
-
-    <?php if (count($checkoutFarmers) === 1): ?>
-        <p class="checkout-farmer-label">Ordering from <strong><?php echo htmlspecialchars($checkoutFarmers[0]); ?></strong></p>
-    <?php elseif (count($checkoutFarmers) > 1): ?>
-        <p class="checkout-farmer-label">Ordering from <strong><?php echo count($checkoutFarmers); ?> farmers</strong></p>
-    <?php endif; ?>
-
-</div>
-
-
-<form
-    id="checkoutForm"
-    action="/Harvestly/Controller/Buyer/CheckoutController.php"
-    method="POST"
-    class="checkout-grid"
->
-
-<input type="hidden" name="farmer" value="<?php echo htmlspecialchars($farmer); ?>">
-
-
-<!-- =====================================================
-     LEFT
-====================================================== -->
-
-<section class="checkout-left">
-
-
-<!-- DELIVERY -->
-
-<div class="checkout-card">
-
-<div class="card-heading">
-
-<div class="heading-icon">
-
-<span class="material-symbols-outlined">
-    local_shipping
-</span>
-
-</div>
-
-<h2>
-    Delivery Address
-</h2>
-
-</div>
-
-
-<div class="form-grid">
-
-
-<div class="form-group full">
-
-<label>
-    Full Name
-</label>
-
-<input
-    type="text"
-    name="fullName"
-    placeholder="John Doe"
-    required
->
-
-</div>
-
-
-<div class="form-group full">
-
-<label>
-    Address Line 1
-</label>
-
-<input
-    type="text"
-    name="address"
-    placeholder="123 Farm Road"
-    required
->
-
-</div>
-
-
-<div class="form-group">
-
-<label>
-    City
-</label>
-
-<input
-    type="text"
-    name="city"
-    placeholder="Colombo"
-    required
->
-
-</div>
-
-
-<div class="form-group">
-
-<label>
-    Postal Code
-</label>
-
-<input
-    type="text"
-    name="postal"
-    placeholder="00100"
-    required
->
-
-</div>
-
-
-<div class="form-group full">
-
-<label>
-    Phone Number
-</label>
-
-<input
-    type="tel"
-    name="phone"
-    placeholder="07X XXX XXXX"
-    required
->
-
-</div>
-
-<div class="form-group full">
-
-<label>
-    Destination District
-</label>
-
-<select name="destination_district" required>
-    <option value="">Select your district</option>
-        <option value="Ampara" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Ampara') ? 'selected' : ''; ?>>Ampara</option>
-        <option value="Anuradhapura" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Anuradhapura') ? 'selected' : ''; ?>>Anuradhapura</option>
-        <option value="Badulla" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Badulla') ? 'selected' : ''; ?>>Badulla</option>
-        <option value="Batticaloa" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Batticaloa') ? 'selected' : ''; ?>>Batticaloa</option>
-        <option value="Colombo" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Colombo') ? 'selected' : ''; ?>>Colombo</option>
-        <option value="Galle" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Galle') ? 'selected' : ''; ?>>Galle</option>
-        <option value="Gampaha" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Gampaha') ? 'selected' : ''; ?>>Gampaha</option>
-        <option value="Hambantota" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Hambantota') ? 'selected' : ''; ?>>Hambantota</option>
-        <option value="Jaffna" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Jaffna') ? 'selected' : ''; ?>>Jaffna</option>
-        <option value="Kalutara" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Kalutara') ? 'selected' : ''; ?>>Kalutara</option>
-        <option value="Kandy" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Kandy') ? 'selected' : ''; ?>>Kandy</option>
-        <option value="Kegalle" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Kegalle') ? 'selected' : ''; ?>>Kegalle</option>
-        <option value="Kilinochchi" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Kilinochchi') ? 'selected' : ''; ?>>Kilinochchi</option>
-        <option value="Kurunegala" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Kurunegala') ? 'selected' : ''; ?>>Kurunegala</option>
-        <option value="Mannar" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Mannar') ? 'selected' : ''; ?>>Mannar</option>
-        <option value="Matale" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Matale') ? 'selected' : ''; ?>>Matale</option>
-        <option value="Matara" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Matara') ? 'selected' : ''; ?>>Matara</option>
-        <option value="Monaragala" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Monaragala') ? 'selected' : ''; ?>>Monaragala</option>
-        <option value="Mullaitivu" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Mullaitivu') ? 'selected' : ''; ?>>Mullaitivu</option>
-        <option value="Nuwara Eliya" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Nuwara Eliya') ? 'selected' : ''; ?>>Nuwara Eliya</option>
-        <option value="Polonnaruwa" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Polonnaruwa') ? 'selected' : ''; ?>>Polonnaruwa</option>
-        <option value="Puttalam" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Puttalam') ? 'selected' : ''; ?>>Puttalam</option>
-        <option value="Ratnapura" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Ratnapura') ? 'selected' : ''; ?>>Ratnapura</option>
-        <option value="Trincomalee" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Trincomalee') ? 'selected' : ''; ?>>Trincomalee</option>
-        <option value="Vavuniya" <?php echo ((string)($_GET['destination_district'] ?? '') === 'Vavuniya') ? 'selected' : ''; ?>>Vavuniya</option>
-</select>
-
-</div>
-
-</div>
-
-</div>
-
-
-
-<!-- PAYMENT -->
-
-<div class="checkout-card">
-
-<div class="card-heading">
-
-<div class="heading-icon">
-
-<span class="material-symbols-outlined">
-    payments
-</span>
-
-</div>
-
-<h2>
-    Payment Method
-</h2>
-
-</div>
-
-
-<div class="payment-methods">
-
-
-<label
-    class="payment-method selected"
-    data-method="card"
->
-
-<input
-    type="radio"
-    name="payment"
-    value="card"
-    checked
->
-
-<div class="radio-circle"></div>
-
-<div class="payment-content">
-
-<strong>
-    Credit/Debit Card
-</strong>
-
-<span>
-    Secure card payment will be handled by PayHere Sandbox.
-</span>
-
-</div>
-
-<span class="material-symbols-outlined payment-icon">
-    credit_card
-</span>
-
-</label>
-
-
-
-<label
-    class="payment-method"
-    data-method="cash"
->
-
-<input
-    type="radio"
-    name="payment"
-    value="cash"
->
-
-<div class="radio-circle"></div>
-
-<div class="payment-content">
-
-<strong>
-    Cash on Delivery
-</strong>
-
-<span>
-    Pay when your order arrives.
-</span>
-
-</div>
-
-<span class="material-symbols-outlined payment-icon">
-    payments
-</span>
-
-</label>
-
-
-
-<label
-    class="payment-method"
-    data-method="bank"
->
-
-<input
-    type="radio"
-    name="payment"
-    value="bank"
->
-
-<div class="radio-circle"></div>
-
-<div class="payment-content">
-
-<strong>
-    Bank Transfer
-</strong>
-
-<span>
-    Direct transfer to our account.
-</span>
-
-</div>
-
-<span class="material-symbols-outlined payment-icon">
-    account_balance
-</span>
-
-</label>
-
-
-</div>
-
-
-<!-- PAYMENT PROCESSING NOTE -->
-
-<div
-    id="cardDetails"
-    class="card-details"
->
-
-<p class="demo-note">
-    Card details are not collected here. Credit/debit card payments will be handled securely through PayHere Sandbox when payment integration is enabled.
-</p>
-
-</div>
-
-
-<!-- BANK DETAILS -->
-
-<div
-    id="bankDetails"
-    class="bank-details hidden"
->
-
-<h3>
-    Bank Transfer Details
-</h3>
-
-<p>
-<strong>Bank:</strong>
-Bank of Ceylon
-</p>
-
-<p>
-<strong>Account Name:</strong>
-Harvestly Pvt Ltd
-</p>
-
-<p>
-<strong>Account Number:</strong>
-1234567890
-</p>
-
-<p>
-<strong>Branch:</strong>
-Colombo
-</p>
-
-</div>
-
-
-</div>
-
-
+<section class="buyer-title">
+    <div>
+        <h2>Checkout</h2>
+        <p>Check district delivery availability, then confirm your delivery details.</p>
+    </div>
+    <div class="buyer-actions">
+        <a class="buyer-button buyer-ghost" href="<?= e(buyerRoute('CartController.php')) ?>">
+            <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+            <span>Back to Cart</span>
+        </a>
+    </div>
 </section>
 
+<?php buyerFlash(); ?>
 
-<!-- =====================================================
-     RIGHT
-====================================================== -->
+<section class="buyer-panel">
+    <h3>1. Destination district</h3>
+    <form method="get" action="<?= e(buyerRoute('CheckoutController.php')) ?>" class="buyer-filter-grid">
+        <div>
+            <label class="buyer-field" for="destination"><span>Destination district</span></label>
+            <select id="destination" name="destination_district" required>
+                <option value="">Select a district</option>
+                <?php foreach ($districts as $d): ?>
+                <option value="<?= e($d['district_name']) ?>" <?= $destination === $d['district_name'] ? 'selected' : '' ?>><?= e($d['district_name']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div>
+            <button class="buyer-button" type="submit">
+                <span class="material-symbols-outlined" aria-hidden="true">search</span>
+                <span>Check Delivery &amp; Fees</span>
+            </button>
+        </div>
+    </form>
+</section>
 
-<aside class="checkout-right">
-
-
-<div class="summary-card">
-
-<h2>
-    Order Summary
-</h2>
-
-
-<div class="summary-divider"></div>
-
-
-<div class="summary-products">
-
-
-<?php if (empty($cartItems)): ?>
-
-<p class="empty-cart">
-    Your cart is empty.
-</p>
-
+<?php if ($quoteError !== ''): ?>
+<div class="buyer-alert warn">
+    <strong>Delivery not available for this route</strong>
+    <?= e($quoteError) ?>
+</div>
 <?php endif; ?>
 
+<div class="buyer-detail-layout">
+    <div>
+        <?php if ($quote && $quote['routeAvailable']): ?>
+        <form class="buyer-panel" method="post" action="<?= e(buyerRoute('CheckoutController.php')) ?>" data-once="1">
+            <?= csrfField() ?>
+            <input type="hidden" name="destination_district" value="<?= e($destination) ?>">
 
-<?php foreach ($cartItems as $item): ?>
+            <h3>2. Delivery details</h3>
+            <div class="buyer-form-grid">
+                <div class="buyer-field">
+                    <span>Recipient name</span>
+                    <input type="text" name="fullName" value="<?= e((string)($profile['full_name'] ?? '')) ?>" required>
+                </div>
+                <div class="buyer-field">
+                    <span>Phone</span>
+                    <input type="tel" name="phone" value="<?= e((string)($profile['phone'] ?? '')) ?>" required>
+                </div>
+                <div class="buyer-field buyer-field--wide">
+                    <span>Street address</span>
+                    <input type="text" name="address" value="<?= e((string)($profile['default_address_line1'] ?? '')) ?>" required>
+                </div>
+                <div class="buyer-field buyer-field--wide">
+                    <span>Apartment / landmark (optional)</span>
+                    <input type="text" name="address2" value="<?= e((string)($profile['default_address_line2'] ?? '')) ?>">
+                </div>
+                <div class="buyer-field">
+                    <span>City / town (optional)</span>
+                    <input type="text" name="city" value="<?= e((string)($profile['default_city_town'] ?? '')) ?>">
+                </div>
+                <div class="buyer-field">
+                    <span>Postal code (optional)</span>
+                    <input type="text" name="postal" value="<?= e((string)($profile['default_postal_code'] ?? '')) ?>">
+                </div>
+            </div>
 
+            <hr class="buyer-hr">
+            <h3>3. Payment</h3>
+            <div class="buyer-alert info" style="margin-bottom:16px">
+                <strong>PayHere Sandbox &mdash; planned, not yet approved</strong>
+                Harvestly is structurally ready for PayHere Sandbox, but approval has not been received.
+                No payment is collected at this step, no card number or CVV is ever requested or stored,
+                and this order will be created in <em>Pending Payment</em>. When PayHere is enabled, a
+                payment may only be marked successful after server-side verification.
+            </div>
 
-<?php
+            <button class="buyer-button" type="submit">
+                <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>
+                <span>Place Order (Pending Payment)</span>
+            </button>
+        </form>
+        <?php else: ?>
+        <section class="buyer-panel">
+            <h3>2. Delivery details</h3>
+            <p class="buyer-note">Select a destination district above and confirm delivery availability to continue.</p>
+        </section>
+        <?php endif; ?>
+    </div>
 
-$itemQty = (int)(
-    $item['quantity']
-    ?? $item['qty']
-    ?? 1
-);
+    <div>
+        <section class="buyer-panel">
+            <h3>Order summary</h3>
+            <div class="buyer-table-wrap">
+                <table class="buyer-table">
+                    <thead>
+                        <tr><th>Product</th><th class="buyer-num">Amount</th></tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($cartItems as $item): ?>
+                        <tr>
+                            <td><?= e($item['name']) ?> &times; <?= e(rtrim(rtrim(number_format((float)$item['quantity'], 3), '0'), '.')) ?> <?= e($item['unit']) ?></td>
+                            <td class="buyer-num"><?= e(harvestlyMoney((float)$item['price'] * (float)$item['quantity'])) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
 
-$itemPrice = (float)(
-    $item['price']
-    ?? 0
-);
+            <hr class="buyer-hr">
+            <dl class="buyer-kv">
+                <dt>Product subtotal</dt>
+                <dd><?= e(harvestlyMoney($subtotal)) ?></dd>
+                <?php if ($quote && $quote['routeAvailable']): ?>
+                <dt>Buyer service fee</dt>
+                <dd><?= e(harvestlyMoney($quote['serviceFee'])) ?></dd>
+                <dt>Delivery fee</dt>
+                <dd><?= e(harvestlyMoney($quote['deliveryFee'])) ?></dd>
+                <dt class="buyer-kv-total">Total</dt>
+                <dd class="buyer-kv-total"><?= e(harvestlyMoney($quote['total'])) ?></dd>
+                <?php else: ?>
+                <dt>Buyer service fee</dt>
+                <dd>Calculated after district check</dd>
+                <dt>Delivery fee</dt>
+                <dd>Calculated after district check</dd>
+                <?php endif; ?>
+            </dl>
+        </section>
 
-$itemTotal = $itemQty * $itemPrice;
-
-?>
-
-
-<div class="summary-product">
-
-
-<img
-    src="<?= htmlspecialchars(
-        $item['image']
-        ?? 'https://via.placeholder.com/80'
-    ) ?>"
-    alt="<?= htmlspecialchars(
-        $item['name']
-        ?? 'Product'
-    ) ?>"
->
-
-
-<div class="product-info">
-
-<strong>
-<?= htmlspecialchars(
-    $item['name']
-    ?? 'Product'
-) ?>
-</strong>
-
-<span>
-Qty: <?= $itemQty ?>
-</span>
-
+        <?php if ($quote && $quote['routeAvailable']): ?>
+        <section class="buyer-panel">
+            <h3>Delivery fee calculation</h3>
+            <dl class="buyer-kv">
+                <dt>Pickup district</dt>
+                <dd><?= e($quote['originDistrict']) ?></dd>
+                <dt>Destination district</dt>
+                <dd><?= e($quote['destinationDistrict']) ?></dd>
+                <dt>District reference distance</dt>
+                <dd><?= e(number_format((float)$quote['distanceKm'], 2)) ?> km</dd>
+                <dt>Base delivery fee</dt>
+                <dd><?= e(harvestlyMoney($baseFee)) ?></dd>
+                <dt>Per-kilometre rate</dt>
+                <dd><?= e(harvestlyMoney($perKm)) ?> / km</dd>
+            </dl>
+            <p class="buyer-note" style="margin-top:14px">
+                Delivery fee = base delivery fee + (district reference distance &times; per-kilometre rate).
+                This is an approximate district-reference figure. It is not a GPS distance, not an
+                address-to-address distance and not a live distance.
+            </p>
+        </section>
+        <?php endif; ?>
+    </div>
 </div>
 
-
-<strong class="product-price">
-
-Rs.
-<?= number_format($itemTotal) ?>
-
-</strong>
-
-
-</div>
-
-
-<?php endforeach; ?>
-
-
-</div>
-
-
-<div class="summary-divider"></div>
-
-
-<div class="summary-row">
-
-<span>
-    Subtotal
-</span>
-
-<strong>
-    Rs. <?= number_format($subtotal) ?>
-</strong>
-
-</div>
-
-
-<div class="summary-row">
-
-<span>
-    Buyer Service Fee
-</span>
-
-<strong>
-    Rs. <?= number_format($serviceFee) ?>
-</strong>
-
-</div>
-
-
-<div class="summary-row">
-
-<span>
-    Delivery Fee
-</span>
-
-<strong>
-    Rs. <?= number_format($deliveryFee) ?>
-</strong>
-
-</div>
-
-
-<div class="summary-total">
-
-<span>
-    Total
-</span>
-
-<strong>
-    Rs. <?= number_format($total) ?>
-</strong>
-
-</div>
-
-
-<button
-    type="submit"
-    id="confirmOrderBtn"
-    class="confirm-order-btn"
-    <?= empty($cartItems) ? 'disabled' : '' ?>
->
-
-<span>
-    Proceed to Payment
-</span>
-
-<span class="material-symbols-outlined">
-    check_circle
-</span>
-
-</button>
-
-
-<div class="secure-checkout">
-
-<span class="material-symbols-outlined">
-    verified_user
-</span>
-
-Secure Checkout
-
-</div>
-
-
-</div>
-
-
-</aside>
-
-
-</form>
-
-
-</main>
-
-
-<!-- =====================================================
-     SUCCESS MODAL
-====================================================== -->
-
-<?php if ($success): ?>
-
-<div
-    id="successModal"
-    class="modal"
->
-
-<div class="success-box">
-
-
-<div class="success-icon">
-
-<span class="material-symbols-outlined">
-    check
-</span>
-
-</div>
-
-
-<span class="success-label">
-    ORDER CONFIRMED
-</span>
-
-
-<h2>
-    Order Placed Successfully!
-</h2>
-
-
-<p>
-
-Your order
-
-<strong>
-    <?= htmlspecialchars($successOrderId) ?>
-</strong>
-
-has been placed and is now being processed.
-
-</p>
-
-
-<button
-    type="button"
-    id="viewOrders"
-    class="view-orders"
->
-
-View My Orders
-
-<span class="material-symbols-outlined">
-    arrow_forward
-</span>
-
-</button>
-
-
-</div>
-
-</div>
-
-<?php endif; ?>
-
-
-<!-- =====================================================
-     FOOTER
-====================================================== -->
-
-<footer class="checkout-footer">
-
-<p>
-© 2026 Harvestly.
-Bridging Sri Lankan Fields to Your Table.
-</p>
-
-</footer>
-
-
-</div>
-
-
-<script src="/Harvestly/js/Buyer/checkout.js"></script>
-
-</body>
-
-</html>
+<?php buyer_page_bottom(); ?>
