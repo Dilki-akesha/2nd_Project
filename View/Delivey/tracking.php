@@ -94,7 +94,6 @@ $flow = [
 <div class="courier-card">
     <h3>Update delivery status</h3>
     <?php if (isset($transitions[$current])): ?>
-    <p class="courier-note">Advance this delivery to the next stage in the Harvestly order flow.</p>
     <form method="post" action="<?= e(url('Controller/Courier/CourierController.php')) ?>" class="mt">
         <?= csrfField() ?>
         <input type="hidden" name="action" value="delivery_status">
@@ -109,11 +108,7 @@ $flow = [
     <?php else: ?>
     <p class="courier-note">
         <?php if ($current === 'DELIVERED'): ?>
-        Waiting for the Buyer to confirm receipt. If the Buyer does not confirm within
-        <?= $confirmHours ?> hours, Harvestly marks the order Completed automatically. Harvestly
-        uses no one-time delivery code &mdash; the Buyer simply confirms receipt.
-        <?php else: ?>
-        This delivery has reached the end of the Courier Partner flow.
+        Waiting for the Buyer to confirm receipt.
         <?php endif; ?>
     </p>
     <?php endif; ?>
@@ -129,12 +124,6 @@ $flow = [
 <?php if ($current === 'OUT_FOR_DELIVERY'): ?>
 <div class="courier-card">
     <h3>Record an unsuccessful attempt</h3>
-    <p class="courier-note">
-        If the Buyer is unavailable when you arrive, record the attempt here. Harvestly allows a maximum
-        of <?= $maxAttempts ?> attempts. After the second unsuccessful attempt the delivery is set to
-        <strong>Undeliverable</strong> and Admin is notified. A single failed attempt returns the
-        delivery to In Transit so you can try again.
-    </p>
     <?php if ((int)$d['active_attempt_count'] >= $maxAttempts): ?>
     <p class="courier-notice warn mt">The maximum number of delivery attempts has already been reached.</p>
     <?php else: ?>

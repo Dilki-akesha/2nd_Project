@@ -78,7 +78,7 @@ page_top('Farmer Profile', 'profile');
         <div class="field">
             <label>Pickup District (read-only)</label>
             <input class="input" value="<?= e((string)($profile['district_name'] ?? 'Not set')) ?>" disabled>
-            <small class="muted">Your pickup district drives Courier Partner route matching and the delivery fee. Contact Harvestly Admin to change it.</small>
+            <small class="muted">Contact Harvestly Admin to change it.</small>
         </div>
         <div class="field">
             <label>Verification Status (read-only)</label>
@@ -93,10 +93,6 @@ page_top('Farmer Profile', 'profile');
 
 <div class="card">
     <h2>Supporting Verification Documents</h2>
-    <p class="muted">
-        Documents you submitted at registration. Only Harvestly Admins can open them &mdash; they are
-        never served as public files.
-    </p>
     <?php if (!$documents): ?>
         <p class="empty">No verification documents on record.</p>
     <?php else: ?>

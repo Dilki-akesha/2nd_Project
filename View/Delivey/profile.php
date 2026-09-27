@@ -10,10 +10,6 @@ $isApproved = (string)($profile['verification_status'] ?? 'PENDING') === 'APPROV
             <?= e(harvestlyStatusLabel((string)($profile['verification_status'] ?? 'PENDING'))) ?>
         </span>
     </div>
-    <p class="courier-note">
-        The Courier Partner actor is an organisation or company. Harvestly has no individual driver
-        accounts, vehicles, fleets, hubs or live location tracking.
-    </p>
 </div>
 
 <form class="courier-card" method="post" action="<?= e(url('Controller/Courier/CourierController.php')) ?>">
@@ -94,8 +90,4 @@ $isApproved = (string)($profile['verification_status'] ?? 'PENDING') === 'APPROV
         <dt>Account status</dt>
         <dd><?= e(harvestlyStatusLabel((string)($profile['account_status'] ?? ''))) ?></dd>
     </dl>
-    <p class="courier-note mt">
-        Coverage is managed separately as district-to-district routes on the
-        <a href="<?= e(url($courierBase . 'coverage')) ?>">Coverage Routes</a> page.
-    </p>
 </div>

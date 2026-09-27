@@ -166,8 +166,6 @@ $perKm = (float)db_setting('delivery_per_km_rate', 0);
             </dl>
             <p class="buyer-note" style="margin-top:14px">
                 Delivery fee = base delivery fee + (district reference distance &times; per-kilometre rate).
-                This is an approximate district-reference figure. It is not a GPS distance, not an
-                address-to-address distance and not a live distance.
             </p>
         </section>
         <?php endif; ?>

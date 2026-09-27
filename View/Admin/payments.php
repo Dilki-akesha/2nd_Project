@@ -22,11 +22,9 @@ $statusTone = [
     </div>
 
     <div class="alert alert-warn mb-4">
-        <strong>PayHere Sandbox &mdash; planned, not yet approved.</strong>
-        Harvestly is structurally ready for PayHere Sandbox, but approval has not been received, so
-        no gateway transaction has taken place. Every payment row below is a local record only.
-        Harvestly never requests, collects or stores a card number or CVV. When PayHere is enabled, a
-        payment may only be marked successful after server-side verification of the gateway response.
+        <strong>Payments via PayHere Sandbox.</strong> Sandbox approval is still pending, so orders
+        stay in <em>Pending Payment</em> until approval is granted. Harvestly never requests, collects
+        or stores a card number or CVV.
     </div>
 
     <div class="card" style="padding:0;overflow:hidden">

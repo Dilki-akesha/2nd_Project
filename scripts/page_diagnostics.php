@@ -5,7 +5,7 @@
  */
 require_once __DIR__ . '/../config/app.php';
 
-$base = getenv('HARVESTLY_BASE') ?: 'http://localhost/Harvestly_Interim_Ready_Scope_Clean/Harvestly';
+$base = getenv('HARVESTLY_BASE') ?: 'http://localhost/Harvestly-final/2nd_Project';
 
 function fetch(string $url, string $jar, ?array $post = null): array
 {

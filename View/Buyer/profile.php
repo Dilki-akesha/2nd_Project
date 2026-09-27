@@ -99,10 +99,6 @@ buyer_page_top('My Profile', 'ProfileController.php');
         <dt>Member since</dt>
         <dd><?= e((string)($buyer['joined'] ?? '—')) ?></dd>
     </dl>
-    <p class="buyer-note" style="margin-top:14px">
-        Harvestly has no public Admin registration. If you need a Farmer or Courier Partner account,
-        sign up from the role selection page and an Admin will review your application.
-    </p>
 </section>
 
 <?php buyer_page_bottom(); ?>

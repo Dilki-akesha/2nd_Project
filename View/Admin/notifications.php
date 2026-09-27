@@ -23,9 +23,9 @@
                     <label class="form-label" for="notif-scope">Recipient Scope</label>
                     <select id="notif-scope" name="recipient_scope" class="form-control" required>
                         <option value="all">Broadcast to All Users</option>
-                        <option value="farmers">All Approved Farmers</option>
-                        <option value="buyers">All Active Buyers</option>
-                        <option value="couriers">All Courier Companies</option>
+                        <option value="farmers">All Farmers</option>
+                        <option value="buyers">All Buyers</option>
+                        <option value="couriers">All Courier Partners</option>
                     </select>
                 </div>
 

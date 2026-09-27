@@ -6,10 +6,6 @@ $maxAttempts = maxDeliveryAttempts();
 
 <div class="courier-card">
     <h3>Active Deliveries</h3>
-    <p class="courier-note">
-        Deliveries assigned to your organisation that are not yet completed. Open a delivery to advance
-        its status. Harvestly tracks no maps, GPS location, drivers or vehicles.
-    </p>
 </div>
 
 <?php if (!$deliveries): ?>

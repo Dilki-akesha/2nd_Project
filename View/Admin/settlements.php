@@ -1,8 +1,8 @@
 <?php
 /**
  * Admin - Earnings & Payout Monitoring.
- * All figures come from the earnings / settlement_items tables. This is a
- * simulated local accounting workflow and never a real bank transfer.
+ * All figures come from the earnings / settlement_items tables. Payouts are
+ * released through the PayHere Sandbox gateway, which is still pending approval.
  */
 $summary = $summary ?? [
     'pending_payout' => 0.0,
@@ -143,10 +143,9 @@ $typeLabel = [
 
     <div class="card" style="margin-top:20px">
         <p class="text-sm text-muted" style="margin:0">
-            <strong>Simulated accounting only.</strong> Harvestly records payout status inside its own
-            database. There is no real bank transfer API, no bank account collection and no payment
-            gateway integration. A weekly settlement moves eligible <em>Pending Payout</em> earnings to
-            <em>Paid</em> and stores the settlement date.
+            <strong>Payments via PayHere Sandbox.</strong> Payouts are released through the PayHere
+            Sandbox gateway. Sandbox approval is still pending, so settlements are recorded in
+            Harvestly and no live bank transfer is made until approval is granted.
         </p>
     </div>
 </div>

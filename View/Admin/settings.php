@@ -59,10 +59,7 @@ $lockedLabels = [
         <h2>District-Based Delivery Fee</h2>
         <div class="form-group">
             <p class="notice" style="margin:0 0 14px">
-                <strong>Delivery Fee = Base Delivery Fee + (District Reference Distance &times; Per-Kilometre Rate)</strong><br>
-                The distance comes from the stored <code>district_distances</code> reference table. This is
-                an approximate district-level calculation &mdash; it is not a GPS distance, not an
-                address-to-address distance and not a live distance.
+                <strong>Delivery Fee = Base Delivery Fee + (District Reference Distance &times; Per-Kilometre Rate)</strong>
             </p>
         </div>
         <div class="form-grid">
@@ -107,14 +104,4 @@ $lockedLabels = [
             <a class="btn btn-secondary" href="index.php?page=admin_overview">Cancel</a>
         </div>
     </form>
-
-    <div class="card" style="margin-top:20px">
-        <h2 style="margin-top:0">Not configurable in Harvestly</h2>
-        <p class="muted" style="margin-bottom:0">
-            Harvestly has no geographic coverage rules beyond district routes, no GPS or map settings,
-            no driver or vehicle settings, no one-time-code delivery confirmation, no separate
-            arbitration workflow and no product grading settings. Delivery is district based across all
-            25 Sri Lankan districts.
-        </p>
-    </div>
 </div>

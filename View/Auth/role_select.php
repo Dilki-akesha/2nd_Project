@@ -59,12 +59,6 @@ $tiles = [
         <?php endforeach; ?>
     </div>
 
-    <div class="notice" style="margin-top:28px;font-size:13px">
-        <strong>No public Admin registration.</strong> Harvestly has exactly four actors &mdash; Buyer,
-        Farmer, Courier Partner and Admin. Admin accounts are created by Harvestly only. Farmer and
-        Courier Partner accounts are reviewed by an Admin before their dashboards can be opened.
-    </div>
-
     <div style="text-align:center;margin-top:26px">
         Already registered? <a href="index.php?page=login" style="color:var(--color-primary);font-weight:700">Sign in to your account</a>
     </div>

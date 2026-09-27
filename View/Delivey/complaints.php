@@ -6,11 +6,6 @@ $action = 'Controller/Courier/CourierController.php';
 
 <div class="courier-card">
     <h3>Complaints / Issues</h3>
-    <p class="courier-note">
-        Harvestly uses one common issue workflow for Buyer, Farmer and Courier Partner. Submit an
-        issue related to one of your deliveries and Admin will review it. There is no separate dispute
-        module or arbitration timer.
-    </p>
 </div>
 
 <div class="courier-grid-2">

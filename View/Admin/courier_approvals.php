@@ -95,12 +95,5 @@
         </div>
     </div>
 
-    <div class="card mt-4">
-        <p class="text-sm text-muted" style="margin:0">
-            <strong>After approval.</strong> The organisation can sign in, set itself to
-            <em>Available</em>, and add the pickup-district to destination-district coverage routes it
-            serves. Harvestly has no individual driver accounts, vehicles or fleets &mdash; a Courier
-            Partner is always an organisation.
-        </p>
     </div>
 </div>

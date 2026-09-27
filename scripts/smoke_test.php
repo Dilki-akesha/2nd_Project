@@ -6,7 +6,7 @@
  * Usage: php scripts/smoke_test.php
  */
 
-$base = getenv('HARVESTLY_BASE') ?: 'http://localhost/Harvestly_Interim_Ready_Scope_Clean/Harvestly';
+$base = getenv('HARVESTLY_BASE') ?: 'http://localhost/Harvestly-final/2nd_Project';
 $pass = 0;
 $fail = 0;
 $failures = [];

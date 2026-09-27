@@ -5,11 +5,6 @@ $totals = $data['totals'] ?? ['held' => 0, 'pending_payout' => 0, 'paid' => 0];
 
 <div class="courier-card">
     <h3>Earnings &amp; Payouts</h3>
-    <p class="courier-note">
-        A Courier Partner organisation receives the applicable delivery fee. The fee is held when you
-        accept the assignment, then becomes eligible for payout after the Buyer confirms receipt, or
-        after the <?= buyerConfirmationHours() ?>-hour confirmation window completes the order.
-    </p>
 </div>
 
 <div class="courier-grid-auto mb">
@@ -59,9 +54,8 @@ $totals = $data['totals'] ?? ['held' => 0, 'pending_payout' => 0, 'paid' => 0];
 
 <div class="courier-card">
     <div class="courier-notice warn">
-        <strong>Simulated accounting only.</strong> Harvestly records payout status inside its own
-        database. There is no real bank transfer API, no bank account collection and no payment gateway
-        integration. A weekly settlement moves eligible <em>Pending Payout</em> earnings to
-        <em>Paid</em> and stores the settlement date for the record.
+        <strong>Payments via PayHere Sandbox.</strong> Payouts are released through the PayHere
+        Sandbox gateway. Sandbox approval is still pending, so settlements are recorded in Harvestly
+        and no live bank transfer is made until approval is granted.
     </div>
 </div>
