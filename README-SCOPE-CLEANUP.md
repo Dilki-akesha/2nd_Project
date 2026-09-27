@@ -40,14 +40,14 @@ Do not run the schema and the seed against the clean installer — the installer
 See `database/DATABASE_AUDIT.md` for the table-by-table audit, the shelf-life rule and the verification results.
 
 ## Demo accounts
-All demonstration accounts use the password `TestPass123!`:
+All demonstration accounts use the password `testpass123`:
 
-| Role | Email |
-| --- | --- |
-| Admin | `admin@harvestly.lk` |
-| Buyer | `buyer@gmail.com` |
-| Farmer | `farmer@harvestly.lk` |
-| Courier Partner | `courier@lankaagro.lk` |
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@gmail.com` | `testpass123` |
+| Buyer | `buyer@gmail.com` | `testpass123` |
+| Farmer | `farmer@gmail.com` | `testpass123` |
+| Courier Partner | `courier@gmail.com` | `testpass123` |
 
 The password is stored only as a bcrypt hash in the SQL. `scripts/reset_demo_passwords.php` re-applies the same password to the live database and clears leftover smoke-test accounts.
 
@@ -67,7 +67,8 @@ Run these from the project root to confirm a change did not break anything:
 | `php scripts/page_diagnostics.php` | Requests all 46 role pages as a logged-in actor and reports any page with problems. |
 | `php scripts/check_prepared_statements.php` | Static check that every prepared statement has matching placeholders, type string and value count. |
 | `php scripts/check_css_classes.php` | Static check that every CSS class used in a view is defined by the stylesheets that view loads. Catches layouts that silently collapse. |
-| `php scripts/reset_demo_passwords.php` | Resets the demo accounts to `TestPass123!`. |
+| `php scripts/check_navigation.php` | Signs in as all four actors and crawls every page, reporting dead links, broken images, unresolvable form actions, pages that bounce to login and any PHP diagnostic in the output. |
+| `php scripts/reset_demo_passwords.php` | Resets the demo accounts to `testpass123`. |
 | `php scripts/issue_password_reset.php <email>` | Support utility: issues a single-use password reset link for a verified account owner. |
 
 `bindMysqliParams()` in `config/app.php` throws on any type/value mismatch, so these scripts fail loudly on a broken write instead of silently skipping it.

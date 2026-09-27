@@ -286,3 +286,129 @@ body { font-family: var(--hv-font) }
     .courier-grid-2, .courier-grid-3 { grid-template-columns: 1fr }
     .topbar-link span:not(.material-symbols-outlined) { display: none }
 }
+
+/* =====================================================================
+   Admin green skin
+   The Courier Partner sidebar already used a dark green; this aligns it to
+   the exact Admin console green and gives the topbar ("ribbon") the same
+   treatment as the other actors. Presentation only - no markup, class or
+   behaviour is changed here.
+   ===================================================================== */
+
+:root {
+    --hv-deep: #1b2e1c;
+    --hv-deep-2: #24401f;
+    --hv-mint: #cbffc2;
+    --hv-shell-text: #dfe9dc;
+    --hv-shell-muted: #9db096;
+}
+
+.sidebar {
+    background: linear-gradient(180deg, var(--hv-deep) 0%, var(--hv-deep-2) 100%);
+    box-shadow: 4px 0 24px rgba(20, 32, 22, .18)
+}
+
+.sidebar-brand { border-bottom-color: rgba(255, 255, 255, .12) }
+.sidebar-nav .nav-label { color: var(--hv-shell-muted) }
+
+.sidebar-nav a {
+    position: relative;
+    color: var(--hv-shell-text);
+    transition: background-color .18s ease, color .18s ease, transform .18s ease
+}
+.sidebar-nav a::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 3px;
+    height: 0;
+    border-radius: 0 3px 3px 0;
+    background: var(--hv-mint);
+    transform: translateY(-50%);
+    transition: height .18s ease
+}
+.sidebar-nav a:hover {
+    background: rgba(255, 255, 255, .1);
+    color: #fff;
+    transform: translateX(3px)
+}
+.sidebar-nav a:hover::before { height: 20px }
+.sidebar-nav a.active {
+    background: rgba(203, 255, 194, .16);
+    color: #fff;
+    border-right: 0
+}
+.sidebar-nav a.active::before { height: 22px }
+
+.sidebar-footer { border-top-color: rgba(255, 255, 255, .12) }
+.sidebar-footer .avatar { background: var(--hv-mint); color: #17301a }
+.sidebar-footer .name { color: #fff }
+.sidebar-footer .role { color: var(--hv-shell-muted) }
+
+.logout-btn {
+    background: rgba(255, 255, 255, .08);
+    border-color: rgba(255, 255, 255, .18);
+    color: var(--hv-mint);
+    transition: background-color .18s ease, transform .18s ease
+}
+.logout-btn:hover { background: rgba(203, 255, 194, .18); transform: translateY(-1px) }
+
+/* Ribbon */
+.topbar {
+    background: linear-gradient(90deg, var(--hv-deep) 0%, var(--hv-deep-2) 100%);
+    border-bottom: 0;
+    box-shadow: 0 4px 18px rgba(20, 32, 22, .16);
+    color: #fff
+}
+.topbar h2,
+.topbar .topbar-title { color: #fff }
+.topbar-left .menu-toggle { color: #fff }
+.topbar-link {
+    color: var(--hv-shell-text);
+    border-color: rgba(255, 255, 255, .2);
+    background: rgba(255, 255, 255, .08);
+    transition: background-color .18s ease, color .18s ease, transform .18s ease
+}
+.topbar-link:hover { background: rgba(203, 255, 194, .22); color: #fff; transform: translateY(-1px) }
+.partner-badge {
+    background: var(--hv-mint);
+    color: #17301a;
+    border-color: transparent
+}
+
+/* Content cards get a little lift on hover. */
+.courier-card {
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease
+}
+.courier-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(31, 46, 32, .1);
+    border-color: var(--hv-primary-soft-border)
+}
+
+.courier-btn { transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease }
+.courier-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(49, 95, 59, .2) }
+
+.sidebar-nav a:focus-visible,
+.topbar-link:focus-visible,
+.logout-btn:focus-visible,
+.courier-btn:focus-visible,
+.topbar-left .menu-toggle:focus-visible {
+    outline: 2px solid var(--hv-mint);
+    outline-offset: 2px
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-nav a,
+    .sidebar-nav a::before,
+    .courier-card,
+    .courier-btn,
+    .topbar-link,
+    .logout-btn { transition: none }
+    .sidebar-nav a:hover,
+    .courier-card:hover,
+    .courier-btn:hover,
+    .topbar-link:hover,
+    .logout-btn:hover { transform: none }
+}

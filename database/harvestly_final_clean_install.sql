@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS buyer_profiles (
 CREATE TABLE IF NOT EXISTS farmer_profiles (
     farmer_id BIGINT UNSIGNED PRIMARY KEY,
     farm_name VARCHAR(150) NULL,
+    nic_number VARCHAR(20) NULL,
     pickup_address_line1 VARCHAR(180) NOT NULL,
     pickup_address_line2 VARCHAR(180) NULL,
     pickup_city_town VARCHAR(100) NULL,
@@ -143,6 +144,7 @@ CREATE TABLE IF NOT EXISTS courier_partner_profiles (
     courier_partner_id BIGINT UNSIGNED PRIMARY KEY,
     organisation_name VARCHAR(160) NOT NULL,
     contact_person_name VARCHAR(120) NULL,
+    nic_number VARCHAR(20) NULL,
     office_address_line1 VARCHAR(180) NULL,
     office_address_line2 VARCHAR(180) NULL,
     office_city_town VARCHAR(100) NULL,
@@ -1331,19 +1333,19 @@ SET NAMES utf8mb4;
 START TRANSACTION;
 
 
--- Demo password for all seeded users: TestPass123!
+-- Demo password for all seeded users: testpass123
 
 
 INSERT INTO users (user_id, role, full_name, email, password_hash, phone, account_status, last_login_at) VALUES
-(1, 'ADMIN', 'System Administrator', 'admin@harvestly.lk', '$2y$10$8P5Ijxd6CaW8Nj3leVI4MeF/pIEyc8SJZQrA6Kdqu7FM6SGdl6XA6', '+94 11 234 5678', 'ACTIVE', '2026-09-24 18:00:00'),
-(2, 'BUYER', 'Kasun Jayasinghe', 'buyer@gmail.com', '$2y$10$8P5Ijxd6CaW8Nj3leVI4MeF/pIEyc8SJZQrA6Kdqu7FM6SGdl6XA6', '+94 77 888 9999', 'ACTIVE', '2026-09-24 17:30:00'),
-(3, 'FARMER', 'Sunil Perera', 'farmer@harvestly.lk', '$2y$10$8P5Ijxd6CaW8Nj3leVI4MeF/pIEyc8SJZQrA6Kdqu7FM6SGdl6XA6', '+94 77 123 4567', 'ACTIVE', '2026-09-24 16:45:00'),
-(4, 'FARMER', 'Rohan Fernando', 'rohan@farm.lk', '$2y$10$8P5Ijxd6CaW8Nj3leVI4MeF/pIEyc8SJZQrA6Kdqu7FM6SGdl6XA6', '+94 76 345 6789', 'PENDING', NULL),
-(5, 'COURIER_PARTNER', 'Lanka Agro Logistics', 'courier@lankaagro.lk', '$2y$10$8P5Ijxd6CaW8Nj3leVI4MeF/pIEyc8SJZQrA6Kdqu7FM6SGdl6XA6', '+94 11 234 9999', 'ACTIVE', '2026-09-24 15:20:00'),
-(6, 'COURIER_PARTNER', 'Ceylon Fresh Transit', 'info@ceylontransit.lk', '$2y$10$8P5Ijxd6CaW8Nj3leVI4MeF/pIEyc8SJZQrA6Kdqu7FM6SGdl6XA6', '+94 81 445 6789', 'PENDING', NULL),
-(7, 'BUYER', 'Tharushi Weerasinghe', 'tharushi@harvestly.lk', '$2y$10$8P5Ijxd6CaW8Nj3leVI4MeF/pIEyc8SJZQrA6Kdqu7FM6SGdl6XA6', '+94 71 234 1188', 'ACTIVE', '2026-09-24 14:10:00'),
-(8, 'FARMER', 'Dambulla Green Fields', 'farm@dambullagreen.lk', '$2y$10$8P5Ijxd6CaW8Nj3leVI4MeF/pIEyc8SJZQrA6Kdqu7FM6SGdl6XA6', '+94 75 345 8800', 'ACTIVE', '2026-09-24 13:40:00'),
-(9, 'COURIER_PARTNER', 'Southern Fresh Routes', 'dispatch@southernfresh.lk', '$2y$10$8P5Ijxd6CaW8Nj3leVI4MeF/pIEyc8SJZQrA6Kdqu7FM6SGdl6XA6', '+94 91 555 6677', 'ACTIVE', '2026-09-24 12:15:00');
+(1, 'ADMIN', 'System Administrator', 'admin@gmail.com', '$2y$10$JAWAea3aZt3m6ea/YZ82teE7v1FEjkse1.TdtAqI5xEY6cabEgdO2', '+94 11 234 5678', 'ACTIVE', '2026-09-24 18:00:00'),
+(2, 'BUYER', 'Kasun Jayasinghe', 'buyer@gmail.com', '$2y$10$JAWAea3aZt3m6ea/YZ82teE7v1FEjkse1.TdtAqI5xEY6cabEgdO2', '+94 77 888 9999', 'ACTIVE', '2026-09-24 17:30:00'),
+(3, 'FARMER', 'Sunil Perera', 'farmer@gmail.com', '$2y$10$JAWAea3aZt3m6ea/YZ82teE7v1FEjkse1.TdtAqI5xEY6cabEgdO2', '+94 77 123 4567', 'ACTIVE', '2026-09-24 16:45:00'),
+(4, 'FARMER', 'Rohan Fernando', 'rohan@farm.lk', '$2y$10$JAWAea3aZt3m6ea/YZ82teE7v1FEjkse1.TdtAqI5xEY6cabEgdO2', '+94 76 345 6789', 'PENDING', NULL),
+(5, 'COURIER_PARTNER', 'Lanka Agro Logistics', 'courier@gmail.com', '$2y$10$JAWAea3aZt3m6ea/YZ82teE7v1FEjkse1.TdtAqI5xEY6cabEgdO2', '+94 11 234 9999', 'ACTIVE', '2026-09-24 15:20:00'),
+(6, 'COURIER_PARTNER', 'Ceylon Fresh Transit', 'info@ceylontransit.lk', '$2y$10$JAWAea3aZt3m6ea/YZ82teE7v1FEjkse1.TdtAqI5xEY6cabEgdO2', '+94 81 445 6789', 'PENDING', NULL),
+(7, 'BUYER', 'Tharushi Weerasinghe', 'tharushi@harvestly.lk', '$2y$10$JAWAea3aZt3m6ea/YZ82teE7v1FEjkse1.TdtAqI5xEY6cabEgdO2', '+94 71 234 1188', 'ACTIVE', '2026-09-24 14:10:00'),
+(8, 'FARMER', 'Dambulla Green Fields', 'farm@dambullagreen.lk', '$2y$10$JAWAea3aZt3m6ea/YZ82teE7v1FEjkse1.TdtAqI5xEY6cabEgdO2', '+94 75 345 8800', 'ACTIVE', '2026-09-24 13:40:00'),
+(9, 'COURIER_PARTNER', 'Southern Fresh Routes', 'dispatch@southernfresh.lk', '$2y$10$JAWAea3aZt3m6ea/YZ82teE7v1FEjkse1.TdtAqI5xEY6cabEgdO2', '+94 91 555 6677', 'ACTIVE', '2026-09-24 12:15:00');
 
 INSERT INTO buyer_profiles (buyer_id, default_address_line1, default_address_line2, default_city_town, default_postal_code, default_district_id) VALUES
 (2, '12 Rajagiriya Road', NULL, 'Colombo 08', '00800', 1),

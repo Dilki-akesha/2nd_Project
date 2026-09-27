@@ -7,12 +7,12 @@
  */
 require_once __DIR__ . '/../config/app.php';
 
-$password = 'TestPass123!';
+$password = 'testpass123';
 $emails = [
-    'admin@harvestly.lk',
+    'admin@gmail.com',
     'buyer@gmail.com',
-    'farmer@harvestly.lk',
-    'courier@lankaagro.lk',
+    'farmer@gmail.com',
+    'courier@gmail.com',
     'tharushi@harvestly.lk',
 ];
 

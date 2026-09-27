@@ -64,10 +64,12 @@ $districts = db_fetch_all(
                     <option value="<?= e($d['district_name']) ?>"><?= e($d['district_name']) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <small class="muted">
-                    Your pickup district determines which Buyer destination districts Harvestly can
-                    deliver from your farm, and the delivery fee charged to the Buyer.
-                </small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="f-nic">NIC Number</label>
+                <input type="text" id="f-nic" name="nic_number" class="form-control" maxlength="20"
+                       autocomplete="off" placeholder="e.g. 199012345678">
             </div>
 
             <div class="form-group">
@@ -76,17 +78,20 @@ $districts = db_fetch_all(
             </div>
 
             <div class="form-group" style="background:var(--color-surface-container-low);padding:16px;border-radius:var(--radius-md);border:1px dashed var(--color-outline-variant)">
-                <label class="form-label" for="f-doc">Supporting Verification Document (optional)</label>
-                <input type="file" id="f-doc" name="verification_document" accept=".jpg,.jpeg,.png,.pdf">
+                <label class="form-label" for="f-doc">Proof of Farming *</label>
+                <input type="file" id="f-doc" name="verification_document" accept=".jpg,.jpeg,.png,.pdf" required>
                 <small class="muted">
-                    JPG, PNG or PDF; 5 MB maximum. Uploaded documents are only accessible to Harvestly
-                    Admins and are never served as public files.
+                    JPG, PNG or PDF; 5 MB maximum.
+                </small>
+                <small class="muted" style="display:block;margin-top:10px">
+                    Upload one of the following: official farmer registration evidence, a cultivation
+                    confirmation letter from the relevant Agrarian Service Centre or agricultural
+                    officer (where available), or a valid SL-GAP farm certificate.
                 </small>
             </div>
 
             <div class="alert alert-success" style="font-size:13px">
-                Your account is created as <strong>Pending</strong>. A Harvestly Admin must approve it
-                before the Farmer dashboard can be opened.
+                Your account will remain pending until the admin reviews and approves your application.
             </div>
 
             <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;padding:12px">

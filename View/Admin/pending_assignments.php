@@ -8,10 +8,6 @@
 <div class="view-container">
     <div class="page-header mb-4">
         <h1>Pending Courier Partner Assignments</h1>
-        <p class="text-sm text-muted">
-            Orders where automatic assignment found no approved, available Courier Partner covering
-            the required district route. Assign one manually to move the order forward.
-        </p>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
@@ -84,17 +80,5 @@
                 </tbody>
             </table>
         </div>
-    </div>
-
-    <div class="card mt-4">
-        <p class="text-sm text-muted" style="margin:0">
-            <strong>How automatic assignment works.</strong> When a Farmer marks an order
-            <em>Ready for Delivery</em>, Harvestly looks for a Courier Partner organisation that is
-            approved, active, available, and supports the Farmer pickup district to Buyer destination
-            district route. The offer expires after the configured response window, then the next
-            eligible organisation is attempted. Only when no eligible organisation exists does an
-            order appear on this page. There is no workload ranking, AI selection or GPS proximity in
-            Harvestly.
-        </p>
     </div>
 </div>

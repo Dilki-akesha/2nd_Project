@@ -140,8 +140,9 @@ class AuthModel
         );
     }
 
-    public function registerFarmer($name, $email, $hash, $phone, $farmName, $address, $district, $document)
+    public function registerFarmer($name, $email, $hash, $phone, $farmName, $address, $district, $document, $nicNumber = '')
     {
+        $nic = self::normaliseNic($nicNumber);
         return $this->register(
             'FARMER',
             $name,
@@ -151,18 +152,19 @@ class AuthModel
             $district,
             static fn($id, $districtId): bool => db_execute(
                 "INSERT INTO farmer_profiles
-                 (farmer_id, farm_name, pickup_address_line1, district_id, verification_status)
-                 VALUES (?, ?, ?, ?, 'PENDING')",
-                'issi',
-                [$id, $farmName !== '' ? $farmName : null, $address, $districtId]
+                 (farmer_id, farm_name, nic_number, pickup_address_line1, district_id, verification_status)
+                 VALUES (?, ?, ?, ?, ?, 'PENDING')",
+                'isssi',
+                [$id, $farmName !== '' ? $farmName : null, $nic, $address, $districtId]
             ),
             $document
         );
     }
 
     /** A Courier Partner is an organisation, not an individual driver. */
-    public function registerCourierPartner($organisationName, $contactPerson, $email, $hash, $phone, $address, $city, $postal, $district, $document)
+    public function registerCourierPartner($organisationName, $contactPerson, $email, $hash, $phone, $address, $city, $postal, $district, $document, $nicNumber = '')
     {
+        $nic = self::normaliseNic($nicNumber);
         return $this->register(
             'COURIER_PARTNER',
             $organisationName,
@@ -172,15 +174,29 @@ class AuthModel
             $district,
             static fn($id, $districtId): bool => db_execute(
                 "INSERT INTO courier_partner_profiles
-                 (courier_partner_id, organisation_name, contact_person_name,
+                 (courier_partner_id, organisation_name, contact_person_name, nic_number,
                   office_address_line1, office_city_town, office_postal_code,
                   office_district_id, availability_status, verification_status)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, 'UNAVAILABLE', 'PENDING')",
-                'isssssi',
-                [$id, $organisationName, $contactPerson !== '' ? $contactPerson : null, $address, $city ?: null, $postal ?: null, $districtId]
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'UNAVAILABLE', 'PENDING')",
+                'issssssi',
+                [$id, $organisationName, $contactPerson !== '' ? $contactPerson : null, $nic,
+                 $address, $city ?: null, $postal ?: null, $districtId]
             ),
             $document
         );
+    }
+
+    /**
+     * Tidy an optional NIC number: spaces and hyphens removed, upper case, and
+     * capped to the column width. Returns null when nothing usable was entered.
+     */
+    private static function normaliseNic($value): ?string
+    {
+        $nic = strtoupper(preg_replace('/[\s\-]+/', '', trim((string)$value)));
+        if ($nic === '') {
+            return null;
+        }
+        return substr($nic, 0, 20);
     }
 
     /** Store the successful sign-in time for the audit trail. */

@@ -8,7 +8,6 @@
 <div class="view-container">
     <div class="page-header mb-4">
         <h1>Farmer Registration Approvals</h1>
-        <p class="text-sm text-muted">Review Farmer applications and any supporting verification document before approving access.</p>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
@@ -52,6 +51,9 @@
                         <td class="text-xs">
                             <div><?= sanitize($farmer['email']) ?></div>
                             <div class="text-muted"><?= sanitize($farmer['phone'] ?: '—') ?></div>
+                            <?php if (!empty($farmer['nic_number'])): ?>
+                                <div class="text-muted">NIC <?= sanitize((string)$farmer['nic_number']) ?></div>
+                            <?php endif; ?>
                         </td>
                         <td><?= sanitize($farmer['district'] ?: 'Not set') ?></td>
                         <td>
@@ -93,15 +95,5 @@
                 </tbody>
             </table>
         </div>
-    </div>
-
-    <div class="card mt-4">
-        <p class="text-sm text-muted" style="margin:0">
-            <strong>What approval does.</strong> Approving sets the Farmer's
-            <code>verification_status</code> to <code>APPROVED</code> and the account status to
-            <code>ACTIVE</code>, which is what allows the Farmer dashboard to open. Rejecting sets
-            both to a rejected state so the account cannot sign in. Uploaded verification documents
-            are only readable through the Admin-gated document controller.
-        </p>
     </div>
 </div>

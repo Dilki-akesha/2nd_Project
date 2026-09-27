@@ -8,7 +8,7 @@
  */
 $locked = AdminModel::lockedSettings();
 $editable = [
-    'farmer_marketplace_fee_percent' => ['Farmer Marketplace Fee (%)', 'Percentage of the product subtotal retained by Harvestly on each Farmer sale. Configurable, never hard-coded.'],
+    'farmer_marketplace_fee_percent' => ['Farmer Marketplace Fee (%)', 'Percentage of the product subtotal retained by Harvestly on each Farmer sale.'],
     'buyer_service_fee_percent' => ['Buyer Service Fee (%)', 'Percentage of the product subtotal charged to the Buyer.'],
     'delivery_base_fee' => ['Base Delivery Fee (Rs.)', 'Flat component of every district-based delivery fee.'],
     'delivery_per_km_rate' => ['Per-Kilometre Rate (Rs.)', 'Multiplied by the stored district reference distance.'],
@@ -40,10 +40,6 @@ $lockedLabels = [
         <?= csrfField() ?>
 
         <h2 style="margin-top:0">Marketplace Fees</h2>
-        <p class="muted" style="margin-top:-6px">
-            Harvestly uses configurable percentages. A Courier Partner always receives the
-            applicable delivery fee.
-        </p>
         <div class="form-grid">
             <?php foreach (['farmer_marketplace_fee_percent', 'buyer_service_fee_percent'] as $key): ?>
             <div class="form-group">
@@ -86,9 +82,6 @@ $lockedLabels = [
         </div>
 
         <h2>Fixed Scope Rules</h2>
-        <p class="muted" style="margin-top:-6px">
-            These values are fixed by the agreed Harvestly scope and are shown for reference only.
-        </p>
         <div class="form-grid">
             <?php foreach ($lockedLabels as $key => $label): ?>
             <div class="form-group">

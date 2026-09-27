@@ -8,7 +8,6 @@
 <div class="view-container">
     <div class="page-header mb-4">
         <h1>Courier Partner Registration Approvals</h1>
-        <p class="text-sm text-muted">Review delivery organisations and their supporting verification documents before approving access.</p>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
@@ -52,6 +51,9 @@
                         <td class="text-xs">
                             <div><?= sanitize($courier['email']) ?></div>
                             <div class="text-muted"><?= sanitize($courier['phone'] ?: '—') ?></div>
+                            <?php if (!empty($courier['nic_number'])): ?>
+                                <div class="text-muted">NIC <?= sanitize((string)$courier['nic_number']) ?></div>
+                            <?php endif; ?>
                         </td>
                         <td><?= sanitize($courier['district'] ?: 'Not set') ?></td>
                         <td>

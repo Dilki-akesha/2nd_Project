@@ -26,7 +26,6 @@ $statusTone = [
     <div class="section-header">
         <div class="section-title-group">
             <h1>Orders Monitor</h1>
-            <p>Track the order fulfilment timeline and manually assign a Courier Partner when automatic assignment falls back to Pending Assignment.</p>
         </div>
     </div>
 

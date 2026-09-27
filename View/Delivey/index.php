@@ -62,7 +62,6 @@ $unread = (int)($stats['unread'] ?? 0);
         <a href="<?= e(url($courierBase . $key)) ?>"
            class="<?= $page === $key ? 'active' : '' ?>"
            <?= $page === $key ? 'aria-current="page"' : '' ?>>
-            <span class="material-symbols-outlined" aria-hidden="true"><?= e($icon) ?></span>
             <span><?= e($label) ?></span>
             <?php if ($key === 'notifications' && $unread > 0): ?>
             <span class="badge"><?= $unread ?></span>

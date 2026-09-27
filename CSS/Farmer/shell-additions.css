@@ -158,3 +158,123 @@
     .form-grid { grid-template-columns: 1fr }
     .page-title { flex-direction: column }
 }
+
+/* =====================================================================
+   Admin green skin
+   Sidebar and topbar use the same dark green as the Admin console so every
+   actor reads as one product. Presentation only - no markup, class or
+   behaviour is changed here.
+   ===================================================================== */
+
+:root {
+    --hv-deep: #1b2e1c;
+    --hv-deep-2: #24401f;
+    --hv-mint: #cbffc2;
+    --hv-shell-text: #dfe9dc;
+    --hv-shell-muted: #9db096;
+}
+
+.sidebar {
+    background: linear-gradient(180deg, var(--hv-deep) 0%, var(--hv-deep-2) 100%);
+    border-right: 0;
+    box-shadow: 4px 0 24px rgba(20, 32, 22, .16)
+}
+
+.brand h2 { color: #fff }
+.brand p { color: var(--hv-shell-muted) }
+.role-caption { color: var(--hv-shell-muted) }
+
+.nav a {
+    position: relative;
+    color: var(--hv-shell-text);
+    font-weight: 500;
+    transition: background-color .18s ease, color .18s ease, transform .18s ease
+}
+.nav a::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 3px;
+    height: 0;
+    border-radius: 0 3px 3px 0;
+    background: var(--hv-mint);
+    transform: translateY(-50%);
+    transition: height .18s ease
+}
+.nav a:hover { background: rgba(255, 255, 255, .09); color: #fff; transform: translateX(3px) }
+.nav a:hover::before { height: 22px }
+.nav a.active { background: rgba(203, 255, 194, .14); color: #fff }
+.nav a.active::before { height: 24px }
+
+.nav-count {
+    background: var(--hv-mint);
+    color: #17301a;
+    transition: transform .18s ease, box-shadow .18s ease
+}
+.nav a:hover .nav-count { transform: scale(1.12); box-shadow: 0 0 0 4px rgba(203, 255, 194, .18) }
+
+.bottom-nav { border-top-color: rgba(255, 255, 255, .12) }
+.nav-logout {
+    background: rgba(255, 255, 255, .08);
+    border-color: rgba(255, 255, 255, .18);
+    color: var(--hv-mint);
+    transition: background-color .18s ease, transform .18s ease
+}
+.nav-logout:hover { background: rgba(203, 255, 194, .18); transform: translateY(-1px) }
+
+.user strong { color: #fff }
+.user .user-role { color: var(--hv-shell-muted) }
+.avatar { background: var(--hv-mint); color: #17301a }
+
+/* Ribbon */
+.topbar {
+    background: linear-gradient(90deg, var(--hv-deep) 0%, var(--hv-deep-2) 100%);
+    border-bottom: 0;
+    box-shadow: 0 4px 18px rgba(20, 32, 22, .14);
+    color: #fff
+}
+.topbar a { color: var(--hv-shell-text) }
+.topbar a:hover { color: var(--hv-mint) }
+
+/* Content cards get a little lift on hover. */
+.card,
+.stat-card,
+.section-head + table {
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease
+}
+.card:hover,
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(31, 46, 32, .1);
+    border-color: #cbdcc3
+}
+
+.btn { transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(49, 95, 59, .2) }
+
+.nav a:focus-visible,
+.topbar a:focus-visible,
+.nav-logout:focus-visible,
+.btn:focus-visible,
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+    outline: 2px solid var(--hv-mint);
+    outline-offset: 2px
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav a,
+    .nav a::before,
+    .card,
+    .stat-card,
+    .btn,
+    .nav-logout,
+    .nav-count { transition: none }
+    .nav a:hover,
+    .card:hover,
+    .stat-card:hover,
+    .btn:hover,
+    .nav-logout:hover { transform: none }
+}

@@ -157,6 +157,7 @@ class AuthController
         $farmAddress = trim((string)($_POST['farm_address'] ?? ''));
         $farmName = trim((string)($_POST['farm_name'] ?? ''));
         $district = trim((string)($_POST['district'] ?? ''));
+        $nicNumber = trim((string)($_POST['nic_number'] ?? ''));
 
         if ($fullName === '' || !$email) {
             redirect('index.php?page=signup_farmer&error=' . urlencode('Please enter your full name and a valid email address.'));
@@ -173,14 +174,15 @@ class AuthController
         if ($this->model->findUserByEmail($email)) {
             redirect('index.php?page=signup_farmer&error=' . urlencode('That email address is already registered.'));
         }
+        // Proof of Farming is required, because the account cannot be approved without it.
+        if (empty($_FILES['verification_document']['name'])) {
+            redirect('index.php?page=signup_farmer&error=' . urlencode('Please attach your Proof of Farming document.'));
+        }
 
-        $documentPath = null;
-        if (!empty($_FILES['verification_document']['name'])) {
-            try {
-                $documentPath = handleFileUpload($_FILES['verification_document'], 'assets/documents/verification');
-            } catch (Throwable $e) {
-                redirect('index.php?page=signup_farmer&error=' . urlencode($e->getMessage()));
-            }
+        try {
+            $documentPath = handleFileUpload($_FILES['verification_document'], 'assets/documents/verification');
+        } catch (Throwable $e) {
+            redirect('index.php?page=signup_farmer&error=' . urlencode($e->getMessage()));
         }
 
         // A Farmer account is created PENDING and cannot use a dashboard until approved.
@@ -192,7 +194,8 @@ class AuthController
             $farmName,
             $farmAddress,
             $district,
-            $documentPath
+            $documentPath,
+            $nicNumber
         );
 
         redirect($ok
@@ -221,6 +224,7 @@ class AuthController
         $officeCity = trim((string)($_POST['office_city'] ?? ''));
         $officePostal = trim((string)($_POST['office_postal'] ?? ''));
         $district = trim((string)($_POST['district'] ?? ''));
+        $nicNumber = trim((string)($_POST['nic_number'] ?? ''));
 
         if ($organisationName === '' || $contactPerson === '' || !$email) {
             redirect('index.php?page=signup_courier&error=' . urlencode('Please enter the organisation name, contact person and a valid email address.'));
@@ -237,14 +241,15 @@ class AuthController
         if ($this->model->findUserByEmail($email)) {
             redirect('index.php?page=signup_courier&error=' . urlencode('That email address is already registered.'));
         }
+        // The registration document is required, because the account cannot be approved without it.
+        if (empty($_FILES['verification_document']['name'])) {
+            redirect('index.php?page=signup_courier&error=' . urlencode('Please attach your Business Registration Document.'));
+        }
 
-        $documentPath = null;
-        if (!empty($_FILES['verification_document']['name'])) {
-            try {
-                $documentPath = handleFileUpload($_FILES['verification_document'], 'assets/documents/verification');
-            } catch (Throwable $e) {
-                redirect('index.php?page=signup_courier&error=' . urlencode($e->getMessage()));
-            }
+        try {
+            $documentPath = handleFileUpload($_FILES['verification_document'], 'assets/documents/verification');
+        } catch (Throwable $e) {
+            redirect('index.php?page=signup_courier&error=' . urlencode($e->getMessage()));
         }
 
         // A Courier Partner account is created PENDING until an Admin approves it.
@@ -258,7 +263,8 @@ class AuthController
             $officeCity,
             $officePostal,
             $district,
-            $documentPath
+            $documentPath,
+            $nicNumber
         );
 
         redirect($ok

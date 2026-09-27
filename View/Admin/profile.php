@@ -25,7 +25,7 @@ $currentPage = 'admin_profile';
             <div class="profile-avatar">AD</div>
             <h2><?= sanitize($adminProfile['full_name'] ?? 'System Administrator'); ?></h2>
             <span class="badge badge-success">System Administrator</span>
-            <p class="profile-email"><?= sanitize($adminProfile['email'] ?? 'admin@harvestly.lk'); ?></p>
+            <p class="profile-email"><?= sanitize($adminProfile['email'] ?? 'admin@gmail.com'); ?></p>
             <div class="profile-account-date">
                 <span>Account created</span>
                 <strong><?= date('M d, Y', strtotime($adminProfile['created_at'] ?? 'now')); ?></strong>
