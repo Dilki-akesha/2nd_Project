@@ -94,10 +94,7 @@ page_top('Product Details', 'products');
 <?php if ($shelfReference): ?>
 <div class="card">
     <h2>Storage reference information</h2>
-    <p class="muted">
-        Reference record for <?= e((string)$shelfReference['product_reference_name']) ?>. This is
-        informational only. Harvestly does not derive a guaranteed best-before date from it.
-    </p>
+    <p class="muted">Reference record for <?= e((string)$shelfReference['product_reference_name']) ?>.</p>
     <dl class="kv mt">
         <?php
         $pairs = [

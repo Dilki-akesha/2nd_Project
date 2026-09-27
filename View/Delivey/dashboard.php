@@ -26,12 +26,7 @@ $isAvailable = (string)($profile['availability_status'] ?? 'UNAVAILABLE') === 'A
 
 <div class="courier-card">
     <h3>Availability</h3>
-    <p class="courier-note">
-        Harvestly only offers you a delivery assignment while you are marked
-        <strong>Available</strong>, your account is approved and active, and the order's district route
-        matches one of your active coverage routes.
-    </p>
-    <div class="courier-row mt">
+    <div class="courier-row">
         <span class="courier-badge <?= $isAvailable ? 'ok' : 'muted' ?>"><?= e(harvestlyStatusLabel($isAvailable ? 'AVAILABLE' : 'UNAVAILABLE')) ?></span>
         <form method="post" action="<?= e(url('Controller/Courier/CourierController.php')) ?>">
             <?= csrfField() ?>

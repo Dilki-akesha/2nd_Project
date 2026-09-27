@@ -103,10 +103,9 @@ $allDistricts = $allDistricts ?? [];
         <p class="text-sm text-muted" style="margin:0">
             <strong>How this table is used.</strong> At checkout, Harvestly looks up the reference
             distance for the Farmer pickup district and the Buyer destination district, then applies
-            <em>base delivery fee + (reference distance &times; per-kilometre rate)</em>. This is an
-            approximate district-level calculation and is not a GPS, live or address-to-address
-            distance. Both directions must exist for a route, or the checkout will report that no fee
-            can be calculated.
+            <em>base delivery fee + (reference distance &times; per-kilometre rate)</em>. Both
+            directions must exist for a route, or the checkout will report that no fee can be
+            calculated.
         </p>
     </div>
 </div>

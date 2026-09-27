@@ -81,15 +81,22 @@ The Courier Partner views live in `View/Delivey/`. The misspelling is deliberate
 This build lives at:
 
 ```
-C:\xampp\htdocs\Harvestly_Interim_Ready_Scope_Clean\Harvestly
+C:\xampp\htdocs\Harvestly-final\2nd_Project
 ```
 
 so the correct URL is:
 
 ```
-http://localhost/Harvestly_Interim_Ready_Scope_Clean/Harvestly/index.php
+http://localhost/Harvestly-final/2nd_Project/index.php
 ```
 
-> `C:\xampp\htdocs` contains several older Harvestly copies (`Harvestly`, `Harvestly-merged`, `Harvestly_Final_Integrated`, `Harvestly_No_External_Libraries`, `Harvestly_No_External_Libraries_FarmerFix`). They are **not** this build and their login pages are broken. Do not use `http://localhost/Harvestly/` — it serves the stale copy, not this one.
+> `C:\xampp\htdocs` also contains older Harvestly copies (`Harvestly`, `Harvestly-merged`, `Harvestly_Interim_Ready_Scope_Clean\Harvestly`, `Harvestly_Final_Integrated`, `Harvestly_No_External_Libraries`, `Harvestly_No_External_Libraries_FarmerFix`). They are **not** this repository. Do not open those URLs.
 
 MySQL must be running (XAMPP → Start → MySQL) before the site will load.
+
+The test scripts default to this URL. To point them elsewhere, set `HARVESTLY_BASE`, for example:
+
+```
+set HARVESTLY_BASE=http://localhost/Harvestly-final/2nd_Project
+php scripts/smoke_test.php
+```

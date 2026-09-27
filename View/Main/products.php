@@ -84,11 +84,4 @@ $productImage = static function (array $p): string {
         <?php endforeach; ?>
     </div>
     <?php endif; ?>
-
-    <div class="notice" style="margin-top:28px">
-        <strong>Browsing is open to everyone.</strong> Harvestly does not restrict the catalogue to a
-        particular district. Delivery eligibility is checked at checkout, using the Farmer's pickup
-        district and your destination district, and requires an approved Courier Partner that covers
-        that district route.
-    </div>
 </div>

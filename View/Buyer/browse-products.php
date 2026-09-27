@@ -8,7 +8,7 @@ buyer_page_top('Browse Products', 'ProductController.php');
 <section class="buyer-title">
     <div>
         <h2>Browse Products</h2>
-        <p>Fresh produce from approved Farmers across Sri Lanka.</p>
+        <p>Fresh produce from Farmers across Sri Lanka.</p>
     </div>
     <div class="buyer-actions">
         <a class="buyer-button buyer-secondary" href="<?= e(buyerRoute('CartController.php')) ?>">

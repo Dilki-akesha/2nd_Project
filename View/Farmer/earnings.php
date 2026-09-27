@@ -51,10 +51,9 @@ page_top('Earnings', 'earnings');
         </table>
     </div>
     <p class="notice mt">
-        <strong>Simulated accounting only.</strong> Harvestly records payout status inside its own
-        database. There is no real bank transfer API and no bank details are collected. A weekly
-        settlement moves eligible <em>Pending Payout</em> earnings to <em>Paid</em> and stores the
-        settlement date.
+        <strong>Payments via PayHere Sandbox.</strong> Payouts are released through the PayHere
+        Sandbox gateway. Sandbox approval is still pending, so settlements are recorded in Harvestly
+        and no live bank transfer is made until approval is granted.
     </p>
     <?php endif; ?>
 </div>

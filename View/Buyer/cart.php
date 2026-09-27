@@ -95,15 +95,6 @@ buyer_page_top('Your Cart', 'CartController.php');
         <dt>Buyer service fee</dt>
         <dd>Calculated at checkout</dd>
     </dl>
-    <p class="buyer-note" style="margin-top:16px">
-        Your cart is a general cart and can hold any products. Each individual order must contain
-        products from a single Farmer, so please remove other Farmers' items before checking out.
-    </p>
-    <p class="buyer-note">
-        Delivery is priced from the base delivery fee plus the stored district reference distance at
-        the per-kilometre rate, and is only available when an approved Courier Partner supports your
-        destination district from that Farmer's pickup district.
-    </p>
     <div class="buyer-actions" style="margin-top:20px">
         <a class="buyer-button" href="<?= e(buyerRoute('CheckoutController.php')) ?>">
             <span class="material-symbols-outlined" aria-hidden="true">shopping_bag</span>

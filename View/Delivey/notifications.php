@@ -5,9 +5,6 @@
     <div class="courier-row between">
         <div>
             <h3 style="margin:0">Notifications</h3>
-            <p class="courier-note" style="margin:4px 0 0">
-                Assignment, delivery and issue updates stored in the Harvestly database.
-            </p>
         </div>
         <?php if ($unread > 0): ?>
         <form method="post" action="<?= e(url('Controller/Courier/CourierController.php')) ?>">

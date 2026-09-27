@@ -58,7 +58,7 @@
                         <td style="text-align:right">
                             <?php if (!$couriers): ?>
                                 <span class="text-xs" style="color:var(--color-outline)">
-                                    No approved Courier Partner available.
+                                    No Courier Partner available.
                                     <?= sanitize($order['origin_district'] ?: '—') ?> &rarr;
                                     <?= sanitize($order['destination_district'] ?: '—') ?>
                                 </span>

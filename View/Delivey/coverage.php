@@ -5,12 +5,6 @@ $action = 'Controller/Courier/CourierController.php';
 
 <div class="courier-card">
     <h3>District Coverage Routes</h3>
-    <p class="courier-note">
-        A coverage route is a pickup district to a destination district. Harvestly only offers you an
-        order whose Farmer pickup district and Buyer destination district match one of your active
-        routes. Coverage is district based &mdash; there are no extra geographic coverage rules,
-        radius areas or map settings.
-    </p>
 </div>
 
 <div class="courier-card">

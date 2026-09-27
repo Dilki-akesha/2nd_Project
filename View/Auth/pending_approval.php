@@ -19,15 +19,8 @@ $message = isset($_GET['message'])
             <?= $message ?>
         </p>
 
-        <div class="notice" style="text-align:left;display:grid;gap:10px">
-            <div><strong>Admin review.</strong> A Harvestly Admin reviews Farmer and Courier Partner
-                applications, including any supporting verification document you uploaded, before the
-                account can be used.</div>
-            <div><strong>Your dashboard stays locked.</strong> While the account is Pending you can sign
-                in, but the Farmer or Courier Partner dashboard will not open.</div>
-            <div><strong>How you will hear back.</strong> Harvestly uses in-app database notifications
-                only. Sign in again after approval, or contact the Harvestly administrator directly.
-                Harvestly does not send email or SMS.</div>
+        <div class="notice" style="text-align:left">
+            You can sign in, but the dashboard stays locked until an Admin reviews your application.
         </div>
 
         <a href="index.php?page=login" class="btn btn-primary" style="padding:12px 32px;margin-top:26px">

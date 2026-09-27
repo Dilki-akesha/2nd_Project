@@ -9,11 +9,6 @@ $responseMinutes = (int)db_setting('courier_assignment_response_minutes', 30);
 
 <div class="courier-card">
     <h3>Assignment Offers</h3>
-    <p class="courier-note">
-        Only offers matching one of your active pickup-district to destination-district coverage routes
-        appear here. Respond within <?= $responseMinutes ?> minutes, otherwise the offer expires and
-        Harvestly tries the next eligible organisation.
-    </p>
 </div>
 
 <?php if (!$offers): ?>

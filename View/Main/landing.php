@@ -34,8 +34,8 @@ $categoryImage = static function (string $name): string {
                     <span style="color:var(--color-primary);display:block">Directly to Your Doorstep</span>
                 </h1>
                 <p style="font-size:18px;color:var(--color-on-surface-variant);line-height:1.6;max-width:540px;margin:0">
-                    Browse fresh produce from approved Farmers and have it delivered by verified
-                    Courier Partner organisations.
+                    Browse fresh produce from Farmers and have it delivered by Courier Partner
+                    organisations.
                 </p>
 
                 <div style="display:flex;gap:14px;flex-wrap:wrap">
@@ -168,7 +168,7 @@ $categoryImage = static function (string $name): string {
                     <div class="step-icon">&#128666;</div>
                     <span class="step-role">Order &amp; Delivery</span>
                     <h3>Order &amp; Deliver</h3>
-                    <p>A Courier Partner delivers to your district.</p>
+                    <p>The district sets the delivery fee and the Courier Partner assigned. Your delivery address is sent to that Courier Partner, who delivers to your door.</p>
                 </article>
 
                 <article class="how-it-works-step">
@@ -190,7 +190,7 @@ $categoryImage = static function (string $name): string {
                 <h2 style="font-size:36px;font-weight:800;color:var(--color-on-surface);margin:4px 0 0">Empowering Sri Lanka's Agricultural Ecosystem</h2>
                 <p style="font-size:16px;color:var(--color-on-surface-variant);margin-top:16px;line-height:1.7">
                     Harvestly is a farmer-to-buyer marketplace connecting local Sri Lankan growers,
-                    household Buyers, and approved Courier Partner delivery organisations.
+                    household Buyers, and Courier Partner delivery organisations.
                 </p>
             </div>
         </div>
