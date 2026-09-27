@@ -1,56 +1,70 @@
-<?php 
-require 'includes/auth.php';
-require 'includes/layout.php';
+<?php
+require __DIR__ . '/includes/auth.php';
+require __DIR__ . '/includes/layout.php';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $ok = $farmerModel->updateHarvestDates(
+        (int)($_POST['id'] ?? 0),
+        $farmer_id,
+        trim((string)($_POST['harvest_date'] ?? '')),
+        trim((string)($_POST['available_from_date'] ?? ''))
+    );
+    flash(
+        $ok ? 'success' : 'error',
+        $ok ? 'Harvest dates updated.' : 'Enter valid dates, or this product is not a Harvest Soon pre-listing.'
+    );
+    farmer_redirect('harvest-soon.php');
+}
 
-if($_SERVER['REQUEST_METHOD']==='POST'){ $id=(int)$_POST['id'];
-$date=$_POST['harvest_date']?:null;
-$avail=$_POST['available_from_date']?:null;
-$st=$conn->prepare("
-    UPDATE products 
-    SET harvest_date=?,available_from_date=? 
-    WHERE product_id=? 
-        AND farmer_id=? 
-        AND listing_type='HARVEST_SOON'
-    ");
-        
-$st->bind_param('ssii',$date,$avail,$id,$farmer_id);
-$st->execute();flash('success','Harvest dates updated.');redirect('harvest-soon.php');}$st=$conn->prepare("SELECT * FROM products WHERE farmer_id=? AND listing_type='HARVEST_SOON' ORDER BY harvest_date");$st->bind_param('i',$farmer_id);$st->execute();$rows=$st->get_result();
-
-page_top('Harvest Soon','harvest-soon');
+$listings = $farmerModel->harvestSoonListings($farmer_id);
+page_top('Pre-Listings', 'harvest-soon');
 ?>
-
 
 <div class="page-title">
     <div>
         <h1>Pre-Listings / Harvest Soon</h1>
-        <p>Manually maintain your actual harvest dates.</p>
+        <p>Maintain the harvest and availability dates for your Harvest Soon pre-listings.</p>
     </div>
-    <a class="btn" href="add-product.php">+ Add Listing</a>
+    <a class="btn" href="add-product.php?listing_type=HARVEST_SOON">+ Add Pre-Listing</a>
 </div>
 
-<?php while($r=$rows->fetch_assoc()):?>
-    
-<form class="card" method="post">
-    <input type="hidden" name="id" value="<?=$r['product_id']?>">
-    <div class="section-head">
-        <strong><?=e($r['product_name'])?></strong>
-        <span class="badge">HARVEST SOON</span>
+<?php if (!$listings): ?>
+<div class="card">
+    <p class="empty">
+        You have no Harvest Soon pre-listings. Create a product with the
+        <strong>Harvest Soon (pre-listing)</strong> listing type to publish one.
+    </p>
+    <div class="row mt">
+        <a class="btn" href="add-product.php?listing_type=HARVEST_SOON">+ Add Pre-Listing</a>
+        <a class="btn secondary" href="products.php">Manage All Products</a>
     </div>
-
+</div>
+<?php else: ?>
+<?php foreach ($listings as $r): ?>
+<form class="card mb" method="post">
+    <?= csrfField() ?>
+    <input type="hidden" name="id" value="<?= (int)$r['product_id'] ?>">
+    <div class="section-head">
+        <strong><?= e((string)$r['product_name']) ?></strong>
+        <span class="badge">Harvest Soon</span>
+    </div>
+    <p class="muted" style="font-size:12px">
+        Planned stock: <?= e(rtrim(rtrim(number_format((float)$r['available_quantity'], 3), '0'), '.')) ?> <?= e((string)$r['unit_label']) ?>
+        &middot; status <?= e(farmer_status_label((string)$r['listing_status'])) ?>
+    </p>
     <div class="form-grid">
         <div class="field">
             <label>Harvest Date</label>
-            <input class="input" type="date" name="harvest_date" value="
-                <?=e($r['harvest_date'])?>">
+            <input class="input" type="date" name="harvest_date" value="<?= e((string)($r['harvest_date'] ?? '')) ?>">
         </div>
         <div class="field">
             <label>Available From</label>
-            <input class="input" type="date" name="available_from_date" value="<?=e($r['available_from_date'])?>">
+            <input class="input" type="date" name="available_from_date" value="<?= e((string)($r['available_from_date'] ?? '')) ?>">
         </div>
     </div>
-    
-    <button class="btn">Update Dates</button>
+    <button class="btn" type="submit">Update Dates</button>
+</form>
+<?php endforeach; ?>
+<?php endif; ?>
 
-</form><?php endwhile;?><?php page_bottom();
-?>
+<?php page_bottom(); ?>

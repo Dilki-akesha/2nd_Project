@@ -1,0 +1,10 @@
+# Farmer-managed uploads directory. Kept for compatibility; the Farmer module
+# now stores uploads through config/helpers.php handleFileUpload() under
+# assets/, so nothing is written here directly.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

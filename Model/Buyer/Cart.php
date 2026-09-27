@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 final class Cart
 {
-    private PDO $db;
-    private float $deliveryFee = 350.00;
+    private mysqli $db;
 
     public function __construct()
     {
@@ -14,168 +13,170 @@ final class Cart
 
     private function getCartId(): int
     {
-        $userId = currentBuyerId();
+        requireBuyerAuth();
+        $buyerId = currentBuyerId();
 
-        $stmt = $this->db->prepare(
-            'SELECT id FROM carts WHERE user_id = ? LIMIT 1'
+        $row = db_fetch_one(
+            'SELECT cart_id FROM carts WHERE buyer_id = ? LIMIT 1',
+            'i',
+            [$buyerId]
         );
-        $stmt->execute([$userId]);
+        if ($row) return (int)$row['cart_id'];
 
-        $cartId = (int)$stmt->fetchColumn();
-
-        if ($cartId > 0) {
-            return $cartId;
+        $stmt = $this->db->prepare('INSERT INTO carts (buyer_id) VALUES (?)');
+        $stmt->bind_param('i', $buyerId);
+        if (!$stmt->execute()) {
+            $stmt->close();
+            return 0;
         }
-
-        $createStmt = $this->db->prepare(
-            'INSERT INTO carts (user_id) VALUES (?)'
-        );
-        $createStmt->execute([$userId]);
-
-        return (int)$this->db->lastInsertId();
+        $id = (int)$this->db->insert_id;
+        $stmt->close();
+        return $id;
     }
 
     public function getItems(?string $farmer = null): array
     {
-        $stmt = $this->db->prepare(
-            'SELECT
-                p.id,
-                p.name,
-                p.farmer AS seller,
+        requireBuyerAuth();
+
+        $rows = db_fetch_all(
+            "SELECT
+                p.product_id AS id,
+                p.farmer_id,
+                p.product_name AS name,
+                u.full_name AS farmer,
                 ci.quantity,
-                p.price,
-                p.unit,
-                NULL AS old_price,
-                p.image
+                p.unit_price AS price,
+                p.unit_label AS unit,
+               
+                (
+                    SELECT pi.image_path
+                    FROM product_images pi
+                    WHERE pi.product_id = p.product_id
+                    ORDER BY pi.is_primary DESC, pi.image_id ASC
+                    LIMIT 1
+                ) AS image
              FROM cart_items ci
-             INNER JOIN carts c ON c.id = ci.cart_id
-             INNER JOIN products p ON p.id = ci.product_id
-             WHERE c.user_id = ?
-             ORDER BY ci.id'
+             INNER JOIN carts c ON c.cart_id = ci.cart_id
+             INNER JOIN products p ON p.product_id = ci.product_id
+             INNER JOIN users u ON u.user_id = p.farmer_id
+             WHERE c.buyer_id = ?
+             ORDER BY ci.cart_item_id",
+            'i',
+            [currentBuyerId()]
         );
-        $stmt->execute([currentBuyerId()]);
 
-        $items = $stmt->fetchAll();
-        if ($farmer === null || trim($farmer) === '') {
-            return $items;
+        foreach ($rows as &$row) {
+            $row['id'] = (int)$row['id'];
+            $row['farmer_id'] = (int)$row['farmer_id'];
+            $row['quantity'] = (float)$row['quantity'];
+            $row['price'] = (float)$row['price'];
+            $path = trim((string)($row['image'] ?? ''));
+            if ($path === '') {
+                $path = getProductImage((string)$row['name']);
+            }
+            if (!preg_match('#^https?://#i', $path) && !str_starts_with($path, '/')) {
+                $path = url($path);
+            }
+            $row['image'] = $path;
         }
+        unset($row);
 
+        if ($farmer === null || trim($farmer) === '') return $rows;
         $farmer = trim($farmer);
-        return array_values(array_filter($items, static function (array $item) use ($farmer): bool {
-            return trim((string)($item['seller'] ?? '')) === $farmer;
-        }));
 
+        return array_values(array_filter(
+            $rows,
+            static fn(array $item): bool => trim((string)$item['farmer']) === $farmer
+        ));
     }
 
-    public function add(int $productId, int $quantity = 1): bool
+    public function add(int $productId, float $quantity = 1.0): bool
     {
+        requireBuyerAuth();
         $cartId = $this->getCartId();
-        $quantity = max(1, $quantity);
+        if ($cartId <= 0) return false;
 
-        $stmt = $this->db->prepare(
+        $product = db_fetch_one(
+            "SELECT product_id, available_quantity
+             FROM products
+             WHERE product_id = ? AND listing_status = 'ACTIVE'
+             LIMIT 1",
+            'i',
+            [$productId]
+        );
+        if (!$product || (float)$product['available_quantity'] <= 0) return false;
+
+        $quantity = min(max(0.001, $quantity), (float)$product['available_quantity']);
+        return db_execute(
             'INSERT INTO cart_items (cart_id, product_id, quantity)
              VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)'
+             ON DUPLICATE KEY UPDATE quantity = LEAST(quantity + VALUES(quantity), ?)',
+            'iidd',
+            [$cartId, $productId, $quantity, (float)$product['available_quantity']]
         );
-
-        return $stmt->execute([$cartId, $productId, $quantity]);
     }
 
-    public function updateQuantity(int $productId, int $quantity): bool
+    public function updateQuantity(int $productId, float $quantity): bool
     {
-        if ($quantity <= 0) {
-            return $this->remove($productId);
-        }
+        requireBuyerAuth();
+        if ($quantity <= 0) return $this->remove($productId);
 
-        $stmt = $this->db->prepare(
+        return db_execute(
             'UPDATE cart_items ci
-             INNER JOIN carts c ON c.id = ci.cart_id
-             SET ci.quantity = ?
-             WHERE c.user_id = ? AND ci.product_id = ?'
+             INNER JOIN carts c ON c.cart_id = ci.cart_id
+             INNER JOIN products p ON p.product_id = ci.product_id
+             SET ci.quantity = LEAST(?, p.available_quantity)
+             WHERE c.buyer_id = ? AND ci.product_id = ?',
+            'dii',
+            [$quantity, currentBuyerId(), $productId]
         );
-
-        return $stmt->execute([
-            $quantity,
-            currentBuyerId(),
-            $productId,
-        ]);
     }
 
     public function remove(int $productId): bool
     {
-        $stmt = $this->db->prepare(
+        requireBuyerAuth();
+        return db_execute(
             'DELETE ci
              FROM cart_items ci
-             INNER JOIN carts c ON c.id = ci.cart_id
-             WHERE c.user_id = ? AND ci.product_id = ?'
+             INNER JOIN carts c ON c.cart_id = ci.cart_id
+             WHERE c.buyer_id = ? AND ci.product_id = ?',
+            'ii',
+            [currentBuyerId(), $productId]
         );
-
-        return $stmt->execute([
-            currentBuyerId(),
-            $productId,
-        ]);
     }
 
     public function clear(): bool
     {
-        $stmt = $this->db->prepare(
+        requireBuyerAuth();
+        return db_execute(
             'DELETE ci
              FROM cart_items ci
-             INNER JOIN carts c ON c.id = ci.cart_id
-             WHERE c.user_id = ?'
+             INNER JOIN carts c ON c.cart_id = ci.cart_id
+             WHERE c.buyer_id = ?',
+            'i',
+            [currentBuyerId()]
         );
-
-        return $stmt->execute([currentBuyerId()]);
     }
 
-    public function clearFarmer(string $farmer): bool
-    {
-        $farmer = trim($farmer);
-        if ($farmer === '') {
-            return false;
-        }
-
-        $stmt = $this->db->prepare(
-            'DELETE ci
-             FROM cart_items ci
-             INNER JOIN carts c ON c.id = ci.cart_id
-             INNER JOIN products p ON p.id = ci.product_id
-             WHERE c.user_id = ? AND p.farmer = ?'
-        );
-
-        return $stmt->execute([currentBuyerId(), $farmer]);
-    }
-
+    /** Base delivery fee. The full figure (base + district distance) is calculated at checkout. */
     public function getDeliveryFee(): float
     {
-        return $this->deliveryFee;
+        return db_setting('delivery_base_fee', 0.0);
     }
 
     public function calculateSubtotal(array $items): float
     {
         $subtotal = 0.0;
-
         foreach ($items as $item) {
-            $subtotal += (int)$item['quantity'] * (float)$item['price'];
+            $subtotal += (float)$item['quantity'] * (float)$item['price'];
         }
-
-        return $subtotal;
+        return round($subtotal, 2);
     }
 
-    public function calculateQuantity(array $items): int
+    public function calculateQuantity(array $items): float
     {
-        $quantity = 0;
-
-        foreach ($items as $item) {
-            $quantity += (int)$item['quantity'];
-        }
-
-        return $quantity;
-    }
-
-    public function calculateTotal(array $items): float
-    {
-        $subtotal = $this->calculateSubtotal($items);
-        return $subtotal + ($subtotal > 0 ? $this->deliveryFee : 0);
+        $quantity = 0.0;
+        foreach ($items as $item) $quantity += (float)$item['quantity'];
+        return round($quantity, 3);
     }
 }

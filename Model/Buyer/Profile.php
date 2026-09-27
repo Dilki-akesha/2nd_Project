@@ -6,122 +6,169 @@ final class Profile
 {
     public function getBuyer(): array
     {
-        $stmt = db()->prepare('SELECT * FROM users WHERE id = ? LIMIT 1');
-        $stmt->execute([currentBuyerId()]);
-        $buyer = $stmt->fetch();
+        requireBuyerAuth();
 
-        return $buyer ?: [];
+        $buyer = db_fetch_one(
+            "SELECT
+                u.user_id AS id,
+                u.full_name AS name,
+                u.email,
+                u.phone,
+                u.created_at,
+                u.account_status,
+                bp.default_address_line1 AS address,
+                bp.default_address_line2 AS address2,
+                bp.default_city_town AS city,
+                bp.default_postal_code AS postal,
+                d.district_name AS district
+             FROM users u
+             LEFT JOIN buyer_profiles bp ON bp.buyer_id = u.user_id
+             LEFT JOIN districts d ON d.district_id = bp.default_district_id
+             WHERE u.user_id = ? AND u.role = 'BUYER'
+             LIMIT 1",
+            'i',
+            [currentBuyerId()]
+        ) ?? [];
+
+        $buyer['registered_at'] = $buyer['created_at'] ?? '';
+        $buyer['joined'] = !empty($buyer['created_at'])
+            ? date('F Y', strtotime((string)$buyer['created_at']))
+            : '';
+
+        return $buyer;
+    }
+
+    /** All 25 active districts, for the profile district selector. */
+    public function districts(): array
+    {
+        return db_fetch_all(
+            'SELECT district_id, district_name FROM districts WHERE is_active = 1 ORDER BY district_name'
+        );
     }
 
     public function save(array $data, ?array $file = null): array
     {
-        $buyer = $this->getBuyer();
+        requireBuyerAuth();
 
-        $fields = ['name', 'email', 'phone', 'city', 'district', 'address'];
-        $values = [];
+        $name = trim((string)($data['name'] ?? ''));
+        $email = trim((string)($data['email'] ?? ''));
+        $phone = trim((string)($data['phone'] ?? ''));
+        $city = trim((string)($data['city'] ?? ''));
+        $district = trim((string)($data['district'] ?? ''));
+        $address = trim((string)($data['address'] ?? ''));
+        $address2 = trim((string)($data['address2'] ?? ''));
+        $postal = trim((string)($data['postal'] ?? ''));
 
-        foreach ($fields as $field) {
-            $values[$field] = trim(
-                (string)($data[$field] ?? $buyer[$field] ?? '')
-            );
+        if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new RuntimeException('Please enter a valid name and email address.');
         }
 
-        if ($values['name'] === '') {
-            throw new RuntimeException('Full name is required.');
-        }
-
-        if ($values['email'] === '' || !filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
-            throw new RuntimeException('Please enter a valid email address.');
-        }
-
-        $image = $buyer['profile_image'] ?? null;
-
-        if ($file && ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
-            $allowed = [
-                'image/jpeg' => 'jpg',
-                'image/png' => 'png',
-                'image/webp' => 'webp',
-            ];
-
-            $mime = (string)($file['type'] ?? '');
-
-            if (!isset($allowed[$mime])) {
-                throw new RuntimeException('Please upload a JPG, PNG or WEBP image.');
-            }
-
-            if ((int)($file['size'] ?? 0) > 5 * 1024 * 1024) {
-                throw new RuntimeException('Profile image must be less than 5MB.');
-            }
-
-            $directory = __DIR__ . '/../../uploads';
-
-            if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-                throw new RuntimeException('Unable to create the profile image directory.');
-            }
-
-            $filename = 'buyer_' . currentBuyerId() . '_' . bin2hex(random_bytes(5)) . '.' . $allowed[$mime];
-            $target = $directory . '/' . $filename;
-
-            if (!move_uploaded_file($file['tmp_name'], $target)) {
-                throw new RuntimeException('Unable to save the profile image.');
-            }
-
-            $image = url('uploads/' . $filename);
-        }
-
-        $stmt = db()->prepare(
-            'UPDATE users
-             SET name = ?, email = ?, phone = ?, city = ?, district = ?, address = ?, profile_image = ?
-             WHERE id = ?'
+        $duplicate = (int)db_scalar(
+            'SELECT COUNT(*) FROM users WHERE email = ? AND user_id <> ?',
+            'si',
+            [$email, currentBuyerId()],
+            0
         );
+        if ($duplicate > 0) {
+            throw new RuntimeException('That email address is already in use.');
+        }
 
-        $stmt->execute([
-            $values['name'],
-            $values['email'],
-            $values['phone'],
-            $values['city'],
-            $values['district'],
-            $values['address'],
-            $image,
-            currentBuyerId(),
-        ]);
+        $districtId = (int)db_scalar(
+            'SELECT district_id FROM districts WHERE district_name = ? AND is_active = 1 LIMIT 1',
+            's',
+            [$district],
+            0
+        );
+        if ($districtId <= 0 || $address === '' || $phone === '') {
+            throw new RuntimeException('Please enter your address, phone and a valid district.');
+        }
 
-        $_SESSION['buyer_name'] = $values['name'];
-        $_SESSION['buyer_email'] = $values['email'];
+        db()->begin_transaction();
+        try {
+            if (!db_execute(
+                "UPDATE users SET full_name = ?, email = ?, phone = ? WHERE user_id = ? AND role = 'BUYER'",
+                'sssi',
+                [$name, $email, $phone, currentBuyerId()]
+            )) {
+                throw new RuntimeException('Unable to update user profile.');
+            }
+
+            $stmt = db()->prepare(
+                'INSERT INTO buyer_profiles
+                 (buyer_id, default_address_line1, default_address_line2, default_city_town, default_postal_code, default_district_id)
+                 VALUES (?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE
+                   default_address_line1 = VALUES(default_address_line1),
+                   default_address_line2 = VALUES(default_address_line2),
+                   default_city_town = VALUES(default_city_town),
+                   default_postal_code = VALUES(default_postal_code),
+                   default_district_id = VALUES(default_district_id)'
+            );
+            $buyerId = currentBuyerId();
+            $stmt->bind_param('issssi', $buyerId, $address, $address2, $city, $postal, $districtId);
+            if (!$stmt->execute()) throw new RuntimeException('Unable to update buyer delivery details.');
+            $stmt->close();
+
+            $_SESSION['user_name'] = $name;
+            $_SESSION['user_email'] = $email;
+
+            db()->commit();
+        } catch (Throwable $e) {
+            db()->rollback();
+            throw $e;
+        }
 
         return $this->getBuyer();
     }
 
     public function getStats(): array
     {
-        $stmt = db()->prepare(
-            'SELECT status, COUNT(*) AS c
+        requireBuyerAuth();
+        $rows = db_fetch_all(
+            'SELECT order_status, COUNT(*) AS c
              FROM orders
-             WHERE user_id = ?
-             GROUP BY status'
+             WHERE buyer_id = ?
+             GROUP BY order_status',
+            'i',
+            [currentBuyerId()]
         );
-        $stmt->execute([currentBuyerId()]);
 
         $stats = [
             'total' => 0,
-            'delivered' => 0,
-            'pending' => 0,
-            'cancelled' => 0,
+            'completed' => 0,
+            'active' => 0,
+            'closed' => 0,
         ];
 
-        foreach ($stmt->fetchAll() as $row) {
+        foreach ($rows as $row) {
             $count = (int)$row['c'];
+            $status = (string)$row['order_status'];
             $stats['total'] += $count;
-
-            if ($row['status'] === 'Delivered' || $row['status'] === 'Completed') {
-                $stats['delivered'] += $count;
-            } elseif ($row['status'] === 'Cancelled') {
-                $stats['cancelled'] += $count;
-            } else {
-                $stats['pending'] += $count;
-            }
+            if ($status === 'COMPLETED') $stats['completed'] += $count;
+            elseif (in_array($status, ['CANCELLED', 'REJECTED', 'UNDELIVERABLE'], true)) $stats['closed'] += $count;
+            else $stats['active'] += $count;
         }
 
         return $stats;
+    }
+
+    public function delete(int $id): bool
+    {
+        // Keep Buyer records when they are referenced by orders.
+        if ($id <= 0 || $id !== currentBuyerId()) return false;
+
+        $hasOrders = (int)db_scalar(
+            'SELECT COUNT(*) FROM orders WHERE buyer_id = ?',
+            'i',
+            [$id],
+            0
+        );
+        if ($hasOrders > 0) return false;
+
+        return db_execute(
+            "DELETE FROM users WHERE user_id = ? AND role = 'BUYER'",
+            'i',
+            [$id]
+        );
     }
 }

@@ -1,600 +1,122 @@
 <?php
-
-$cartItems = $cartItems ?? [];
-
-$deliveryFee = $deliveryFee ?? 0;
-
-$subtotal = $subtotal ?? 0;
-
-$total = $total ?? 0;
-
-$totalQuantity = $totalQuantity ?? 0;
-
-$farmerGroups = [];
-foreach ($cartItems as $cartItem) {
-    $seller = trim((string)($cartItem['seller'] ?? 'Unknown Farmer'));
-    if (!isset($farmerGroups[$seller])) {
-        $farmerGroups[$seller] = [];
-    }
-    $farmerGroups[$seller][] = $cartItem;
-}
-
+require_once __DIR__ . '/../../config/app.php';
+if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) redirect('Controller/Buyer/CartController.php');
+require __DIR__ . '/includes/layout.php';
+buyer_page_top('Your Cart', 'CartController.php');
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        Harvestly - Your Cart
-    </title>
-
-
-    <!-- Fonts -->
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-    >
-
-
-    <!-- Material Symbols -->
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet"
-    >
-
-
-    <!-- CSS -->
-
-    <link
-        rel="stylesheet"
-        href="/Harvestly/css/Buyer/cart.css"
-    >
-
-</head>
-
-
-<body>
-
-
-<!-- =====================================================
-     HEADER
-===================================================== -->
-
-<header class="cart-header">
-
-    <div class="header-inner">
-
-
-        <!-- LOGO -->
-
-        <a
-            href="/Harvestly/Controller/Buyer/DashboardController.php"
-            class="brand"
-        >
-
-            <img src="/Harvestly/assets/harvestly-logo.jpeg" alt="Harvestly" style="height:32px;width:auto;display:block;object-fit:contain;">
-
-        </a>
-
-
-        <!-- CONTINUE SHOPPING -->
-
-        <a
-            href="/Harvestly/Controller/Buyer/ProductController.php"
-            class="continue-shopping"
-        >
-
-            <span class="material-symbols-outlined">
-                arrow_back
-            </span>
-
-            Continue Shopping
-
-        </a>
-
+<section class="buyer-title">
+    <div>
+        <h2>Your Cart</h2>
+        <p>Review your produce before checkout.</p>
     </div>
-
-</header>
-
-
-
-<!-- =====================================================
-     MAIN
-===================================================== -->
-
-<main class="cart-main">
-
-
-    <!-- PAGE HEADER -->
-
-    <section class="page-heading">
-
-        <h1>
-            Your Cart
-        </h1>
-
-        <p>
-            Review your items before proceeding to checkout.
-        </p>
-
-    </section>
-
-
-
-    <!-- =================================================
-         CART LAYOUT
-    ================================================== -->
-
-    <div class="cart-layout">
-
-
-        <!-- =================================================
-             CART ITEMS
-        ================================================== -->
-
-        <section class="cart-items-section">
-
-            <div
-                class="cart-items"
-                id="cartItems"
-            >
-
-
-                <?php if (count($cartItems) > 0): ?>
-
-
-                    <?php foreach ($farmerGroups as $farmerName => $farmerItems): ?>
-
-                        <section class="farmer-cart-group" data-farmer="<?php echo htmlspecialchars($farmerName); ?>">
-
-                            <div class="farmer-cart-group-header">
-                                <div>
-                                    <span class="farmer-group-label">Farmer</span>
-                                    <h2><?php echo htmlspecialchars($farmerName); ?></h2>
-                                </div>
-                                <span class="farmer-group-count"><?php echo count($farmerItems); ?> product<?php echo count($farmerItems) === 1 ? '' : 's'; ?></span>
-                            </div>
-
-                            <div class="farmer-cart-items">
-
-                    <?php foreach ($farmerItems as $item): ?>
-
-
-                        <article
-                            class="cart-item"
-                            data-item-id="<?php echo htmlspecialchars($item["id"]); ?>"
-                            data-price="<?php echo htmlspecialchars($item["price"]); ?>"
-                        >
-
-
-                            <!-- IMAGE -->
-
-                            <img
-                                src="<?php echo htmlspecialchars($item["image"]); ?>"
-                                alt="<?php echo htmlspecialchars($item["name"]); ?>"
-                                class="cart-product-image"
-                            >
-
-
-                            <!-- CONTENT -->
-
-                            <div class="cart-item-content">
-
-
-                                <div class="cart-item-header">
-
-
-                                    <div>
-
-                                        <h2>
-
-                                            <?php
-                                            echo htmlspecialchars(
-                                                $item["name"]
-                                            );
-                                            ?>
-
-                                        </h2>
-
-
-                                        <p class="seller">
-
-                                            Sold by:
-
-                                            <span>
-
-                                                <?php
-                                                echo htmlspecialchars(
-                                                    $item["seller"]
-                                                );
-                                                ?>
-
-                                            </span>
-
-                                        </p>
-
-                                    </div>
-
-
-                                    <!-- REMOVE -->
-
-                                    <button
-                                        type="button"
-                                        class="remove-item"
-                                        data-remove="<?php echo htmlspecialchars($item["id"]); ?>"
-                                        aria-label="Remove item"
-                                        title="Remove item"
-                                    >
-
-                                        <span class="material-symbols-outlined">
-                                            delete
-                                        </span>
-
-                                    </button>
-
-
-                                </div>
-
-
-
-                                <!-- ITEM BOTTOM -->
-
-                                <div class="cart-item-bottom">
-
-
-                                    <!-- QUANTITY -->
-
-                                    <div class="quantity-control">
-
-
-                                        <!-- MINUS -->
-
-                                        <button
-                                            type="button"
-                                            class="quantity-btn decrease"
-                                            data-id="<?php echo htmlspecialchars($item["id"]); ?>"
-                                            aria-label="Decrease quantity"
-                                        >
-
-                                            <span class="material-symbols-outlined">
-                                                remove
-                                            </span>
-
-                                        </button>
-
-
-                                        <!-- CURRENT QUANTITY -->
-
-                                        <span class="quantity">
-
-                                            <?php
-                                            echo htmlspecialchars(
-                                                $item["quantity"]
-                                            );
-                                            ?>
-
-                                        </span>
-
-
-                                        <!-- PLUS -->
-
-                                        <button
-                                            type="button"
-                                            class="quantity-btn increase"
-                                            data-id="<?php echo htmlspecialchars($item["id"]); ?>"
-                                            aria-label="Increase quantity"
-                                        >
-
-                                            <span class="material-symbols-outlined">
-                                                add
-                                            </span>
-
-                                        </button>
-
-
-                                    </div>
-
-
-
-                                    <!-- PRICE -->
-
-                                    <div class="item-price">
-
-
-                                        <?php if (!empty($item["old_price"])): ?>
-
-                                            <span class="old-price">
-
-                                                LKR
-                                                <?php
-                                                echo number_format(
-                                                    $item["old_price"],
-                                                    2
-                                                );
-                                                ?>
-
-                                            </span>
-
-                                        <?php endif; ?>
-
-
-                                        <strong class="current-price">
-
-                                            LKR
-
-                                            <span class="item-total-price">
-
-                                                <?php
-                                                echo number_format(
-                                                    $item["quantity"] *
-                                                    $item["price"],
-                                                    2
-                                                );
-                                                ?>
-
-                                            </span>
-
-
-                                            <small>
-                                                /
-                                                <?php
-                                                echo htmlspecialchars(
-                                                    $item["unit"]
-                                                );
-                                                ?>
-                                            </small>
-
-                                        </strong>
-
-                                    </div>
-
-
-                                </div>
-
-                            </div>
-
-                        </article>
-
-
-                    <?php endforeach; ?>
-
-                            </div>
-
-                        </section>
-
-                <?php endforeach; ?>
-
-
-                <?php endif; ?>
-
-
-
-                <!-- EMPTY CART -->
-
-                <div
-                    class="empty-cart"
-                    id="emptyCart"
-
-                    <?php
-                    echo count($cartItems) > 0
-                        ? 'style="display:none;"'
-                        : '';
-                    ?>
-                >
-
-                    <div class="empty-cart-icon">
-
-                        <span class="material-symbols-outlined">
-                            shopping_cart
-                        </span>
-
-                    </div>
-
-
-                    <h2>
-                        Your cart is empty
-                    </h2>
-
-
-                    <p>
-                        Add some fresh products from local farmers.
-                    </p>
-
-
-                    <a
-                        href="/Harvestly/Controller/Buyer/ProductController.php"
-                    >
-                        Start Shopping
-                    </a>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             ORDER SUMMARY
-        ================================================== -->
-
-        <aside class="order-summary">
-
-            <div class="summary-card">
-
-
-                <h2>
-                    Order Summary
-                </h2>
-
-
-                <div class="summary-divider"></div>
-
-
-
-                <!-- SUBTOTAL -->
-
-                <div class="summary-row">
-
-                    <span>
-
-                        Subtotal
-
-                        (
-                        <span id="itemCount">
-
-                            <?php
-                            echo $totalQuantity;
-                            ?>
-
-                        </span>
-
-                        items)
-
-                    </span>
-
-
-                    <strong id="subtotal">
-
-                        LKR
-
-                        <?php
-                        echo number_format(
-                            $subtotal,
-                            2
-                        );
-                        ?>
-
-                    </strong>
-
-                </div>
-
-
-
-                <!-- DELIVERY -->
-
-                <div class="summary-row">
-
-                    <span>
-                        Delivery Fee
-                    </span>
-
-
-                    <strong id="deliveryFee">
-
-                        LKR
-
-                        <?php
-                        echo number_format(
-                            $deliveryFee,
-                            2
-                        );
-                        ?>
-
-                    </strong>
-
-                </div>
-
-
-
-                <!-- TOTAL -->
-
-                <div class="summary-total">
-
-                    <span>
-                        Total
-                    </span>
-
-
-                    <strong id="grandTotal">
-
-                        LKR
-
-                        <?php
-                        echo number_format(
-                            $total,
-                            2
-                        );
-                        ?>
-
-                    </strong>
-
-                </div>
-
-
-                <p class="tax-note">
-                    Includes all applicable taxes
-                </p>
-
-
-
-                <!-- CHECKOUT -->
-
-                <button
-                    type="button"
-                    class="checkout-button"
-                    id="checkoutButton"
-
-                    <?php
-                    echo count($cartItems) === 0
-                        ? "disabled"
-                        : "";
-                    ?>
-                >
-
-                    Proceed to Checkout
-
-                    <span class="material-symbols-outlined">
-                        arrow_forward
-                    </span>
-
-                </button>
-
-
-
-                <!-- SECURE -->
-
-                <div class="secure-checkout">
-
-                    <span class="material-symbols-outlined">
-                        verified_user
-                    </span>
-
-                    Secure Checkout
-
-                </div>
-
-
-            </div>
-
-        </aside>
-
-
+    <div class="buyer-actions">
+        <a class="buyer-button buyer-secondary" href="<?= e(buyerRoute('ProductController.php')) ?>">
+            <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+            <span>Continue Shopping</span>
+        </a>
     </div>
+</section>
 
-</main>
+<?php buyerFlash(); ?>
 
+<?php if (!$cartItems): ?>
+<section class="buyer-panel buyer-empty">
+    Your cart is empty. <a href="<?= e(buyerRoute('ProductController.php')) ?>">Browse products</a> to add your first item.
+</section>
+<?php else: ?>
 
+<section class="buyer-panel">
+    <div class="buyer-table-wrap">
+        <table class="buyer-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Farmer</th>
+                    <th class="buyer-num">Unit price</th>
+                    <th>Quantity</th>
+                    <th class="buyer-num">Subtotal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($cartItems as $item): ?>
+                <tr>
+                    <td class="buyer-product-cell">
+                        <?php if (!empty($item['image'])): ?>
+                            <img src="<?= e($item['image']) ?>" alt="">
+                        <?php endif; ?>
+                        <a href="<?= e(buyerRoute('ProductDetailsController.php', 'id=' . (int)$item['id'])) ?>"><?= e($item['name']) ?></a>
+                    </td>
+                    <td><?= e($item['farmer']) ?></td>
+                    <td class="buyer-num"><?= e(harvestlyMoney($item['price'])) ?> / <?= e($item['unit']) ?></td>
+                    <td>
+                        <form method="post" action="<?= e(buyerRoute('CartController.php')) ?>" class="buyer-actions">
+                            <?= csrfField() ?>
+                            <input type="hidden" name="action" value="update">
+                            <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
+                            <input type="number" step="0.001" style="width:92px"
+                                   aria-label="Quantity for <?= e($item['name']) ?>"
+                                   name="quantity" min="0.001" value="<?= e($item['quantity']) ?>" required>
+                            <button class="buyer-button buyer-secondary buyer-small" type="submit">Update</button>
+                        </form>
+                    </td>
+                    <td class="buyer-num"><?= e(harvestlyMoney((float)$item['price'] * (float)$item['quantity'])) ?></td>
+                    <td>
+                        <form method="post" action="<?= e(buyerRoute('CartController.php')) ?>"
+                              data-confirm="Remove <?= e($item['name']) ?> from your cart?">
+                            <?= csrfField() ?>
+                            <input type="hidden" name="action" value="remove">
+                            <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
+                            <button class="buyer-button buyer-danger buyer-small" type="submit">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4">Cart subtotal</td>
+                    <td class="buyer-num"><?= e(harvestlyMoney($subtotal)) ?></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</section>
 
-<!-- JS -->
+<section class="buyer-panel">
+    <h3>Checkout summary</h3>
+    <dl class="buyer-kv">
+        <dt>Cart subtotal</dt>
+        <dd><?= e(harvestlyMoney($subtotal)) ?></dd>
+        <dt>Delivery fee</dt>
+        <dd>Calculated at checkout</dd>
+        <dt>Buyer service fee</dt>
+        <dd>Calculated at checkout</dd>
+    </dl>
+    <p class="buyer-note" style="margin-top:16px">
+        Your cart is a general cart and can hold any products. Each individual order must contain
+        products from a single Farmer, so please remove other Farmers' items before checking out.
+    </p>
+    <p class="buyer-note">
+        Delivery is priced from the base delivery fee plus the stored district reference distance at
+        the per-kilometre rate, and is only available when an approved Courier Partner supports your
+        destination district from that Farmer's pickup district.
+    </p>
+    <div class="buyer-actions" style="margin-top:20px">
+        <a class="buyer-button" href="<?= e(buyerRoute('CheckoutController.php')) ?>">
+            <span class="material-symbols-outlined" aria-hidden="true">shopping_bag</span>
+            <span>Proceed to Checkout</span>
+        </a>
+        <form method="post" action="<?= e(buyerRoute('CartController.php')) ?>" data-confirm="Clear all items from your cart?">
+            <?= csrfField() ?>
+            <input type="hidden" name="action" value="clear">
+            <button class="buyer-button buyer-danger" type="submit">Clear Cart</button>
+        </form>
+    </div>
+</section>
 
-<script
-    src="/Harvestly/js/Buyer/cart.js"
-></script>
+<?php endif; ?>
 
-
-</body>
-
-</html>
+<?php buyer_page_bottom(); ?>

@@ -1,630 +1,157 @@
 <?php
-
-$buyerName =
-    $buyerName ?? "Nimal Perera";
-
-$notificationCount =
-    $notificationCount ?? 0;
-
-$cartCount =
-    $cartCount ?? 0;
-
+if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) redirect('Controller/Buyer/DashboardController.php');
+require __DIR__ . '/includes/layout.php';
+buyer_page_top('Dashboard', 'DashboardController.php');
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        Harvestly - Buyer Dashboard
-    </title>
-
-
-    <!-- CSS -->
-
-    <link
-        rel="stylesheet"
-        href="/Harvestly/css/Buyer/buyer-dashboard.css"
-    >
-
-
-    <!-- Fonts -->
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Manrope:wght@400;600;700&display=swap"
-        rel="stylesheet"
-    >
-
-
-    <!-- Material Symbols -->
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap"
-        rel="stylesheet"
-    >
-
-</head>
-
-
-<body>
-
-
-<!-- =====================================================
-     NAVBAR
-===================================================== -->
-
-<nav class="navbar">
-
-    <div class="navbar-inner">
-
-
-        <!-- LOGO -->
-
-        <a
-            href="/Harvestly/Controller/Buyer/DashboardController.php"
-            class="logo"
-        >
-            <img src="/Harvestly/assets/harvestly-logo.jpeg" alt="Harvestly" style="height:34px;width:auto;display:block;object-fit:contain;">
-        </a>
-
-
-
-        <!-- DESKTOP NAVIGATION -->
-
-        <div class="nav-links">
-
-            <a
-                href="/Harvestly/Controller/Buyer/DashboardController.php"
-                class="nav-link active"
-            >
-                Home
-            </a>
-
-
-            <a
-                href="/Harvestly/Controller/Buyer/ProductController.php"
-                class="nav-link"
-            >
-                Products
-            </a>
-
-
-            <a
-                href="#categories"
-                class="nav-link"
-            >
-                Categories
-            </a>
-
-
-            <a
-                href="#farmers"
-                class="nav-link"
-            >
-                Farmers
-            </a>
-
-
-            <a
-                href="#about"
-                class="nav-link"
-            >
-                About
-            </a>
-
-        </div>
-
-
-
-        <!-- RIGHT NAVIGATION -->
-
-        <div class="nav-actions">
-
-
-            <!-- SEARCH -->
-
-            <div class="search-box">
-
-                <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="Search products or farmers..."
-                    autocomplete="off"
-                >
-
-
-                <button
-                    type="button"
-                    id="searchButton"
-                    class="search-button"
-                    aria-label="Search"
-                    title="Search"
-                >
-
-                    <span class="material-symbols-outlined">
-                        search
-                    </span>
-
-                </button>
-
-            </div>
-
-
-
-            <!-- NOTIFICATION -->
-
-            <button
-                type="button"
-                class="icon-button"
-                id="notificationButton"
-                title="Notifications"
-            >
-
-                <span class="material-symbols-outlined">
-                    notifications
-                </span>
-
-
-                <?php if ($notificationCount > 0): ?>
-
-                    <span class="notification-badge">
-
-                        <?php
-                        echo htmlspecialchars(
-                            $notificationCount
-                        );
-                        ?>
-
-                    </span>
-
-                <?php endif; ?>
-
-            </button>
-
-
-
-            <!-- CART -->
-
-            <a
-                href="/Harvestly/Controller/Buyer/CartController.php"
-                class="icon-button cart-link"
-                title="Shopping Cart"
-            >
-
-                <span class="material-symbols-outlined">
-                    shopping_cart
-                </span>
-
-
-                <?php if ($cartCount > 0): ?>
-
-                    <span class="cart-badge">
-
-                        <?php
-                        echo htmlspecialchars(
-                            $cartCount
-                        );
-                        ?>
-
-                    </span>
-
-                <?php endif; ?>
-
-
-            </a>
-
-
-
-            <!-- AUTH -->
-
-            <div class="auth-buttons">
-
-
-                <a
-                    href="/Harvestly/Controller/Buyer/AuthController.php"
-                    class="login-button"
-                >
-                    Login
-                </a>
-
-
-                <a
-                    href="/Harvestly/Controller/Buyer/RegistrationController.php"
-                    class="register-button"
-                >
-                    Register
-                </a>
-
-
-            </div>
-
-
-
-            <!-- MOBILE MENU -->
-
-            <button
-                type="button"
-                class="mobile-menu-button"
-                id="mobileMenuButton"
-                aria-label="Open menu"
-            >
-
-                <span class="material-symbols-outlined">
-                    menu
-                </span>
-
-            </button>
-
-
-        </div>
-
+<section class="buyer-title">
+    <div>
+        <h2>Welcome back, <?= e($buyerName) ?></h2>
+        <p>Your fresh produce, orders and deliveries in one place.</p>
     </div>
-
-
-
-    <!-- =================================================
-         MOBILE NAVIGATION
-    ================================================== -->
-
-    <div
-        class="mobile-nav"
-        id="mobileNav"
-    >
-
-
-        <a
-            href="/Harvestly/Controller/Buyer/DashboardController.php"
-        >
-            Home
+    <div class="buyer-actions">
+        <a class="buyer-button" href="<?= e(buyerRoute('ProductController.php')) ?>">
+            <span class="material-symbols-outlined" aria-hidden="true">shopping_bag</span>
+            <span>Browse Products</span>
         </a>
+    </div>
+</section>
 
+<?php buyerFlash(); ?>
 
-        <a
-            href="/Harvestly/Controller/Buyer/ProductController.php"
-        >
-            Products
-        </a>
+<?php if ((int)$buyerData['awaitingConfirmation'] > 0): ?>
+<div class="buyer-alert warn">
+    <strong>Action needed</strong>
+    <?= (int)$buyerData['awaitingConfirmation'] ?> of your delivered <?= (int)$buyerData['awaitingConfirmation'] === 1 ? 'order is' : 'orders are' ?>
+    waiting for you to confirm receipt. Orders complete automatically after
+    <?= (int)db_setting('buyer_confirmation_hours', 48) ?> hours.
+    <a href="<?= e(buyerRoute('OrdersController.php')) ?>">Review <?= (int)$buyerData['awaitingConfirmation'] === 1 ? 'it' : 'them' ?> now</a>
+</div>
+<?php endif; ?>
 
+<div class="buyer-metrics">
+    <a class="buyer-metric" href="<?= e(buyerRoute('OrdersController.php')) ?>">
+        <span class="buyer-metric-icon material-symbols-outlined" aria-hidden="true">local_shipping</span>
+        <span>
+            <strong><?= (int)$buyerData['activeOrders'] ?></strong>
+            <span>Active orders</span>
+        </span>
+    </a>
+    <a class="buyer-metric" href="<?= e(buyerRoute('OrdersController.php')) ?>">
+        <span class="buyer-metric-icon material-symbols-outlined" aria-hidden="true">done_all</span>
+        <span>
+            <strong><?= (int)$buyerData['completedOrders'] ?></strong>
+            <span>Completed orders</span>
+        </span>
+    </a>
+    <a class="buyer-metric" href="<?= e(buyerRoute('CartController.php')) ?>">
+        <span class="buyer-metric-icon material-symbols-outlined" aria-hidden="true">shopping_cart</span>
+        <span>
+            <strong><?= (int)$buyerData['cartCount'] ?></strong>
+            <span>Items in your cart</span>
+        </span>
+    </a>
+    <a class="buyer-metric" href="<?= e(buyerRoute('NotificationsController.php')) ?>">
+        <span class="buyer-metric-icon material-symbols-outlined" aria-hidden="true">notifications</span>
+        <span>
+            <strong><?= (int)$buyerData['notificationCount'] ?></strong>
+            <span>Unread notifications</span>
+        </span>
+    </a>
+</div>
 
-        <a href="#categories">
-            Categories
-        </a>
+<section class="buyer-panel">
+    <h3>Find fresh produce</h3>
+    <form class="buyer-search" method="get" action="<?= e(buyerRoute('ProductController.php')) ?>">
+        <input type="search" name="search" aria-label="Search products or farmers" placeholder="Search products or farmers">
+        <button class="buyer-button" type="submit">
+            <span class="material-symbols-outlined" aria-hidden="true">search</span>
+            <span>Search</span>
+        </button>
+    </form>
+</section>
 
+<div class="buyer-columns">
+    <section class="buyer-panel">
+        <h3>Recent orders</h3>
+        <?php if (!$buyerData['recentOrders']): ?>
+            <div class="buyer-empty">You have no orders yet. Browse products to start your first order.</div>
+        <?php else: ?>
+            <div class="buyer-table-wrap">
+                <table class="buyer-table">
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Farmer</th>
+                            <th>Destination</th>
+                            <th>Status</th>
+                            <th class="buyer-num">Total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($buyerData['recentOrders'] as $order): ?>
+                        <tr>
+                            <td class="buyer-nowrap"><?= e(orderPublicId((int)$order['order_id'])) ?></td>
+                            <td><?= e($order['farmer_name']) ?></td>
+                            <td><?= e($order['destination_district'] ?: '—') ?></td>
+                            <td><?= buyerStatusBadge((string)$order['order_status']) ?></td>
+                            <td class="buyer-num"><?= e(harvestlyMoney($order['grand_total'])) ?></td>
+                            <td>
+                                <a class="buyer-button buyer-button--ghost buyer-button--small"
+                                   href="<?= e(buyerRoute('OrderTrackingController.php', 'id=' . (int)$order['order_id'])) ?>">View</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="buyer-actions" style="margin-top:16px">
+                <a class="buyer-button buyer-secondary buyer-small" href="<?= e(buyerRoute('OrdersController.php')) ?>">View all orders</a>
+            </div>
+        <?php endif; ?>
+    </section>
 
-        <a href="#farmers">
-            Farmers
-        </a>
+    <section class="buyer-panel">
+        <h3>Your account</h3>
+        <div class="buyer-quicklinks">
+            <a href="<?= e(buyerRoute('OrdersController.php')) ?>">
+                <span>Order history &amp; delivery progress</span>
+                <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </a>
+            <a href="<?= e(buyerRoute('FeedbackController.php')) ?>">
+                <span>Reviews &amp; report an issue</span>
+                <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </a>
+            <a href="<?= e(buyerRoute('ProfileController.php')) ?>">
+                <span>Manage your profile</span>
+                <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </a>
+        </div>
+    </section>
+</div>
 
-
-        <a href="#about">
-            About
-        </a>
-
-
-        <a
-            href="/Harvestly/Controller/Buyer/AuthController.php"
-        >
-            Login
-        </a>
-
-
-        <a
-            href="/Harvestly/Controller/Buyer/RegistrationController.php"
-        >
-            Register
-        </a>
-
-
-        <a
-            href="/Harvestly/Controller/Buyer/CartController.php"
-        >
-            Shopping Cart
-
-            <?php if ($cartCount > 0): ?>
-
-                (
-                <?php
-                echo htmlspecialchars(
-                    $cartCount
-                );
-                ?>
-                )
-
+<?php if ($buyerData['recentProducts']): ?>
+<section class="buyer-panel">
+    <h3>Newly listed produce</h3>
+    <div class="buyer-product-grid">
+        <?php foreach ($buyerData['recentProducts'] as $product): ?>
+        <article class="buyer-product">
+            <?php if (!empty($product['image_path'])): ?>
+                <img src="<?= e(url($product['image_path'])) ?>" alt="<?= e($product['product_name']) ?>">
             <?php endif; ?>
-
-        </a>
-
-    </div>
-
-</nav>
-
-
-
-<!-- =====================================================
-     MAIN
-===================================================== -->
-
-<main class="main-container">
-
-
-    <!-- =================================================
-         HERO
-    ================================================== -->
-
-    <section class="hero-banner">
-
-
-        <!-- BACKGROUND IMAGE -->
-
-        <div class="hero-image"></div>
-
-
-        <!-- OVERLAY -->
-
-        <div class="hero-overlay">
-
-
-            <div class="hero-content">
-
-
-                <h1>
-
-                    Welcome back,
-
-                    <?php
-                    echo htmlspecialchars(
-                        $buyerName
-                    );
-                    ?>
-
-                    !
-
-                </h1>
-
-
-                <p>
-
-                    Discover the freshest produce from local
-                    Sri Lankan farmers, delivered straight to
-                    your door.
-
-                </p>
-
-
-                <div class="hero-buttons">
-
-
-                    <a
-                        href="/Harvestly/Controller/Buyer/ProductController.php"
-                        class="shop-button"
-                    >
-                        Shop Now
-                    </a>
-
-
-                    <a
-                        href="#offers"
-                        class="offers-button"
-                    >
-                        View Offers
-                    </a>
-
-
+            <div class="buyer-product-content">
+                <h3><a href="<?= e(buyerRoute('ProductDetailsController.php', 'id=' . (int)$product['product_id'])) ?>"><?= e($product['product_name']) ?></a></h3>
+                <p class="buyer-price"><?= e(harvestlyMoney($product['unit_price'])) ?> / <?= e($product['unit_label']) ?></p>
+                <div class="buyer-product-foot">
+                    <a class="buyer-button buyer-secondary buyer-small" href="<?= e(buyerRoute('ProductDetailsController.php', 'id=' . (int)$product['product_id'])) ?>">View</a>
                 </div>
-
-
             </div>
+        </article>
+        <?php endforeach; ?>
+    </div>
+</section>
+<?php endif; ?>
 
 
-        </div>
-
-    </section>
-
-
-
-    <!-- =================================================
-         CATEGORIES
-    ================================================== -->
-
-    <section
-        id="categories"
-        class="dashboard-section"
-    >
-
-        <div class="section-inner">
-
-            <h2>
-                Fresh Categories
-            </h2>
-
-            <p>
-                Browse fresh vegetables and produce from
-                trusted Sri Lankan farmers.
-            </p>
-
-
-            <a
-                href="/Harvestly/Controller/Buyer/ProductController.php"
-                class="shop-button"
-            >
-                Browse Products
-            </a>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =================================================
-         FARMERS
-    ================================================== -->
-
-    <section
-        id="farmers"
-        class="dashboard-section"
-    >
-
-        <div class="section-inner">
-
-            <h2>
-                Trusted Local Farmers
-            </h2>
-
-            <p>
-                Buy directly from verified farmers across
-                Sri Lanka.
-            </p>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =================================================
-         OFFERS
-    ================================================== -->
-
-    <section
-        id="offers"
-        class="dashboard-section"
-    >
-
-        <div class="section-inner">
-
-            <h2>
-                Fresh Offers
-            </h2>
-
-            <p>
-                Discover fresh offers and seasonal produce
-                available from local farms.
-            </p>
-
-
-            <a
-                href="/Harvestly/Controller/Buyer/ProductController.php"
-                class="shop-button"
-            >
-                Shop Now
-            </a>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =================================================
-         ABOUT
-    ================================================== -->
-
-    <section
-        id="about"
-        class="dashboard-section"
-    >
-
-        <div class="section-inner">
-
-            <h2>
-                About Harvestly
-            </h2>
-
-            <p>
-                Harvestly connects Sri Lankan buyers directly
-                with trusted local farmers, bringing fresh
-                farm produce straight to your table.
-            </p>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =================================================
-         FOOTER
-    ================================================== -->
-
-    <footer class="footer">
-
-        <div class="footer-inner">
-
-
-            <!-- BRAND -->
-
-            <div class="footer-brand">
-
-                <span class="footer-logo">
-                    Harvestly
-                </span>
-
-
-                <p>
-                    © 2026 Harvestly.
-                    Bridging Sri Lankan Fields to Your Table.
-                </p>
-
-            </div>
-
-
-
-            <!-- LINKS -->
-
-            <div class="footer-links">
-
-
-                <a href="#about">
-                    About Harvestly
-                </a>
-
-
-                <a
-                    href="/Harvestly/Controller/Buyer/ProductController.php"
-                >
-                    Quick Links
-                </a>
-
-
-                <a href="#contact">
-                    Contact Us
-                </a>
-
-
-                <a href="#privacy">
-                    Privacy Policy
-                </a>
-
-
-                <a href="#terms">
-                    Terms of Service
-                </a>
-
-
-            </div>
-
-
-        </div>
-
-    </footer>
-
-
-</main>
-
-
-
-<script src="/Harvestly/js/Buyer/buyer-dashboard.js"></script>
-
-
-</body>
-
-</html>
+<?php buyer_page_bottom(); ?>

@@ -1,93 +1,128 @@
 <?php
+require_once __DIR__ . '/../../config/app.php';
+if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
+    redirect('Controller/Buyer/FarmerStoreController.php' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : ''));
+}
+require __DIR__ . '/includes/layout.php';
+
 $store = $store ?? [];
 $products = $store['products'] ?? [];
-$name = $store['name'] ?? 'Farmer';
+$name = (string)($store['name'] ?? 'Farmer');
 $rating = (float)($store['rating'] ?? 0);
-$initials = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $name), 0, 2));
-if ($initials === '') { $initials = 'FA'; }
+$reviewCount = (int)($store['reviewCount'] ?? 0);
+$initials = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $name) ?: 'F', 0, 2));
+
+buyer_page_top('Farmer Store', 'ProductController.php');
+
+if ($store === null) {
+    ?>
+    <section class="buyer-panel">
+        <h3>Farmer store not found</h3>
+        <p class="buyer-note">This Farmer has no active listings, or the store is no longer available.</p>
+        <div class="buyer-actions" style="margin-top:16px">
+            <a class="buyer-button" href="<?= e(buyerRoute('ProductController.php')) ?>">Browse Products</a>
+        </div>
+    </section>
+    <?php
+    buyer_page_bottom();
+    return;
+}
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo e($name); ?> - Farmer Store | Harvestly</title>
-    <link rel="stylesheet" href="/Harvestly/css/Buyer/farmer-store.css">
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet">
-</head>
-<body>
-<nav class="navbar">
-    <div class="navbar-inner">
-        <a href="<?php echo e(buyerRoute('DashboardController.php')); ?>" class="logo">
-            <img src="/Harvestly/assets/harvestly-logo.jpeg" alt="Harvestly">
-        </a>
-        <div class="nav-links">
-            <a href="<?php echo e(buyerRoute('DashboardController.php')); ?>">Home</a>
-            <a class="active" href="<?php echo e(buyerRoute('ProductController.php')); ?>">Products</a>
-            <a href="<?php echo e(buyerRoute('ProductController.php')); ?>">Farmers</a>
-        </div>
-        <div class="nav-actions">
-            <a href="<?php echo e(buyerRoute('CartController.php')); ?>" class="cart-link"><span class="material-symbols-outlined">shopping_cart</span> Cart</a>
-            <a href="<?php echo e(buyerRoute('ProfileController.php')); ?>" class="profile-link"><span class="material-symbols-outlined">person</span></a>
+
+<div class="buyer-actions no-print" style="margin-bottom:18px">
+    <a class="buyer-button buyer-ghost" href="<?= e(buyerRoute('ProductController.php')) ?>">
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+        <span>Browse Products</span>
+    </a>
+</div>
+
+<section class="buyer-panel">
+    <div class="buyer-row" style="gap:18px">
+        <span class="buyer-avatar" style="width:60px;height:60px;font-size:22px" aria-hidden="true"><?= e($initials) ?></span>
+        <div class="buyer-grow">
+            <div class="buyer-product-badges" style="margin-bottom:6px">
+                <span class="buyer-badge">
+                    <span class="material-symbols-outlined" aria-hidden="true" style="font-size:14px;vertical-align:-2px">verified</span>
+                    Approved Harvestly Farmer
+                </span>
+            </div>
+            <h2 style="margin:0"><?= e($name) ?></h2>
+            <p class="buyer-note" style="margin-top:6px">
+                <?php if ($reviewCount > 0): ?>
+                    <?= e(number_format($rating, 1)) ?> / 5 from <?= $reviewCount ?> review<?= $reviewCount === 1 ? '' : 's' ?>
+                <?php else: ?>
+                    No reviews yet
+                <?php endif; ?>
+                <?php if (!empty($store['district'])): ?>
+                    &middot; pickup from <?= e($store['district']) ?> district
+                <?php endif; ?>
+            </p>
         </div>
     </div>
-</nav>
 
-<main class="store-page">
-    <div class="breadcrumb">
-        <a href="<?php echo e(buyerRoute('ProductController.php')); ?>">Browse Products</a>
-        <span class="material-symbols-outlined">chevron_right</span>
-        <span><?php echo e($name); ?></span>
+    <hr class="buyer-hr">
+    <div class="buyer-columns-3">
+        <dl class="buyer-kv">
+            <dt>Farm / pickup</dt>
+            <dd><?= e((string)($store['farm'] ?: ($store['district'] ?: 'Not provided'))) ?></dd>
+        </dl>
+        <dl class="buyer-kv">
+            <dt>Growing method</dt>
+            <dd><?= e(harvestlyStatusLabel((string)($products[0]['growing_method'] ?? ''))) ?></dd>
+        </dl>
+        <dl class="buyer-kv">
+            <dt>Active listings</dt>
+            <dd><?= count($products) ?></dd>
+        </dl>
     </div>
+    <p class="buyer-note" style="margin-top:14px">
+        Delivery is available when an approved, available Courier Partner organisation supports the
+        route from this Farmer's pickup district to your destination district. Fees use stored district
+        reference distances. Harvestly does not use maps, live tracking, drivers or vehicles.
+    </p>
+</section>
 
-    <section class="store-hero">
-        <div class="farmer-avatar"><?php echo e($initials); ?></div>
-        <div class="farmer-main">
-            <div class="eyebrow"><span class="material-symbols-outlined">verified</span> Harvestly Farmer</div>
-            <h1><?php echo e($name); ?></h1>
-            <div class="farmer-meta">
-                <span><span class="material-symbols-outlined">star</span> <?php echo number_format($rating, 1); ?> Farmer rating</span>
-                <span><span class="material-symbols-outlined">location_on</span> <?php echo e($store['district']); ?></span>
-                <span><span class="material-symbols-outlined">agriculture</span> <?php echo e($store['experience']); ?></span>
+<section class="buyer-panel">
+    <h3>Products by <?= e($name) ?></h3>
+    <?php if (!$products): ?>
+        <p class="buyer-empty">This Farmer has no active listings at the moment.</p>
+    <?php else: ?>
+    <div class="buyer-product-grid">
+        <?php foreach ($products as $product): ?>
+        <article class="buyer-product">
+            <a href="<?= e(buyerRoute('ProductDetailsController.php', 'id=' . (int)$product['id'])) ?>">
+                <img src="<?= e($product['image']) ?>" alt="<?= e($product['name']) ?>">
+            </a>
+            <div class="buyer-product-content">
+                <div class="buyer-product-badges">
+                    <span class="buyer-badge buyer-badge--muted"><?= e(harvestlyStatusLabel((string)$product['listing_type'])) ?></span>
+                    <?php if (!empty($product['organic'])): ?>
+                    <span class="buyer-badge">Organic</span>
+                    <?php endif; ?>
+                </div>
+                <h3><a href="<?= e(buyerRoute('ProductDetailsController.php', 'id=' . (int)$product['id'])) ?>"><?= e($product['name']) ?></a></h3>
+                <p class="buyer-product-meta">
+                    <?= e(rtrim(rtrim(number_format((float)$product['stock'], 3), '0'), '.')) ?> <?= e($product['unit']) ?> available
+                </p>
+                <p class="buyer-price"><?= e(harvestlyMoney($product['price'])) ?> / <?= e($product['unit']) ?></p>
+                <div class="buyer-product-foot">
+                    <a class="buyer-button buyer-secondary buyer-small" href="<?= e(buyerRoute('ProductDetailsController.php', 'id=' . (int)$product['id'])) ?>">View Product</a>
+                    <?php if ((float)$product['stock'] > 0): ?>
+                    <form method="post" action="<?= e(buyerRoute('ProductController.php')) ?>">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="action" value="add_to_cart">
+                        <input type="hidden" name="id" value="<?= (int)$product['id'] ?>">
+                        <button class="buyer-button buyer-small" type="submit">Add</button>
+                    </form>
+                    <?php else: ?>
+                    <span class="buyer-badge buyer-badge--muted">Sold out</span>
+                    <?php endif; ?>
+                </div>
             </div>
-        </div>
-        <a class="back-button" href="<?php echo e(buyerRoute('ProductController.php')); ?>"><span class="material-symbols-outlined">arrow_back</span> Browse Products</a>
-    </section>
+        </article>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+</section>
 
-    <section class="store-info">
-        <div class="info-card"><span class="material-symbols-outlined">location_on</span><div><small>Farm / Location</small><strong><?php echo e($store['farm'] ?: $store['district']); ?></strong></div></div>
-        <div class="info-card"><span class="material-symbols-outlined">local_shipping</span><div><small>Delivery</small><strong><?php echo e($store['delivery']); ?></strong></div></div>
-        <div class="info-card"><span class="material-symbols-outlined">inventory_2</span><div><small>Available Products</small><strong><?php echo count($products); ?> listings</strong></div></div>
-    </section>
-
-    <section class="products-section">
-        <div class="section-heading">
-            <div><p class="section-kicker">FRESH FROM THE FARM</p><h2>Products by <?php echo e($name); ?></h2></div>
-            <span class="product-count"><?php echo count($products); ?> products</span>
-        </div>
-
-        <?php if (!$products): ?>
-            <div class="empty-state"><span class="material-symbols-outlined">inventory_2</span><h3>No products available</h3><p>This farmer has no active listings at the moment.</p></div>
-        <?php else: ?>
-            <div class="product-grid">
-                <?php foreach ($products as $product): ?>
-                    <article class="product-card">
-                        <div class="product-image-wrap">
-                            <img src="<?php echo e($product['image'] ?: '/Harvestly/assets/coconut-sri-lanka.jpeg'); ?>" alt="<?php echo e($product['name']); ?>">
-                            <?php if (!empty($product['organic'])): ?><span class="badge organic">Organic</span><?php endif; ?>
-                            <?php if (!empty($product['fresh'])): ?><span class="badge fresh">Fresh</span><?php endif; ?>
-                        </div>
-                        <div class="product-body">
-                            <div class="product-title-row"><h3><?php echo e($product['name']); ?></h3><span class="rating"><span class="material-symbols-outlined">star</span><?php echo number_format((float)$product['rating'], 1); ?></span></div>
-                            <p class="product-meta"><?php echo e($product['unit']); ?> · <?php echo (int)$product['stock']; ?> in stock</p>
-                            <div class="price-row"><strong>Rs. <?php echo number_format((float)$product['price'], 2); ?></strong><a href="<?php echo e(buyerRoute('ProductDetailsController.php', 'id=' . (int)$product['id'])); ?>">View Product <span class="material-symbols-outlined">arrow_forward</span></a></div>
-                        </div>
-                    </article>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-    </section>
-</main>
-</body>
-</html>
+<?php buyer_page_bottom(); ?>

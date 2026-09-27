@@ -1,87 +1,62 @@
-<?php 
-require 'includes/auth.php';
-require 'includes/layout.php';
+<?php
+require __DIR__ . '/includes/auth.php';
+require __DIR__ . '/includes/layout.php';
 
-//total earnings
-$st=$conn->prepare("
-    SELECT COALESCE(
-        SUM(o.product_subtotal-o.farmer_marketplace_fee),
-        0
-    ) total 
-    FROM orders o 
-    JOIN payments p 
-        ON p.order_id=o.order_id 
-        AND p.payment_status='SUCCESS' 
-    WHERE o.farmer_id=?
-");
-$st->bind_param('i',$farmer_id);
-$st->execute();
-$total=$st->get_result()->fetch_assoc()['total'];
+$earnings = $farmerModel->earnings($farmer_id);
+$totals = $earnings['totals'];
+$rows = $earnings['rows'];
 
-
-//payment rows
-$st=$conn->prepare("
-    SELECT 
-        o.order_id,
-        o.product_subtotal,
-        o.farmer_marketplace_fee,
-        p.payment_status,
-        p.paid_at 
-    FROM orders o 
-    JOIN payments p 
-        ON p.order_id=o.order_id 
-    WHERE o.farmer_id=? 
-    ORDER BY p.created_at DESC
-");
-$st->bind_param('i',$farmer_id);
-$st->execute();
-$rows=$st->get_result();
-
-page_top('Earnings','earnings');
+page_top('Earnings', 'earnings');
 ?>
-
-    
 
 <div class="page-title">
     <div>
-        <h1>Earnings</h1>
-        <p>Database payment information. No real bank transfer is performed here.</p>
+        <h1>Earnings &amp; Payout History</h1>
+        <p>Earnings generated from valid paid orders, and their recorded payout status.</p>
     </div>
+    <a class="btn secondary" href="sales.php">View Sales</a>
 </div>
+
 <div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon">₨</div>
-        <div>
-            <p>Successful Payment Earnings</p>
-            <h3><?=money($total)?></h3>
-        </div>
-    </div>
+    <div class="stat-card"><div class="stat-icon">₨</div><div><p>Total Recorded Earnings</p><h3><?= farmer_money($totals['pending_payout'] + $totals['paid'] + $totals['held']) ?></h3></div></div>
+    <div class="stat-card"><div class="stat-icon">◷</div><div><p>Pending Payout</p><h3><?= farmer_money($totals['pending_payout']) ?></h3></div></div>
+    <div class="stat-card"><div class="stat-icon">✓</div><div><p>Paid</p><h3><?= farmer_money($totals['paid']) ?></h3></div></div>
+    <div class="stat-card"><div class="stat-icon">▣</div><div><p>Held (not yet eligible)</p><h3><?= farmer_money($totals['held']) ?></h3></div></div>
 </div>
+
 <div class="card">
-    <div class="section-head">
-        <h2>Earnings History</h2>
-    </div>
+    <div class="section-head"><h2>Earnings History</h2></div>
+    <?php if (!$rows): ?>
+        <p class="empty">
+            No earnings recorded yet. An earning is created when you accept an order that has a
+            successful payment.
+        </p>
+    <?php else: ?>
     <div class="table-wrap">
         <table class="table">
             <thead>
-                <tr>
-                    <th>Order</th>
-                    <th>Payment</th>
-                    <th>Farmer Amount</th>
-                    <th>Paid At</th>
-                </tr>
+                <tr><th>Order</th><th>Your Amount</th><th>Status</th><th>Recorded</th><th>Settlement Date</th></tr>
             </thead>
             <tbody>
-                <?php while($r=$rows->fetch_assoc()):?>
-                    <tr>
-                        <td>#HV<?=$r['order_id']?></td>
-                        <td><?=e($r['payment_status'])?></td>
-                        <td><?=money($r['product_subtotal']-$r['farmer_marketplace_fee'])?></td>
-                        <td><?=e($r['paid_at']?:'-')?></td>
-                    </tr>
-                <?php endwhile;?>
+            <?php foreach ($rows as $r): ?>
+                <tr>
+                    <td class="nowrap"><a href="order-details.php?id=<?= (int)$r['order_id'] ?>"><?= e(orderPublicId((int)$r['order_id'])) ?></a></td>
+                    <td class="nowrap"><?= farmer_money($r['amount']) ?></td>
+                    <td><span class="status-badge <?= e(farmer_status_tone((string)$r['earning_status'])) ?>"><?= e(farmer_status_label((string)$r['earning_status'])) ?></span></td>
+                    <td class="nowrap"><?= e(date('d M Y', strtotime((string)$r['created_at']))) ?></td>
+                    <td class="nowrap"><?= e((string)($r['settled_at'] ?: '—')) ?></td>
+                </tr>
+            <?php endforeach; ?>
             </tbody>
         </table>
     </div>
+    <p class="notice mt">
+        <strong>Simulated accounting only.</strong> Harvestly records payout status inside its own
+        database. There is no real bank transfer API and no bank details are collected. A weekly
+        settlement moves eligible <em>Pending Payout</em> earnings to <em>Paid</em> and stores the
+        settlement date.
+    </p>
+    <?php endif; ?>
 </div>
-<?php page_bottom();?>
+
+<?php page_bottom(); ?>

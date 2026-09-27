@@ -1,634 +1,220 @@
 <?php
-$orderId = $orderId ?? 'ORD-2026-001';
-$farmerName = $farmerName ?? "Sunil's Organic Farm";
-$reviewMessage = $reviewMessage ?? '';
-$complaintMessage = $complaintMessage ?? '';
+require_once __DIR__ . '/../../config/app.php';
+if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) redirect('Controller/Buyer/FeedbackController.php');
+require __DIR__ . '/includes/layout.php';
+buyer_page_top('Reviews & Issues', 'FeedbackController.php');
+
+$reviewWindow = reviewWindowDays();
+$confirmHours = buyerConfirmationHours();
 ?>
 
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Harvestly - Order Feedback</title>
-
-    <link rel="preconnect"
-          href="https://fonts.googleapis.com">
-
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Manrope:wght@400;600;700&display=swap"
-          rel="stylesheet">
-
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
-          rel="stylesheet">
-
-    <link rel="stylesheet"
-          href="/Harvestly/css/Buyer/feedback.css">
-
-</head>
-
-<body>
-
-
-<!-- =========================
-     NAVBAR
-========================= -->
-
-<header class="navbar">
-
-    <div class="navbar-container">
-
-        <a href="/Harvestly/Controller/Buyer/DashboardController.php" class="logo">
-
-            <img src="/Harvestly/assets/harvestly-logo.jpeg" alt="Harvestly" style="height:34px;width:auto;display:block;object-fit:contain;">
-
-        </a>
-
-
-        <nav class="desktop-nav">
-
-            <a href="/Harvestly/Controller/Buyer/DashboardController.php">Home</a>
-
-            <a href="/Harvestly/Controller/Buyer/DashboardController.php">Products</a>
-
-            <a href="/Harvestly/Controller/Buyer/DashboardController.php">Categories</a>
-
-            <a href="/Harvestly/Controller/Buyer/DashboardController.php">Farmers</a>
-
-            <a href="/Harvestly/Controller/Buyer/DashboardController.php">About</a>
-
-        </nav>
-
-
-        <div class="nav-actions">
-
-            <button
-                type="button"
-                class="login-btn">
-
-                Login
-
-            </button>
-
-
-            <button
-                type="button"
-                class="register-btn">
-
-                Register
-
-            </button>
-
-
-            <button
-                type="button"
-                class="menu-btn"
-                id="menuBtn">
-
-                <span class="material-symbols-outlined">
-                    menu
-                </span>
-
-            </button>
-
-        </div>
-
+<section class="buyer-title">
+    <div>
+        <h2>Reviews &amp; Issues</h2>
+        <p>Review a completed order, or report an issue with any of your orders.</p>
     </div>
+</section>
 
+<?php buyerFlash(); ?>
 
-    <nav
-        class="mobile-nav"
-        id="mobileNav">
-
-        <a href="/Harvestly/Controller/Buyer/DashboardController.php">Home</a>
-
-        <a href="/Harvestly/Controller/Buyer/ProductController.php">Products</a>
-
-        <a href="/Harvestly/Controller/Buyer/DashboardController.php">Categories</a>
-
-        <a href="/Harvestly/Controller/Buyer/DashboardController.php">Farmers</a>
-
-        <a href="/Harvestly/Controller/Buyer/DashboardController.php">About</a>
-
-    </nav>
-
-</header>
-
-
-
-<!-- =========================
-     MAIN
-========================= -->
-
-<main class="main-container">
-
-
-    <section class="page-heading">
-
-        <h1>
-            Order Feedback
-        </h1>
-
-        <p>
-            Help us maintain quality by sharing your experience for
-            Order #<?= htmlspecialchars($orderId) ?>.
+<div class="buyer-columns-3">
+    <section class="buyer-panel">
+        <h3>Write a review</h3>
+        <p class="buyer-note" style="margin-bottom:16px">
+            Reviews are available for <?= $reviewWindow ?> days after an order is completed.
         </p>
-
-    </section>
-
-
-
-    <div class="content-grid">
-
-
-        <!-- =========================
-             LEFT - REVIEW
-        ========================= -->
-
-        <section class="review-card">
-
-            <h2>
-                Rate Your Harvest
-            </h2>
-
-
-            <?php if ($reviewMessage): ?>
-
-                <div class="message success-message">
-
-                    <?= htmlspecialchars($reviewMessage) ?>
-
-                </div>
-
-            <?php endif; ?>
-
-
-            <form method="POST"
-                  action="/Harvestly/Controller/Buyer/FeedbackController.php"
-                  id="reviewForm">
-
-                <div class="form-group review-order-picker">
-                    <label for="reviewOrder">Completed Order</label>
-                    <select name="order_id" id="reviewOrder" required>
-                        <option value="" selected disabled>Select a completed order</option>
-                        <?php foreach (($reviewableOrders ?? []) as $reviewOrder): ?>
-                            <option value="<?= htmlspecialchars($reviewOrder['order_number']) ?>">
-                                <?= htmlspecialchars($reviewOrder['order_number']) ?> — Delivered <?= htmlspecialchars(date('M d, Y', strtotime($reviewOrder['delivered_at']))) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php if (empty($reviewableOrders)): ?>
-                        <small class="rule-note">Only completed orders delivered within the last 14 days can be reviewed.</small>
-                    <?php else: ?>
-                        <small class="rule-note">Reviews are available for 14 days after delivery.</small>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Farmer Rating -->
-
-                <div class="rating-section">
-
-                    <label>
-                        Farmer Rating
-                        (<?= htmlspecialchars($farmerName) ?>)
-                    </label>
-
-
-                    <div
-                        class="stars"
-                        data-rating="farmer">
-
-                        <button
-                            type="button"
-                            class="star"
-                            data-value="1">
-
-                            ★
-
-                        </button>
-
-                        <button
-                            type="button"
-                            class="star"
-                            data-value="2">
-
-                            ★
-
-                        </button>
-
-                        <button
-                            type="button"
-                            class="star"
-                            data-value="3">
-
-                            ★
-
-                        </button>
-
-                        <button
-                            type="button"
-                            class="star"
-                            data-value="4">
-
-                            ★
-
-                        </button>
-
-                        <button
-                            type="button"
-                            class="star"
-                            data-value="5">
-
-                            ★
-
-                        </button>
-
-                    </div>
-
-
-                    <input
-                        type="hidden"
-                        name="farmer_rating"
-                        id="farmerRating"
-                        value="0">
-
-
-                    <textarea
-                        name="quality_comment"
-                        placeholder="How was the quality of the produce?"
-                        rows="4"></textarea>
-
-                </div>
-
-
-
-                <!-- Delivery Rating -->
-
-                <div class="rating-section">
-
-                    <label>
-                        Delivery Experience
-                    </label>
-
-
-                    <div
-                        class="stars"
-                        data-rating="delivery">
-
-                        <button
-                            type="button"
-                            class="star"
-                            data-value="1">
-
-                            ★
-
-                        </button>
-
-                        <button
-                            type="button"
-                            class="star"
-                            data-value="2">
-
-                            ★
-
-                        </button>
-
-                        <button
-                            type="button"
-                            class="star"
-                            data-value="3">
-
-                            ★
-
-                        </button>
-
-                        <button
-                            type="button"
-                            class="star"
-                            data-value="4">
-
-                            ★
-
-                        </button>
-
-                        <button
-                            type="button"
-                            class="star"
-                            data-value="5">
-
-                            ★
-
-                        </button>
-
-                    </div>
-
-
-                    <input
-                        type="hidden"
-                        name="delivery_rating"
-                        id="deliveryRating"
-                        value="0">
-
-
-                    <textarea
-                        name="delivery_comment"
-                        placeholder="Any comments on the delivery speed or packaging?"
-                        rows="3"></textarea>
-
-                </div>
-
-
-
-                <div class="review-submit">
-
-                    <button
-                        type="submit"
-                        name="submit_review"
-                        class="primary-btn">
-
-                        Submit Review
-
-                    </button>
-
-                </div>
-
-            </form>
-
-        </section>
-
-
-
-        <!-- =========================
-             RIGHT - COMPLAINT
-        ========================= -->
-
-        <section class="complaint-card">
-
-
-            <div class="complaint-heading">
-
-                <span class="material-symbols-outlined">
-                    report_problem
-                </span>
-
-                <h2>
-                    Submit a Complaint
-                </h2>
-
+        <?php if (!$reviewableOrders): ?>
+            <p class="buyer-empty">No completed orders are currently eligible for a new review.</p>
+        <?php else: ?>
+        <form method="post" action="<?= e(buyerRoute('FeedbackController.php')) ?>" data-once="1">
+            <?= csrfField() ?>
+            <input type="hidden" name="action" value="review">
+            <div class="buyer-field">
+                <span>Completed order</span>
+                <select name="order_id" required>
+                    <?php foreach ($reviewableOrders as $r): ?>
+                    <option value="<?= (int)$r['order_id'] ?>" <?= (int)($selectedOrder ?? 0) === (int)$r['order_id'] ? 'selected' : '' ?>>
+                        <?= e($r['order_number']) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
-
-
-            <p class="complaint-description">
-
-                If something went wrong with your order,
-                please let us know so we can make it right.
-
-            </p>
-
-
-            <?php if ($complaintMessage): ?>
-
-                <div class="message complaint-message">
-
-                    <?= htmlspecialchars($complaintMessage) ?>
-
-                </div>
-
-            <?php endif; ?>
-
-
-            <form
-                method="POST"
-                action="/Harvestly/Controller/Buyer/FeedbackController.php"
-                enctype="multipart/form-data"
-                id="complaintForm">
-
-
-                <div class="form-group complaint-order-picker">
-                    <label for="complaintOrder">Order</label>
-                    <select name="order_id" id="complaintOrder" required>
-                        <option value="" selected disabled>Select a recently delivered order</option>
-                        <?php foreach (($complaintOrders ?? []) as $complaintOrder): ?>
-                            <option value="<?= htmlspecialchars($complaintOrder['order_number']) ?>">
-                                <?= htmlspecialchars($complaintOrder['order_number']) ?> — Delivered <?= htmlspecialchars(date('M d, Y H:i', strtotime($complaintOrder['delivered_at']))) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <small class="rule-note">Complaints must be submitted within 24 hours of delivery.</small>
-                </div>
-
-                <!-- Category -->
-
-                <div class="form-group">
-
-                    <label for="category">
-                        Category
-                    </label>
-
-                    <select
-                        name="category"
-                        id="category">
-
-                        <option
-                            value=""
-                            selected
-                            disabled>
-
-                            Select an issue...
-
-                        </option>
-
-                        <option value="Product Quality">Product Quality</option>
-                        <option value="Damaged Product">Damaged Product</option>
-                        <option value="Wrong Product">Wrong Product</option>
-                        <option value="Incorrect Quantity">Incorrect Quantity</option>
-
-                        <option value="Delivery Issue">Delivery Issue</option>
-
-                        <option value="Other">Other</option>
-
-                    </select>
-
-                </div>
-
-
-
-                <!-- Details -->
-
-                <div class="form-group">
-
-                    <label for="details">
-                        Details
-                    </label>
-
-                    <textarea
-                        name="details"
-                        id="details"
-                        rows="5"
-                        placeholder="Please describe the issue in detail..."></textarea>
-
-                </div>
-
-
-
-                <!-- Upload -->
-
-                <div class="form-group">
-
-                    <label>
-                        Attach Photos (Optional)
-                    </label>
-
-
-                    <label
-                        class="upload-box"
-                        for="photos">
-
-                        <span class="material-symbols-outlined">
-                            add_a_photo
-                        </span>
-
-                        <span>
-                            Drag and drop or click to upload
-                        </span>
-
-                        <small id="fileName">
-                            No file selected
-                        </small>
-
-                    </label>
-
-
-                    <input
-                        type="file"
-                        name="photos[]"
-                        id="photos"
-                        accept="image/*"
-                        multiple>
-
-                </div>
-
-
-
-                <button
-                    type="submit"
-                    name="submit_complaint"
-                    class="complaint-btn">
-
-                    File Complaint
-
-                </button>
-
-
-            </form>
-
-        </section>
-
-    </div>
-
-    <section class="history-grid">
-        <div class="history-card">
-            <div class="history-heading"><h2>My Reviews</h2><span><?= count($reviews ?? []) ?></span></div>
-            <?php if (empty($reviews)): ?>
-                <p class="empty-history">No reviews submitted yet.</p>
-            <?php else: ?>
-                <?php foreach ($reviews as $review): ?>
-                    <article class="history-item">
-                        <div><strong><?= htmlspecialchars($review['order_number'] ?? 'Order') ?></strong><span class="status-pill"><?= htmlspecialchars($review['status'] ?? 'Pending') ?></span></div>
-                        <div class="rating-line">Farmer: <?= str_repeat('★', (int)$review['farmer_rating']) ?> &nbsp; Delivery: <?= str_repeat('★', (int)$review['delivery_rating']) ?></div>
-                        <?php if (!empty($review['quality_comment'])): ?><p><?= htmlspecialchars($review['quality_comment']) ?></p><?php endif; ?>
-                        <?php if (!empty($review['delivery_comment'])): ?><p><?= htmlspecialchars($review['delivery_comment']) ?></p><?php endif; ?>
-                        <small><?= htmlspecialchars(date('M d, Y', strtotime($review['created_at']))) ?></small>
-                    </article>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-
-        <div class="history-card">
-            <div class="history-heading"><h2>My Complaints</h2><span><?= count($complaints ?? []) ?></span></div>
-            <?php if (empty($complaints)): ?>
-                <p class="empty-history">No complaints submitted yet.</p>
-            <?php else: ?>
-                <?php foreach ($complaints as $complaint): ?>
-                    <article class="history-item">
-                        <div><strong><?= htmlspecialchars($complaint['order_number'] ?? 'Order') ?></strong><span class="status-pill"><?= htmlspecialchars($complaint['status'] ?? 'Open') ?></span></div>
-                        <p><strong><?= htmlspecialchars($complaint['category']) ?></strong></p>
-                        <p><?= htmlspecialchars($complaint['details']) ?></p>
-                        <small><?= htmlspecialchars(date('M d, Y H:i', strtotime($complaint['created_at']))) ?></small>
-                    </article>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
+            <div class="buyer-field">
+                <span>Your rating</span>
+                <select name="rating" required>
+                    <?php for ($rating = 5; $rating >= 1; $rating--): ?>
+                    <option value="<?= $rating ?>"><?= $rating ?> / 5</option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+            <div class="buyer-field">
+                <span>Your review</span>
+                <textarea name="review_text" rows="4" required></textarea>
+            </div>
+            <button class="buyer-button" type="submit">
+                <span class="material-symbols-outlined" aria-hidden="true">rate_review</span>
+                <span>Submit Review</span>
+            </button>
+        </form>
+        <?php endif; ?>
     </section>
 
-</main>
+    <section class="buyer-panel">
+        <h3>Report an issue</h3>
+        <p class="buyer-note" style="margin-bottom:16px">
+            Reporting an issue does not block the automatic <?= $confirmHours ?>-hour completion of a
+            Delivered order.
+        </p>
+        <?php if (!$complaintOrders): ?>
+            <p class="buyer-empty">You need an order before reporting an order issue.</p>
+        <?php else: ?>
+        <form method="post" enctype="multipart/form-data" action="<?= e(buyerRoute('FeedbackController.php')) ?>" data-once="1">
+            <?= csrfField() ?>
+            <input type="hidden" name="action" value="complaint">
+            <div class="buyer-field">
+                <span>Order</span>
+                <select name="order_id" required>
+                    <?php foreach ($complaintOrders as $r): ?>
+                    <option value="<?= (int)$r['order_id'] ?>" <?= (int)($selectedOrder ?? 0) === (int)$r['order_id'] ? 'selected' : '' ?>>
+                        <?= e($r['order_number']) ?> &middot; <?= e(harvestlyStatusLabel((string)$r['order_status'])) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="buyer-field">
+                <span>Category</span>
+                <select name="category" required>
+                    <option>Product issue</option>
+                    <option>Delivery issue</option>
+                    <option>Payment issue</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="buyer-field">
+                <span>Description</span>
+                <textarea name="details" rows="4" required></textarea>
+            </div>
+            <div class="buyer-field">
+                <span>Optional evidence</span>
+                <input type="file" name="photos" accept="image/jpeg,image/png,application/pdf" data-file-target="evidenceName">
+                <small>JPG, PNG or PDF; 5 MB maximum.</small>
+                <small id="evidenceName"></small>
+            </div>
+            <button class="buyer-button" type="submit">
+                <span class="material-symbols-outlined" aria-hidden="true">report_problem</span>
+                <span>Submit Issue</span>
+            </button>
+        </form>
+        <?php endif; ?>
+    </section>
+</div>
 
-
-
-<!-- =========================
-     FOOTER
-========================= -->
-
-<footer class="footer">
-
-    <div class="footer-container">
-
-
-        <div class="footer-brand">
-
-            <h2>
-                Harvestly
-            </h2>
-
-            <p>
-                © 2026 Harvestly.
-                Bridging Sri Lankan Fields to Your Table.
-            </p>
-
+<section class="buyer-panel">
+    <h3>Your reviews (<?= count($reviews) ?>)</h3>
+    <?php if (!$reviews): ?>
+        <p class="buyer-empty">You have not written any reviews yet.</p>
+    <?php endif; ?>
+    <?php foreach ($reviews as $r): ?>
+    <article class="buyer-row" style="align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--hv-border)">
+        <div class="buyer-grow">
+            <div class="buyer-row" style="gap:10px">
+                <strong><?= e(orderPublicId((int)$r['order_id'])) ?></strong>
+                <span class="buyer-badge"><?= (int)$r['rating'] ?> / 5</span>
+            </div>
+            <p class="buyer-note" style="margin-top:8px"><?= nl2br(e((string)$r['review_text'])) ?></p>
+            <?php if (!empty($r['farmer_response'])): ?>
+                <p class="buyer-note" style="margin-top:8px"><strong>Farmer response:</strong> <?= e((string)$r['farmer_response']) ?></p>
+            <?php endif; ?>
         </div>
-
-
-        <div class="footer-links">
-
-            <a href="/Harvestly/Controller/Buyer/DashboardController.php">
-                About Harvestly
-            </a>
-
-            <a href="/Harvestly/Controller/Buyer/DashboardController.php">
-                Quick Links
-            </a>
-
+        <div class="buyer-actions">
+            <details class="buyer-details">
+                <summary>Edit</summary>
+                <form method="post" action="<?= e(buyerRoute('FeedbackController.php')) ?>">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="action" value="update_review">
+                    <input type="hidden" name="id" value="<?= (int)$r['review_id'] ?>">
+                    <div class="buyer-field">
+                        <span>Rating</span>
+                        <select name="rating" required>
+                            <?php for ($rating = 5; $rating >= 1; $rating--): ?>
+                            <option value="<?= $rating ?>" <?= (int)$r['rating'] === $rating ? 'selected' : '' ?>><?= $rating ?> / 5</option>
+                            <?php endfor; ?>
+                        </select>
+                    </div>
+                    <div class="buyer-field">
+                        <span>Review</span>
+                        <textarea name="review_text" rows="3" required><?= e((string)$r['review_text']) ?></textarea>
+                    </div>
+                    <button class="buyer-button buyer-secondary buyer-small" type="submit">Save Review</button>
+                </form>
+            </details>
+            <form method="post" action="<?= e(buyerRoute('FeedbackController.php')) ?>"
+                  data-confirm="Delete this review?">
+                <?= csrfField() ?>
+                <input type="hidden" name="action" value="delete_review">
+                <input type="hidden" name="id" value="<?= (int)$r['review_id'] ?>">
+                <button class="buyer-button buyer-danger buyer-small" type="submit">Delete</button>
+            </form>
         </div>
+    </article>
+    <?php endforeach; ?>
+</section>
 
-
-        <div class="footer-links">
-
-            <a href="/Harvestly/Controller/Buyer/DashboardController.php">
-                Contact Us
-            </a>
-
-            <a href="/Harvestly/Controller/Buyer/DashboardController.php">
-                Privacy Policy
-            </a>
-
-            <a href="/Harvestly/Controller/Buyer/DashboardController.php">
-                Terms of Service
-            </a>
-
+<section class="buyer-panel">
+    <h3>Your issues (<?= count($complaints) ?>)</h3>
+    <?php if (!$complaints): ?>
+        <p class="buyer-empty">You have not reported any issues.</p>
+    <?php endif; ?>
+    <?php foreach ($complaints as $c): ?>
+    <?php $isOpen = (string)$c['complaint_status'] === 'OPEN'; ?>
+    <article class="buyer-row" style="align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--hv-border)">
+        <div class="buyer-grow">
+            <div class="buyer-row" style="gap:10px">
+                <strong><?= e(orderPublicId((int)$c['order_id'])) ?></strong>
+                <span class="buyer-badge buyer-badge--muted"><?= e((string)$c['category']) ?></span>
+                <?= buyerStatusBadge((string)$c['complaint_status']) ?>
+            </div>
+            <p class="buyer-note" style="margin-top:8px"><?= nl2br(e((string)$c['description'])) ?></p>
+            <?php if (!empty($c['evidence_path'])): ?>
+                <p class="buyer-divider-note" style="margin-top:6px">Evidence attached: <?= e(basename((string)$c['evidence_path'])) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($c['admin_response'])): ?>
+                <div class="buyer-alert info" style="margin-top:10px;margin-bottom:0">
+                    <strong>Admin response</strong>
+                    <?= nl2br(e((string)$c['admin_response'])) ?>
+                </div>
+            <?php endif; ?>
         </div>
+        <?php if ($isOpen): ?>
+        <div class="buyer-actions">
+            <details class="buyer-details">
+                <summary>Edit</summary>
+                <form method="post" action="<?= e(buyerRoute('FeedbackController.php')) ?>">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="action" value="update_complaint">
+                    <input type="hidden" name="id" value="<?= (int)$c['complaint_id'] ?>">
+                    <div class="buyer-field">
+                        <span>Category</span>
+                        <input type="text" name="category" value="<?= e((string)$c['category']) ?>" required>
+                    </div>
+                    <div class="buyer-field">
+                        <span>Description</span>
+                        <textarea name="details" rows="3" required><?= e((string)$c['description']) ?></textarea>
+                    </div>
+                    <button class="buyer-button buyer-secondary buyer-small" type="submit">Save Issue</button>
+                </form>
+            </details>
+            <form method="post" action="<?= e(buyerRoute('FeedbackController.php')) ?>"
+                  data-confirm="Delete this issue?">
+                <?= csrfField() ?>
+                <input type="hidden" name="action" value="delete_complaint">
+                <input type="hidden" name="id" value="<?= (int)$c['complaint_id'] ?>">
+                <button class="buyer-button buyer-danger buyer-small" type="submit">Delete</button>
+            </form>
+        </div>
+        <?php endif; ?>
+    </article>
+    <?php endforeach; ?>
+</section>
 
-    </div>
-
-</footer>
-
-
-<script src="/Harvestly/js/Buyer/feedback.js"></script>
-
-</body>
-
-</html>
+<?php buyer_page_bottom(); ?>

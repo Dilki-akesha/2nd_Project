@@ -812,17 +812,6 @@ button{
 }
 
 
-.map{
-    height:130px;
-    background:linear-gradient(30deg,#e4ede0 12%,transparent 12.5%,transparent 87%,#e4ede0 87.5%),linear-gradient(150deg,#e4ede0 12%,transparent 12.5%,transparent 87%,#e4ede0 87.5%);
-    background-size:50px 50px;
-    border-radius:10px;
-    display:grid;
-    place-items:center;
-    font-size:40px
-}
-
-
 .footer-space{
     height:40px
 }

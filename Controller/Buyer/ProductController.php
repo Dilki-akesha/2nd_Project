@@ -6,172 +6,75 @@ require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../Model/Buyer/Product.php';
 require_once __DIR__ . '/../../Model/Buyer/Cart.php';
 
+requireBuyerAuth();
 $productModel = new Product();
 $cartModel = new Cart();
 
-/*
- * Product CRUD endpoints.
- * These endpoints return JSON so they can be used by the Buyer UI
- * or connected to an admin/farmer screen later.
- */
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = post_string('action');
-
-    if (in_array($action, ['create', 'update', 'delete'], true)) {
-        header('Content-Type: application/json; charset=utf-8');
-
-        try {
-            if ($action === 'create') {
-                $id = $productModel->create($_POST);
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Product created successfully.',
-                    'product' => $productModel->getProductById($id),
-                ]);
-                exit;
-            }
-
-            $id = (int)($_POST['id'] ?? 0);
-
-            if ($action === 'update') {
-                $success = $productModel->update($id, $_POST);
-                echo json_encode([
-                    'success' => $success,
-                    'message' => $success ? 'Product updated successfully.' : 'Product could not be updated.',
-                    'product' => $success ? $productModel->getProductById($id) : null,
-                ]);
-                exit;
-            }
-
-            $success = $productModel->delete($id);
-            echo json_encode([
-                'success' => $success,
-                'message' => $success
-                    ? 'Product deleted successfully.'
-                    : 'Product cannot be deleted because it is being used by another record.',
-            ]);
-            exit;
-        } catch (Throwable $e) {
-            http_response_code(500);
-            echo json_encode([
-                'success' => false,
-                'message' => 'The product operation could not be completed.',
-            ]);
-            exit;
-        }
-    }
-}
-
-if (($_GET['action'] ?? '') === 'add_to_cart') {
-    $id = (int)($_GET['id'] ?? 0);
-    $quantity = max(1, (int)($_GET['qty'] ?? 1));
+/* Add to Cart. */
+if (($_POST['action'] ?? '') === 'add_to_cart') {
+    verifyCsrfToken();
+    $id = (int)($_POST['id'] ?? 0);
+    $quantity = (float)($_POST['qty'] ?? 1);
+    if ($quantity <= 0) $quantity = 1.0;
 
     if (!$productModel->getProductById($id)) {
+        $_SESSION['_buyer_flash'] = ['success' => false, 'message' => 'This product is no longer available.'];
         redirect('Controller/Buyer/ProductController.php');
     }
 
-    $cartModel->add($id, $quantity);
+    if ($cartModel->add($id, $quantity)) {
+        $_SESSION['_buyer_flash'] = ['success' => true, 'message' => 'Added to your cart.'];
+    } else {
+        $_SESSION['_buyer_flash'] = ['success' => false, 'message' => 'The requested quantity is not available.'];
+    }
     redirect('Controller/Buyer/CartController.php');
 }
 
-if (($_GET['action'] ?? '') === 'details') {
-    $id = (int)($_GET['id'] ?? 0);
-    $product = $productModel->getProductById($id);
-
-    if (!$product) {
-        http_response_code(404);
-        echo 'Product not found';
-        exit;
-    }
-
-    $images = $product['images'] ?? [$product['image']];
-    $farmerImage = $product['farmerImage'] ?? '';
-
-    require __DIR__ . '/../../View/Buyer/product-details.php';
-    exit;
-}
-
 $search = trim((string)($_GET['search'] ?? ''));
-$district = trim((string)($_GET['district'] ?? 'All Districts'));
-$maxPrice = (float)($_GET['maxPrice'] ?? 2000);
-$organic = isset($_GET['organic']);
-$fresh = isset($_GET['fresh']);
-$stock = isset($_GET['stock']);
+$district = trim((string)($_GET['district'] ?? ''));
+$maxPrice = isset($_GET['maxPrice']) && $_GET['maxPrice'] !== '' ? max(0, (float)$_GET['maxPrice']) : PHP_FLOAT_MAX;
 $sort = trim((string)($_GET['sort'] ?? 'Newest'));
 $listingType = trim((string)($_GET['listingType'] ?? 'All Listing Types'));
 $growingMethod = trim((string)($_GET['growingMethod'] ?? 'All Growing Methods'));
 
-$products = $productModel->getAllProducts();
+/* All available listing types, taken from the database enum via the products table. */
+$listingTypes = ['All Listing Types', 'Available Now', 'Harvest Soon', 'Seasonal'];
+$growingMethods = ['All Growing Methods', 'Organic', 'Conventional', 'Mixed'];
 
 $products = array_values(array_filter(
-    $products,
-    function (array $product) use ($search, $district, $maxPrice, $organic, $fresh, $stock, $listingType, $growingMethod): bool {
-        $searchText = $product['name'] . ' ' . $product['farmer'] . ' ' . ($product['description'] ?? '');
-
-        if ($search !== '' && stripos($searchText, $search) === false) {
+    $productModel->getAllProducts(),
+    function (array $product) use ($search, $district, $maxPrice, $listingType, $growingMethod): bool {
+        if ($search !== '' && stripos($product['name'] . ' ' . $product['farmer'] . ' ' . (string)($product['description'] ?? ''), $search) === false) {
             return false;
         }
-
-        if ($district !== '' && $district !== 'All Districts' && stripos(($product['farm'] ?? '') . ' ' . $product['farmer'], $district) === false) {
+        if ($district !== '' && strcasecmp((string)($product['district'] ?? ''), $district) !== 0) {
             return false;
         }
-
-        if ($product['price'] > $maxPrice) {
+        if ((float)$product['price'] > $maxPrice) {
             return false;
         }
-
-        if ($organic && !$product['organic']) {
-            return false;
+        if ($listingType !== 'All Listing Types') {
+            $type = harvestlyStatusLabel((string)$product['listing_type']);
+            if ($type !== $listingType) return false;
         }
-
-        if ($fresh && !$product['fresh']) {
-            return false;
+        if ($growingMethod !== 'All Growing Methods') {
+            $method = ucfirst(strtolower(str_replace('_', ' ', (string)($product['growing_method'] ?? ''))));
+            if ($method !== $growingMethod) return false;
         }
-
-        if ($stock && $product['stock'] <= 0) {
-            return false;
-        }
-
-        if ($growingMethod !== '' && $growingMethod !== 'All Growing Methods') {
-            $isOrganic = (bool)$product['organic'];
-            if ($growingMethod === 'Organic' && !$isOrganic) {
-                return false;
-            }
-            if ($growingMethod === 'Conventional' && $isOrganic) {
-                return false;
-            }
-        }
-
-        if ($listingType !== '' && $listingType !== 'All Listing Types') {
-            $harvest = mb_strtolower(trim((string)($product['harvest_date'] ?? '')));
-            $type = $product['stock'] <= 0 ? 'Seasonal' : (($product['fresh'] || $harvest === 'today') ? 'Available Now' : 'Harvest Soon');
-            if ($type !== $listingType) {
-                return false;
-            }
-        }
-
         return true;
     }
 ));
 
-switch ($sort) {
-    case 'Price: Low to High':
-        usort($products, fn(array $a, array $b) => $a['price'] <=> $b['price']);
-        break;
+usort($products, match ($sort) {
+    'Price: Low to High' => fn(array $a, array $b) => $a['price'] <=> $b['price'],
+    'Price: High to Low' => fn(array $a, array $b) => $b['price'] <=> $a['price'],
+    'Best Rated' => fn(array $a, array $b) => $b['rating'] <=> $a['rating'] || $a['name'] <=> $b['name'],
+    'Popular' => fn(array $a, array $b) => $b['reviews'] <=> $a['reviews'] || $a['name'] <=> $b['name'],
+    default => fn(array $a, array $b) => 0,
+});
 
-    case 'Price: High to Low':
-        usort($products, fn(array $a, array $b) => $b['price'] <=> $a['price']);
-        break;
-
-    case 'Best Rated':
-        usort($products, fn(array $a, array $b) => $b['rating'] <=> $a['rating']);
-        break;
-
-    case 'Popular':
-        usort($products, fn(array $a, array $b) => $b['reviews'] <=> $a['reviews']);
-        break;
-}
-
-$added = isset($_GET['added']) && $_GET['added'] === '1';
+$districts = db_fetch_all(
+    "SELECT district_id, district_name FROM districts WHERE is_active = 1 ORDER BY district_name"
+);
 
 require __DIR__ . '/../../View/Buyer/browse-products.php';

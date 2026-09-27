@@ -1,84 +1,63 @@
-<?php 
-require 'includes/auth.php';
-require 'includes/layout.php';
+<?php
+require __DIR__ . '/includes/auth.php';
+require __DIR__ . '/includes/layout.php';
 
-
-if($_SERVER['REQUEST_METHOD']==='POST'){
-    if(isset($_POST['all'])){
-        $st=$conn->prepare(
-            'UPDATE notifications 
-            SET is_read=1,read_at=NOW() 
-            WHERE user_id=? AND is_read=0
-        ');
-        $st->bind_param('i',$farmer_id);
-    }else{
-        $id=(int)$_POST['id'];
-        $st=$conn->prepare(
-            'UPDATE notifications 
-            SET is_read=1,read_at=NOW() 
-            WHERE notification_id=? 
-            AND user_id=?
-        ');
-        $st->bind_param('ii',$id,$farmer_id);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['all'])) {
+        $farmerModel->markAllNotificationsRead($farmer_id);
+    } else {
+        $farmerModel->markNotificationRead((int)($_POST['id'] ?? 0), $farmer_id);
     }
-    
-    $st->execute();
-    redirect('notifications.php');
+    farmer_redirect('notifications.php');
 }
 
-$st=$conn->prepare(
-    'SELECT * FROM notifications 
-    WHERE user_id=? 
-    ORDER BY created_at 
-    DESC'
-);
-$st->bind_param('i',$farmer_id);
-$st->execute();
-$rows=$st->get_result();
-page_top('Notifications','notifications'); 
+$notifications = $farmerModel->notifications($farmer_id, 100);
+$unread = 0;
+foreach ($notifications as $n) {
+    if (!$n['is_read']) $unread++;
+}
 
-$notification_total=$rows->num_rows;?>
-
-
+page_top('Notifications', 'notifications');
+?>
 
 <div class="page-title">
     <div>
         <h1>Notifications</h1>
-        <p>Your database notifications.</p>
+        <p>Order, delivery and account updates stored in the Harvestly database.</p>
     </div>
-
-    <?php if($notification_total>0): ?>
-        
+    <?php if ($unread > 0): ?>
     <form method="post">
-        <button class="btn secondary" name="all">Mark All Read</button>
+        <?= csrfField() ?>
+        <button class="btn secondary" name="all" type="submit">Mark All Read (<?= $unread ?>)</button>
     </form>
-    
     <?php endif; ?>
 </div>
 
-<?php if($notification_total===0): ?>
-    
+<?php if (!$notifications): ?>
 <div class="card empty">You have no notifications.</div>
-
 <?php endif; ?>
-<?php while($r=$rows->fetch_assoc()):?>
-    
-<div class="card notification-item <?=$r['is_read']?'':'unread'?>">
-    <div class="section-head">
-        <strong><?=e($r['title'])?></strong>
-        <span class="badge"><?=$r['is_read']?'Read':'Unread'?></span>
-    </div>
-    <p><?=e($r['message'])?></p>
-    <small class="muted"><?=e($r['created_at'])?></small>
-    <?php if(!$r['is_read']):?>
-        
-    <form method="post">
-        <input type="hidden" name="id" value="<?=$r['notification_id']?>">
-        <button class="btn secondary small">Mark Read</button>
-    </form>
-    
-    <?php endif;?>
-</div>
 
-<?php endwhile;?>
-<?php page_bottom();?>
+<?php foreach ($notifications as $n): ?>
+<div class="card mb">
+    <div class="section-head">
+        <strong><?= e((string)$n['title']) ?></strong>
+        <span class="badge <?= $n['is_read'] ? 'gray' : '' ?>"><?= $n['is_read'] ? 'Read' : 'Unread' ?></span>
+    </div>
+    <p class="muted"><?= e((string)$n['message']) ?></p>
+    <small class="muted"><?= e(date('d M Y, H:i', strtotime((string)$n['created_at']))) ?></small>
+    <div class="row mt">
+        <?php if (!empty($n['related_order_id'])): ?>
+        <a class="btn secondary small" href="order-details.php?id=<?= (int)$n['related_order_id'] ?>">View Order</a>
+        <?php endif; ?>
+        <?php if (!$n['is_read']): ?>
+        <form method="post">
+            <?= csrfField() ?>
+            <input type="hidden" name="id" value="<?= (int)$n['notification_id'] ?>">
+            <button class="btn secondary small" type="submit">Mark Read</button>
+        </form>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endforeach; ?>
+
+<?php page_bottom(); ?>

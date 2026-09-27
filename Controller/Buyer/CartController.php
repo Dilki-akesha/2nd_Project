@@ -1,5 +1,45 @@
 <?php
-require_once __DIR__.'/../../config/app.php';require_once __DIR__.'/../../Model/Buyer/Cart.php';require_once __DIR__.'/../../Model/Buyer/Product.php';
-$m=new Cart();$p=new Product();
-if($_SERVER['REQUEST_METHOD']==='POST'){$action=$_POST['action']??'';$id=(int)($_POST['id']??0);$ok=false;switch($action){case 'add':$ok=$m->add($id,max(1,(int)($_POST['quantity']??1)));break;case 'increase':$items=$m->getItems();foreach($items as $x)if((int)$x['id']===$id){$ok=$m->updateQuantity($id,(int)$x['quantity']+1);break;}break;case 'decrease':$items=$m->getItems();foreach($items as $x)if((int)$x['id']===$id){$ok=$m->updateQuantity($id,(int)$x['quantity']-1);break;}break;case 'update':$ok=$m->updateQuantity($id,(int)($_POST['quantity']??1));break;case 'remove':$ok=$m->remove($id);break;case 'clear':$ok=$m->clear();break;default:header('Content-Type: application/json');echo json_encode(['success'=>false,'message'=>'Unknown action']);exit;}$items=$m->getItems();header('Content-Type: application/json');echo json_encode(['success'=>$ok,'cart'=>$items,'subtotal'=>$m->calculateSubtotal($items),'quantity'=>$m->calculateQuantity($items),'deliveryFee'=>$items?$m->getDeliveryFee():0,'total'=>$m->calculateTotal($items)]);exit;}
-$cartItems=$m->getItems();$subtotal=$m->calculateSubtotal($cartItems);$totalQuantity=$m->calculateQuantity($cartItems);$deliveryFee=$cartItems?$m->getDeliveryFee():0;$total=$subtotal+$deliveryFee;require __DIR__.'/../../View/Buyer/cart.php';
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/../../config/app.php';
+require_once __DIR__ . '/../../Model/Buyer/Cart.php';
+
+requireBuyerAuth();
+$model = new Cart();
+
+/*
+ * Cart item CRUD.
+ *   Create  - Add to Cart from a product card or the product details page
+ *   Read    - the cart table below
+ *   Update  - the inline quantity form
+ *   Delete  - the Remove button (single item) and Clear Cart (all items)
+ */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrfToken();
+    $action = (string)($_POST['action'] ?? '');
+    $productId = (int)($_POST['id'] ?? 0);
+    $quantity = (float)($_POST['quantity'] ?? 0);
+
+    $message = match ($action) {
+        'update' => $model->updateQuantity($productId, $quantity)
+            ? 'Cart updated.'
+            : 'Unable to update that item.',
+        'remove' => $model->remove($productId)
+            ? 'Item removed from your cart.'
+            : 'Unable to remove that item.',
+        'clear' => $model->clear()
+            ? 'Your cart has been cleared.'
+            : 'Unable to clear your cart.',
+        default => 'Unknown cart action.',
+    };
+
+    $_SESSION['_buyer_flash'] = ['success' => true, 'message' => $message];
+    redirect('Controller/Buyer/CartController.php');
+}
+
+$cartItems = $model->getItems();
+$subtotal = $model->calculateSubtotal($cartItems);
+$totalQuantity = $model->calculateQuantity($cartItems);
+
+require __DIR__ . '/../../View/Buyer/cart.php';

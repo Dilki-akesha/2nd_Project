@@ -1,0 +1,13 @@
+# Product and listing images are public by design; uploaded Farmer/Courier
+# verification documents and complaint evidence are never stored here.
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+RemoveHandler .php .phtml
+AddType text/plain .php .phtml

@@ -1,0 +1,21 @@
+# Local environment and editor settings
+.env
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# PHP session files and generated test results
+/scripts/sessions/
+/scripts/integration-results.json
+
+# Uploaded verification documents
+/assets/documents/*
+
+# Keep the document folder protection file
+!/assets/documents/.htaccess
