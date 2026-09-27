@@ -89,18 +89,30 @@ $districts = db_fetch_all(
                 </div>
             </div>
 
+            <div class="form-group">
+                <label class="form-label" for="c-nic">NIC Number of Contact Person</label>
+                <input type="text" id="c-nic" name="nic_number" class="form-control" maxlength="20"
+                       autocomplete="off" placeholder="e.g. 199012345678">
+            </div>
+
             <div class="form-group" style="background:var(--color-surface-container-low);padding:16px;border-radius:var(--radius-md);border:1px dashed var(--color-outline-variant)">
-                <label class="form-label" for="c-cert">Business Verification Document (optional)</label>
-                <input type="file" id="c-cert" name="verification_document" accept=".jpg,.jpeg,.png,.pdf">
+                <label class="form-label" for="c-cert">Business Registration Document *</label>
+                <input type="file" id="c-cert" name="verification_document" accept=".jpg,.jpeg,.png,.pdf" required>
                 <small class="muted">
-                    JPG, PNG or PDF; 5 MB maximum. Uploaded documents are only accessible to Harvestly
-                    Admins and are never served as public files.
+                    JPG, PNG or PDF; 5 MB maximum.
+                </small>
+                <small class="muted" style="display:block;margin-top:10px">
+                    Upload your Certificate of Incorporation if registering as a company, or your
+                    Business Name Registration Certificate if registering as a sole proprietorship
+                    or partnership.
+                </small>
+                <small class="muted" style="display:block;margin-top:10px">
+                    The business name and registration number must match your registration details.
                 </small>
             </div>
 
             <div class="alert alert-success" style="font-size:13px">
-                Your account is created as <strong>Pending</strong>. A Harvestly Admin must approve it
-                before the Courier Partner dashboard can be opened.
+                Your account will remain pending until the admin reviews and approves your application.
             </div>
 
             <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;padding:12px">

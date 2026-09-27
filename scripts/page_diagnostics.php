@@ -48,7 +48,7 @@ function diagnostics(string $html): array
 }
 
 $roles = [
-    'buyer'   => ['buyer@gmail.com', 'TestPass123!', [
+    'buyer'   => ['buyer@gmail.com', 'testpass123', [
         'Controller/Buyer/DashboardController.php',
         'Controller/Buyer/ProductController.php',
         'Controller/Buyer/CartController.php',
@@ -58,16 +58,16 @@ $roles = [
         'Controller/Buyer/ProfileController.php',
         'Controller/Buyer/CheckoutController.php',
     ]],
-    'farmer'  => ['farmer@harvestly.lk', 'TestPass123!', [
+    'farmer'  => ['farmer@gmail.com', 'testpass123', [
         'dashboard.php', 'products.php', 'add-product.php', 'inventory.php', 'orders.php',
         'harvest-soon.php', 'sales.php', 'earnings.php', 'reviews.php', 'report-issue.php',
         'notifications.php', 'profile.php',
     ]],
-    'courier' => ['courier@lankaagro.lk', 'TestPass123!', [
+    'courier' => ['courier@gmail.com', 'testpass123', [
         'dashboard', 'requests', 'assigned', 'coverage', 'history', 'earnings',
         'complaints', 'notifications', 'profile',
     ]],
-    'admin'   => ['admin@harvestly.lk', 'TestPass123!', [
+    'admin'   => ['admin@gmail.com', 'testpass123', [
         'admin_overview', 'admin_users', 'admin_farmer_approvals', 'admin_courier_approvals',
         'admin_listings', 'admin_categories', 'admin_orders', 'admin_deliveries',
         'admin_pending_assignments', 'admin_district_distances', 'admin_complaints',

@@ -112,12 +112,4 @@ $statusTone = [
             </tbody>
         </table>
     </div>
-
-    <div class="card" style="margin-top:20px">
-        <p class="muted" style="margin:0">
-            Setting a listing to <strong>Inactive</strong> or <strong>Expired</strong> removes it from
-            Buyer browsing immediately. Listings that are already part of an order are preserved so
-            order history stays intact.
-        </p>
-    </div>
 </div>

@@ -106,7 +106,6 @@ function buyer_page_top(string $title, string $active = ''): void {
             <a href="<?= e(buyerRoute($item['file'])) ?>"
                class="<?= $active === $item['file'] ? 'active' : '' ?>"
                <?= $active === $item['file'] ? 'aria-current="page"' : '' ?>>
-                <span class="material-symbols-outlined" aria-hidden="true"><?= e($item['icon']) ?></span>
                 <span><?= e($item['label']) ?></span>
                 <?php if (!empty($item['count'])): ?>
                 <span class="buyer-count<?= !empty($item['alert']) ? ' is-alert' : '' ?>"><?= (int)$item['count'] ?></span>

@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS buyer_profiles (
 CREATE TABLE IF NOT EXISTS farmer_profiles (
     farmer_id BIGINT UNSIGNED PRIMARY KEY,
     farm_name VARCHAR(150) NULL,
+    nic_number VARCHAR(20) NULL,
     pickup_address_line1 VARCHAR(180) NOT NULL,
     pickup_address_line2 VARCHAR(180) NULL,
     pickup_city_town VARCHAR(100) NULL,
@@ -143,6 +144,7 @@ CREATE TABLE IF NOT EXISTS courier_partner_profiles (
     courier_partner_id BIGINT UNSIGNED PRIMARY KEY,
     organisation_name VARCHAR(160) NOT NULL,
     contact_person_name VARCHAR(120) NULL,
+    nic_number VARCHAR(20) NULL,
     office_address_line1 VARCHAR(180) NULL,
     office_address_line2 VARCHAR(180) NULL,
     office_city_town VARCHAR(100) NULL,

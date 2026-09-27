@@ -127,12 +127,6 @@ button{
 }
 
 
-.ico{
-    width:22px;
-    text-align:center
-}
-
-
 .bottom-nav{
     margin-top:auto;
     border-top:1px solid var(--line);

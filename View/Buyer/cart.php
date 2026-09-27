@@ -27,6 +27,10 @@ buyer_page_top('Your Cart', 'CartController.php');
 <?php else: ?>
 
 <section class="buyer-panel">
+    <p class="buyer-note">
+        One order can contain products from a single Farmer only. If your cart has items from more
+        than one Farmer, remove the extras you want to order later and check out one Farmer at a time.
+    </p>
     <div class="buyer-table-wrap">
         <table class="buyer-table">
             <thead>
@@ -87,6 +91,14 @@ buyer_page_top('Your Cart', 'CartController.php');
 
 <section class="buyer-panel">
     <h3>Checkout summary</h3>
+    <?php if (!$singleFarmerCart): ?>
+        <div class="buyer-alert warn">
+            <strong>Checkout unavailable</strong>
+            Your cart has products from <?= count($cartFarmers) ?> Farmers
+            (<?= e(implode(', ', $cartFarmers)) ?>). Remove the items you want to order later so that
+            only one Farmer's products remain, then check out.
+        </div>
+    <?php endif; ?>
     <dl class="buyer-kv">
         <dt>Cart subtotal</dt>
         <dd><?= e(harvestlyMoney($subtotal)) ?></dd>
@@ -96,10 +108,17 @@ buyer_page_top('Your Cart', 'CartController.php');
         <dd>Calculated at checkout</dd>
     </dl>
     <div class="buyer-actions" style="margin-top:20px">
-        <a class="buyer-button" href="<?= e(buyerRoute('CheckoutController.php')) ?>">
-            <span class="material-symbols-outlined" aria-hidden="true">shopping_bag</span>
-            <span>Proceed to Checkout</span>
-        </a>
+        <?php if ($singleFarmerCart): ?>
+            <a class="buyer-button" href="<?= e(buyerRoute('CheckoutController.php')) ?>">
+                <span class="material-symbols-outlined" aria-hidden="true">shopping_bag</span>
+                <span>Proceed to Checkout</span>
+            </a>
+        <?php else: ?>
+            <span class="buyer-button buyer-secondary" aria-disabled="true">
+                <span class="material-symbols-outlined" aria-hidden="true">shopping_bag</span>
+                <span>Proceed to Checkout</span>
+            </span>
+        <?php endif; ?>
         <form method="post" action="<?= e(buyerRoute('CartController.php')) ?>" data-confirm="Clear all items from your cart?">
             <?= csrfField() ?>
             <input type="hidden" name="action" value="clear">

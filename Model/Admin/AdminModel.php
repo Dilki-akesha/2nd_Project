@@ -294,7 +294,7 @@ class AdminModel {
     public function getPendingFarmers() {
         $result = $this->db->query("
             SELECT u.user_id as id, u.full_name, u.email, u.phone, u.account_status as status, u.created_at,
-                   fp.farm_name, d.district_name as district, vd.document_id, vd.stored_file_path as id_document_path, vd.original_file_name
+                   fp.farm_name, fp.nic_number, d.district_name as district, vd.document_id, vd.stored_file_path as id_document_path, vd.original_file_name
             FROM users u
             JOIN farmer_profiles fp ON u.user_id = fp.farmer_id
             LEFT JOIN districts d ON fp.district_id = d.district_id
@@ -310,7 +310,7 @@ class AdminModel {
         $result = $this->db->query("
             SELECT u.user_id as id,
                    COALESCE(NULLIF(cp.organisation_name, ''), u.full_name) as company_name,
-                   cp.contact_person_name as contact_person, u.email, u.phone,
+                   cp.contact_person_name as contact_person, cp.nic_number, u.email, u.phone,
                    u.account_status as status, u.created_at, cp.verification_status,
                    d.district_name as district,
                    vd.document_id, vd.stored_file_path as verification_document_path, vd.original_file_name
@@ -1153,7 +1153,7 @@ class AdminModel {
             $stmt->close();
             if ($profile) return $profile;
         }
-        return ['id' => 1, 'full_name' => 'System Administrator', 'email' => 'admin@harvestly.lk', 'role' => 'Administrator', 'created_at' => date('Y-m-d H:i:s')];
+        return ['id' => 1, 'full_name' => 'System Administrator', 'email' => 'admin@gmail.com', 'role' => 'Administrator', 'created_at' => date('Y-m-d H:i:s')];
     }
 
     public function updateAdminProfile($adminId, $fullName, $email, $newPassword = null) {

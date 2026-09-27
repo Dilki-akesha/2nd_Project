@@ -42,4 +42,15 @@ $cartItems = $model->getItems();
 $subtotal = $model->calculateSubtotal($cartItems);
 $totalQuantity = $model->calculateQuantity($cartItems);
 
+/*
+ * One order can only contain products from a single Farmer, so the cart is
+ * grouped by Farmer here and checkout is offered only for a single-Farmer cart.
+ * The same rule is enforced again in Checkout::quote() when the order is placed.
+ */
+$cartFarmers = [];
+foreach ($cartItems as $item) {
+    $cartFarmers[(int)$item['farmer_id']] = (string)$item['farmer'];
+}
+$singleFarmerCart = count($cartFarmers) <= 1;
+
 require __DIR__ . '/../../View/Buyer/cart.php';

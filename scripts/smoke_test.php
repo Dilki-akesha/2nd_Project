@@ -11,7 +11,7 @@ $pass = 0;
 $fail = 0;
 $failures = [];
 
-function req(string $url, ?array $post = null, bool $follow = true): array
+function req(string $url, ?array $post = null, bool $follow = true, ?array $files = null): array
 {
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -28,13 +28,34 @@ function req(string $url, ?array $post = null, bool $follow = true): array
     }
     if ($post !== null) {
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+        if ($files) {
+            // cURL switches to multipart as soon as a CURLFile is present.
+            foreach ($files as $field => $path) {
+                $post[$field] = new CURLFile($path, 'image/png', basename($path));
+            }
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+        } else {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+        }
     }
     $body = curl_exec($ch);
     $info = curl_getinfo($ch);
     $err = curl_error($ch);
     curl_close($ch);
     return ['status' => (int)$info['http_code'], 'url' => $info['url'], 'body' => (string)$body, 'error' => $err];
+}
+
+/**
+ * A real 1x1 PNG used as the Proof of Farming / Business Registration upload,
+ * so the registration posts exercise the extension and finfo checks.
+ */
+function proofUploadFixture(): string
+{
+    $path = sys_get_temp_dir() . '/harvestly-proof-' . getmypid() . '.png';
+    file_put_contents($path, base64_decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+    ));
+    return $path;
 }
 
 function csrf(string $url): string
@@ -160,8 +181,8 @@ $accounts = [
             'action' => 'signup_buyer',
             'full_name' => 'Smoke Test Buyer',
             'email' => "smokebuyer$stamp@harvestly.lk",
-            'password' => 'TestPass123!',
-            'confirm_password' => 'TestPass123!',
+            'password' => 'testpass123',
+            'confirm_password' => 'testpass123',
             'phone' => '0771234567',
             'district' => 'Kandy',
             'address' => '12 Test Lane, Kandy',
@@ -174,12 +195,13 @@ $accounts = [
             'action' => 'signup_farmer',
             'full_name' => 'Smoke Test Farmer',
             'email' => "smokefarmer$stamp@harvestly.lk",
-            'password' => 'TestPass123!',
-            'confirm_password' => 'TestPass123!',
+            'password' => 'testpass123',
+            'confirm_password' => 'testpass123',
             'phone' => '0771234568',
             'farm_name' => 'Smoke Test Farm',
             'farm_address' => 'Farm Road, Kandy',
             'district' => 'Kandy',
+            'nic_number' => '199012345678',
         ],
         'home' => 'index.php?page=pending_approval',
     ],
@@ -190,13 +212,14 @@ $accounts = [
             'company_name' => 'Smoke Test Logistics Ltd',
             'contact_person' => 'Smoke Contact',
             'email' => "smokecourier$stamp@harvestly.lk",
-            'password' => 'TestPass123!',
-            'confirm_password' => 'TestPass123!',
+            'password' => 'testpass123',
+            'confirm_password' => 'testpass123',
             'phone' => '0112345678',
             'business_address' => '5 Depot Road, Colombo',
             'office_city' => 'Colombo',
             'office_postal' => '00100',
             'district' => 'Colombo',
+            'nic_number' => '198511223344',
         ],
         'home' => 'index.php?page=pending_approval',
     ],
@@ -207,18 +230,22 @@ $accounts = [
  * credential is ever hard-coded in a test file. Run
  * scripts/reset_demo_passwords.php first to set a known local value.
  */
-$adminPassword = getenv('HARVESTLY_ADMIN_PASSWORD') ?: 'TestPass123!';
+$adminPassword = getenv('HARVESTLY_ADMIN_PASSWORD') ?: 'testpass123';
 
 $accounts['admin'] = [
-    'email' => 'admin@harvestly.lk',
+    'email' => 'admin@gmail.com',
     'password' => $adminPassword,
     'home' => 'index.php?page=admin_overview',
 ];
-$accounts['buyer']['password'] = 'TestPass123!';
-$accounts['farmer']['password'] = 'TestPass123!';
-$accounts['courier']['password'] = 'TestPass123!';
+$accounts['buyer']['password'] = 'testpass123';
+$accounts['farmer']['password'] = 'testpass123';
+$accounts['courier']['password'] = 'testpass123';
 
 $sessions = [];
+
+/* A Farmer and a Courier Partner must now attach a document to register. */
+$proofUpload = proofUploadFixture();
+$proofRoles = ['farmer' => 'Proof of Farming', 'courier' => 'Business Registration Document'];
 
 foreach ($accounts as $role => $account) {
     $jar = cookieJar($role . $stamp);
@@ -227,7 +254,16 @@ foreach ($accounts as $role => $account) {
     if (isset($account['post'])) {
         $action = $account['post']['action'];
         $token = csrf("$base/index.php?page=$action");
-        $r = req("$base/index.php?action=$action", $account['post'] + ['csrf_token' => $token]);
+
+        // The document is mandatory for these two roles, so prove it is enforced.
+        if (isset($proofRoles[$role])) {
+            $noDoc = req("$base/index.php?action=$action", $account['post'] + ['csrf_token' => $token]);
+            check("Register as $role without a document is refused",
+                strpos((string)$noDoc['url'], 'error=') !== false, (string)$noDoc['url']);
+        }
+
+        $r = req("$base/index.php?action=$action", $account['post'] + ['csrf_token' => $token],
+            true, isset($proofRoles[$role]) ? ['verification_document' => $proofUpload] : null);
         $okBody = stripos($r['body'], 'Fatal error') === false
             && stripos($r['body'], 'could not be created') === false
             && stripos($r['body'], 'could not be submitted') === false
@@ -237,6 +273,7 @@ foreach ($accounts as $role => $account) {
     }
     $GLOBALS['currentJar'] = '';
 }
+@unlink($proofUpload);
 
 echo "  (registrations submitted; the pending accounts need Admin approval before login)\n";
 
@@ -254,7 +291,7 @@ function loginAs(string $jarPath, string $email, string $password, string $base)
 
 // Buyer: active immediately, should reach the Buyer dashboard.
 $buyerJar = cookieJar("buyer_$stamp");
-$r = loginAs($buyerJar, $accounts['buyer']['email'], 'TestPass123!', $base);
+$r = loginAs($buyerJar, $accounts['buyer']['email'], 'testpass123', $base);
 check('Buyer login redirects to the Buyer dashboard',
     strpos((string)$r['url'], 'DashboardController.php') !== false, (string)$r['url']);
 
@@ -335,7 +372,7 @@ $GLOBALS['currentJar'] = '';
 echo "\n=== 6. Pending Farmer / Courier cannot reach dashboards ===\n";
 
 $farmerJar = cookieJar("farmer_$stamp");
-$r = loginAs($farmerJar, $accounts['farmer']['email'], 'TestPass123!', $base);
+$r = loginAs($farmerJar, $accounts['farmer']['email'], 'testpass123', $base);
 check('Pending Farmer login is blocked',
     strpos((string)$r['url'], 'pending_approval') !== false, (string)$r['url']);
 
@@ -346,7 +383,7 @@ check('Pending Farmer dashboard is refused (redirects to login)',
 $GLOBALS['currentJar'] = '';
 
 $courierJar = cookieJar("courier_$stamp");
-$r = loginAs($courierJar, $accounts['courier']['email'], 'TestPass123!', $base);
+$r = loginAs($courierJar, $accounts['courier']['email'], 'testpass123', $base);
 check('Pending Courier Partner login is blocked',
     strpos((string)$r['url'], 'pending_approval') !== false, (string)$r['url']);
 
@@ -379,7 +416,7 @@ $GLOBALS['currentJar'] = '';
 echo "\n=== 8. Admin console ===\n";
 
 $adminJar = cookieJar("admin_$stamp");
-$r = loginAs($adminJar, 'admin@harvestly.lk', $adminPassword, $base);
+$r = loginAs($adminJar, 'admin@gmail.com', $adminPassword, $base);
 check('Admin login redirects to the Admin console',
     strpos((string)$r['url'], 'admin_overview') !== false, (string)$r['url']);
 
@@ -462,7 +499,7 @@ foreach (['admin_farmer_approvals', 'admin_courier_approvals'] as $page) {
 echo "\n=== 10. Approved Farmer module + product CRUD ===\n";
 
 $farmerJar = cookieJar("farmer_$stamp");
-$r = loginAs($farmerJar, $accounts['farmer']['email'], 'TestPass123!', $base);
+$r = loginAs($farmerJar, $accounts['farmer']['email'], 'testpass123', $base);
 check('Approved Farmer login reaches the Farmer dashboard',
     strpos((string)$r['url'], 'View/Farmer/dashboard.php') !== false, (string)$r['url']);
 
@@ -554,7 +591,7 @@ $GLOBALS['currentJar'] = '';
 echo "\n=== 11. Courier Partner module + coverage route CRUD ===\n";
 
 $courierJar = cookieJar("courier_$stamp");
-$r = loginAs($courierJar, $accounts['courier']['email'], 'TestPass123!', $base);
+$r = loginAs($courierJar, $accounts['courier']['email'], 'testpass123', $base);
 check('Approved Courier Partner login reaches the Courier dashboard',
     strpos((string)$r['url'], 'CourierController.php') !== false, (string)$r['url']);
 
