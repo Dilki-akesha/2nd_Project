@@ -437,6 +437,23 @@ foreach ($adminPages as $page) {
         "status {$r['status']}");
 }
 
+/*
+ * Orders Monitor regression guard.
+ *
+ * A SQL error inside AdminModel::getAllOrders() is swallowed by its
+ * "return $result ? ... : []" guard, so a broken query renders as a perfectly
+ * healthy page that simply says "No orders found.". The page-level check above
+ * cannot see that, so assert the seeded orders are actually listed here.
+ */
+$r = req("$base/index.php?page=admin_orders");
+$orderRows = preg_match_all('/<td><strong>ORD-\d{4}-\d+<\/strong><\/td>/', (string)$r['body']);
+check('Orders Monitor lists the seeded orders (not an empty table)',
+    $orderRows > 0 && stripos((string)$r['body'], 'No orders found.') === false,
+    "$orderRows order rows");
+check('Orders Monitor resolves the Courier Partner name',
+    preg_match('/Lanka Agro Logistics/', (string)$r['body']) === 1,
+    'assigned courier org name rendered');
+
 /* Approve the freshly created pending accounts through the real Admin action. */
 echo "\n=== 9. Admin approvals ===\n";
 

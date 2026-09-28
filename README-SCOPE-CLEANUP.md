@@ -68,6 +68,7 @@ Run these from the project root to confirm a change did not break anything:
 | `php scripts/check_prepared_statements.php` | Static check that every prepared statement has matching placeholders, type string and value count. |
 | `php scripts/check_css_classes.php` | Static check that every CSS class used in a view is defined by the stylesheets that view loads. Catches layouts that silently collapse. |
 | `php scripts/check_navigation.php` | Signs in as all four actors and crawls every page, reporting dead links, broken images, unresolvable form actions, pages that bounce to login and any PHP diagnostic in the output. |
+| `php scripts/check_model_queries.php` | Invokes every read-only method on all 17 models as each of the four roles and reports any that fail at the SQL level. Catches the case where a model swallows a query error and the page renders as empty instead of erroring. |
 | `php scripts/reset_demo_passwords.php` | Resets the demo accounts to `testpass123`. |
 | `php scripts/issue_password_reset.php <email>` | Support utility: issues a single-use password reset link for a verified account owner. |
 
