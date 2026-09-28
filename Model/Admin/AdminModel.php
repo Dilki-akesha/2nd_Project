@@ -540,7 +540,7 @@ class AdminModel {
                    d.courier_partner_id as courier_id,
                    b.full_name as buyer_name,
                    f.full_name as farmer_name,
-                   COALESCE(cp.organisation_name, cp.full_name) as courier_name,
+                   COALESCE(NULLIF(cp.organisation_name, ''), cpu.full_name) as courier_name,
                    dest.district_name as destination_district,
                    orig.district_name as origin_district,
                    (SELECT pm.payment_status FROM payments pm
