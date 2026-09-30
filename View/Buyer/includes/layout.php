@@ -93,6 +93,7 @@ function buyer_page_top(string $title, string $active = ''): void {
         <meta name="csrf-token" content="<?= e(csrfToken()) ?>">
         <meta name="app-base" content="<?= e(BASE_URL) ?>">
         <script src="<?= e(url('JS/Common/session.js')) ?>"></script>
+        <script defer src="<?= e(url('JS/Common/validation.js')) ?>"></script>
     </head>
     <body>
     <aside class="buyer-sidebar" id="buyerSidebar">

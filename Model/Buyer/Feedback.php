@@ -53,9 +53,14 @@ final class Feedback
             return ['success' => false, 'message' => 'A review has already been submitted for this order.'];
         }
 
-        $rating = max(1, min(5, (int)($data['rating'] ?? $data['farmer_rating'] ?? 5)));
+        $rawRating = $data['rating'] ?? $data['farmer_rating'] ?? null;
+        if (!is_numeric($rawRating) || (int)$rawRating < 1 || (int)$rawRating > 5) {
+            return ['success' => false, 'message' => 'Please select a rating from 1 to 5.'];
+        }
+        $rating = (int)$rawRating;
         $text = trim((string)($data['review_text'] ?? $data['quality_comment'] ?? ''));
-        if (mb_strlen($text) > 2000) $text = mb_substr($text, 0, 2000);
+        if ($text === '') return ['success' => false, 'message' => 'Please enter your review.'];
+        if (mb_strlen($text) > 2000) return ['success' => false, 'message' => 'Review must be 2000 characters or fewer.'];
 
         $ok = db_execute(
             'INSERT INTO reviews (order_id, buyer_id, farmer_id, rating, review_text)
@@ -76,12 +81,14 @@ final class Feedback
         $order = $this->orderRow(trim((string)($data['order_id'] ?? '')));
         if (!$order) return ['success' => false, 'message' => 'Please select one of your orders.'];
 
-        $category = trim((string)($data['category'] ?? 'Other'));
-        if ($category === '') $category = 'Other';
-        if (mb_strlen($category) > 100) $category = mb_substr($category, 0, 100);
+        $category = trim((string)($data['category'] ?? ''));
+        if (!in_array($category, ['Product issue', 'Delivery issue', 'Payment issue', 'Other'], true)) {
+            return ['success' => false, 'message' => 'Please select a valid issue category.'];
+        }
 
         $details = trim((string)($data['details'] ?? $data['description'] ?? ''));
         if ($details === '') return ['success' => false, 'message' => 'Please describe the issue.'];
+        if (mb_strlen($details) > 5000) return ['success' => false, 'message' => 'Issue description must be 5000 characters or fewer.'];
 
         $evidencePath = null;
         if (!empty($_FILES['photos']['name'])) {
@@ -178,11 +185,13 @@ final class Feedback
         );
         if (!$exists) return false;
 
-        $rating = max(1, min(5, (int)($data['rating'] ?? $data['farmer_rating'] ?? 5)));
+        $rawRating = $data['rating'] ?? $data['farmer_rating'] ?? null;
+        if (!is_numeric($rawRating) || (int)$rawRating < 1 || (int)$rawRating > 5) return false;
+        $rating = (int)$rawRating;
         // The stored review_text is edited verbatim - no label prefixing, so
         // re-saving an existing review cannot duplicate prefixes.
         $text = trim((string)($data['review_text'] ?? $data['quality_comment'] ?? ''));
-        if (mb_strlen($text) > 2000) $text = mb_substr($text, 0, 2000);
+        if ($text === '' || mb_strlen($text) > 2000) return false;
 
         return db_execute(
             'UPDATE reviews SET rating = ?, review_text = ?
@@ -219,8 +228,8 @@ final class Feedback
     {
         $category = trim((string)($data['category'] ?? ''));
         $details = trim((string)($data['details'] ?? ''));
-        if ($category === '' || $details === '') return false;
-        if (mb_strlen($category) > 100) $category = mb_substr($category, 0, 100);
+        if (!in_array($category, ['Product issue', 'Delivery issue', 'Payment issue', 'Other'], true) ||
+            $details === '' || mb_strlen($details) > 5000) return false;
         return db_execute(
             "UPDATE complaints
              SET category = ?, description = ?

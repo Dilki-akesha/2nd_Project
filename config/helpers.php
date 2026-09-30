@@ -140,6 +140,82 @@ function handleFileUpload($fileArray, $targetDirRelative = 'assets/documents/') 
     return ltrim($targetDirRelative, '/') . '/' . $newFileName;
 }
 
+
+/**
+ * Common server-side validation helpers.
+ * These are intentionally independent from browser validation so POST requests
+ * remain protected even when JavaScript or HTML constraints are bypassed.
+ */
+function validationError(string $message) {
+    throw new RuntimeException($message);
+}
+
+function validateRequiredText($value, string $label, int $maxLength = 255): string {
+    $value = trim((string)$value);
+    if ($value === '') validationError($label . ' is required.');
+    if (mb_strlen($value) > $maxLength) {
+        validationError($label . ' must be ' . $maxLength . ' characters or fewer.');
+    }
+    return $value;
+}
+
+function validateEmailValue($value, string $label = 'Email address'): string {
+    $value = trim((string)$value);
+    if (!filter_var($value, FILTER_VALIDATE_EMAIL)) validationError('Please enter a valid ' . strtolower($label) . '.');
+    if (mb_strlen($value) > 254) validationError($label . ' is too long.');
+    return $value;
+}
+
+function validateSriLankanPhone($value): string {
+    $value = preg_replace('/[\s().-]+/', '', trim((string)$value));
+    if (!preg_match('/^(?:0|\+94)\d{9}$/', $value)) {
+        validationError('Please enter a valid Sri Lankan phone number.');
+    }
+    return $value;
+}
+
+function validateNicValue($value): string {
+    $value = trim((string)$value);
+    if ($value !== '' && !preg_match('/^(?:\d{9}[vVxX]|\d{12})$/', $value)) {
+        validationError('Please enter a valid NIC number.');
+    }
+    return $value;
+}
+
+function validatePositiveNumber($value, string $label): float {
+    if (!is_numeric($value) || !is_finite((float)$value) || (float)$value <= 0) {
+        validationError($label . ' must be greater than zero.');
+    }
+    return (float)$value;
+}
+
+function validateNonNegativeNumber($value, string $label): float {
+    if (!is_numeric($value) || !is_finite((float)$value) || (float)$value < 0) {
+        validationError($label . ' cannot be negative.');
+    }
+    return (float)$value;
+}
+
+function validateDateValue($value, string $label, bool $required = false): ?string {
+    $value = trim((string)$value);
+    if ($value === '') {
+        if ($required) validationError($label . ' is required.');
+        return null;
+    }
+    $date = DateTime::createFromFormat('Y-m-d', $value);
+    $valid = $date && $date->format('Y-m-d') === $value;
+    if (!$valid) validationError($label . ' must be a valid date.');
+    return $value;
+}
+
+function validateAllowedValue($value, array $allowed, string $label): string {
+    $value = trim((string)$value);
+    if (!in_array($value, $allowed, true)) {
+        validationError('Please choose a valid ' . strtolower($label) . '.');
+    }
+    return $value;
+}
+
 /**
  * Get relevant produce image path from assets/images based on product title & category
  * Uses renamed image filenames from XAMPP assets folder.

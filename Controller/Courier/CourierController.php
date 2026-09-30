@@ -33,55 +33,99 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'add_route':
+            $origin = (int)($_POST['origin_district_id'] ?? 0);
+            $destination = (int)($_POST['destination_district_id'] ?? 0);
+            if ($origin <= 0 || $destination <= 0 || $origin === $destination) {
+                $message = 'Please choose two different valid districts.';
+                break;
+            }
             $ok = $model->addRoute(
                 $courierId,
-                (int)($_POST['origin_district_id'] ?? 0),
-                (int)($_POST['destination_district_id'] ?? 0)
+                $origin,
+                $destination
             );
             $message = $ok ? 'Coverage route added.' : 'Unable to save route. Choose two valid active districts.';
             break;
 
         case 'update_route':
+            $routeId = (int)($_POST['route_id'] ?? 0);
+            $origin = (int)($_POST['origin_district_id'] ?? 0);
+            $destination = (int)($_POST['destination_district_id'] ?? 0);
+            if ($routeId <= 0 || $origin <= 0 || $destination <= 0 || $origin === $destination) {
+                $message = 'Please choose a valid route and two different districts.';
+                break;
+            }
             $ok = $model->updateRoute(
                 $courierId,
-                (int)($_POST['route_id'] ?? 0),
-                (int)($_POST['origin_district_id'] ?? 0),
-                (int)($_POST['destination_district_id'] ?? 0),
+                $routeId,
+                $origin,
+                $destination,
                 isset($_POST['is_active'])
             );
             $message = $ok ? 'Coverage route updated.' : 'Unable to update route. Check the districts and try again.';
             break;
 
         case 'delete_route':
-            $ok = $model->deleteRoute($courierId, (int)($_POST['route_id'] ?? 0));
+            $routeId = (int)($_POST['route_id'] ?? 0);
+            if ($routeId <= 0) {
+                $message = 'Invalid coverage route.';
+                break;
+            }
+            $ok = $model->deleteRoute($courierId, $routeId);
             $message = $ok ? 'Coverage route removed.' : 'Unable to remove that route.';
             break;
 
         case 'respond_offer':
+            $offerId = (int)($_POST['offer_id'] ?? 0);
+            $response = strtolower(trim((string)($_POST['response'] ?? '')));
+            if ($offerId <= 0 || !in_array($response, ['accept', 'reject'], true)) {
+                $message = 'Please choose a valid assignment response.';
+                break;
+            }
             [$ok, , $message] = $model->respondOffer(
                 $courierId,
-                (int)($_POST['offer_id'] ?? 0),
-                (string)($_POST['response'] ?? '')
+                $offerId,
+                $response
             );
             break;
 
         case 'delivery_status':
+            $deliveryId = (int)($_POST['delivery_id'] ?? 0);
+            $nextStatus = trim((string)($_POST['next_status'] ?? ''));
+            if ($deliveryId <= 0 || $nextStatus === '' || mb_strlen($nextStatus) > 40) {
+                $message = 'Invalid delivery status update.';
+                break;
+            }
             [$ok, $message] = $model->updateDeliveryStatus(
                 $courierId,
-                (int)($_POST['delivery_id'] ?? 0),
-                (string)($_POST['next_status'] ?? '')
+                $deliveryId,
+                $nextStatus
             );
             break;
 
         case 'buyer_unavailable':
+            $deliveryId = (int)($_POST['delivery_id'] ?? 0);
+            $notes = trim((string)($_POST['notes'] ?? ''));
+            if ($deliveryId <= 0 || mb_strlen($notes) > 500) {
+                $message = 'Please provide valid delivery notes (500 characters or fewer).';
+                break;
+            }
             [$ok, $message] = $model->buyerUnavailable(
                 $courierId,
-                (int)($_POST['delivery_id'] ?? 0),
-                trim((string)($_POST['notes'] ?? ''))
+                $deliveryId,
+                $notes
             );
             break;
 
         case 'complaint':
+            $orderId = (int)($_POST['order_id'] ?? 0);
+            $category = trim((string)($_POST['category'] ?? ''));
+            $description = trim((string)($_POST['description'] ?? ''));
+            if ($orderId <= 0 || !in_array($category, ['Delivery issue', 'Payment issue', 'Product issue', 'Other'], true) ||
+                $description === '' || mb_strlen($description) > 5000) {
+                $message = 'Please select a valid order/category and enter an issue description.';
+                break;
+            }
             $evidence = null;
             if (!empty($_FILES['evidence']['name'])) {
                 try {
@@ -93,9 +137,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $ok = $model->addComplaint(
                 $courierId,
-                (int)($_POST['order_id'] ?? 0),
-                trim((string)($_POST['category'] ?? '')),
-                trim((string)($_POST['description'] ?? '')),
+                $orderId,
+                $category,
+                $description,
                 $evidence
             );
             $message = $ok ? 'Issue submitted. Harvestly Admin will review it.' : 'Unable to submit issue. Please complete the category and description.';
@@ -117,8 +161,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'office_postal_code' => trim((string)($_POST['office_postal_code'] ?? '')),
                 'office_district_id' => (int)($_POST['office_district_id'] ?? 0),
             ];
-            if ($data['organisation_name'] === '') {
-                $message = 'Please enter the organisation name.';
+            if ($data['organisation_name'] === '' || mb_strlen($data['organisation_name']) > 160 ||
+                $data['contact_person_name'] !== '' && mb_strlen($data['contact_person_name']) > 120) {
+                $message = 'Please enter valid organisation and contact details.';
+            } elseif (!preg_match('/^(?:0|\+94)\d{9}$/', preg_replace('/[\s().-]+/', '', $data['phone']))) {
+                $message = 'Please enter a valid Sri Lankan phone number.';
+            } elseif (mb_strlen($data['office_address_line1']) > 180 || mb_strlen($data['office_address_line2']) > 180 ||
+                      mb_strlen($data['office_city_town']) > 100 || ($data['office_postal_code'] !== '' && !preg_match('/^\d{5}$/', $data['office_postal_code']))) {
+                $message = 'Please check the office address and postal code.';
             } elseif ($data['office_district_id'] <= 0) {
                 $message = 'Please select an active office district.';
             } else {

@@ -21,20 +21,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productId = (int)($_POST['id'] ?? 0);
     $quantity = (float)($_POST['quantity'] ?? 0);
 
-    $message = match ($action) {
-        'update' => $model->updateQuantity($productId, $quantity)
-            ? 'Cart updated.'
-            : 'Unable to update that item.',
-        'remove' => $model->remove($productId)
-            ? 'Item removed from your cart.'
-            : 'Unable to remove that item.',
-        'clear' => $model->clear()
-            ? 'Your cart has been cleared.'
-            : 'Unable to clear your cart.',
-        default => 'Unknown cart action.',
-    };
+    if (!in_array($action, ['update', 'remove', 'clear'], true)) {
+        $_SESSION['_buyer_flash'] = ['success' => false, 'message' => 'Invalid cart action.'];
+        redirect('Controller/Buyer/CartController.php');
+    }
+    if (in_array($action, ['update', 'remove'], true) && $productId <= 0) {
+        $_SESSION['_buyer_flash'] = ['success' => false, 'message' => 'Invalid product selected.'];
+        redirect('Controller/Buyer/CartController.php');
+    }
+    if ($action === 'update' && (!is_finite($quantity) || $quantity <= 0 || $quantity > 100000)) {
+        $_SESSION['_buyer_flash'] = ['success' => false, 'message' => 'Please enter a valid quantity greater than zero.'];
+        redirect('Controller/Buyer/CartController.php');
+    }
 
-    $_SESSION['_buyer_flash'] = ['success' => true, 'message' => $message];
+    $ok = match ($action) {
+        'update' => $model->updateQuantity($productId, $quantity),
+        'remove' => $model->remove($productId),
+        'clear' => $model->clear(),
+        default => false,
+    };
+    $message = $ok ? match ($action) {
+        'update' => 'Cart updated.',
+        'remove' => 'Item removed from your cart.',
+        'clear' => 'Your cart has been cleared.',
+        default => 'Cart updated.',
+    } : 'Unable to complete that cart action.';
+
+    $_SESSION['_buyer_flash'] = ['success' => $ok, 'message' => $message];
     redirect('Controller/Buyer/CartController.php');
 }
 

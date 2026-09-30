@@ -14,8 +14,11 @@ $cartModel = new Cart();
 if (($_POST['action'] ?? '') === 'add_to_cart') {
     verifyCsrfToken();
     $id = (int)($_POST['id'] ?? 0);
-    $quantity = (float)($_POST['qty'] ?? 1);
-    if ($quantity <= 0) $quantity = 1.0;
+    $quantity = filter_var($_POST['qty'] ?? 1, FILTER_VALIDATE_FLOAT);
+    if ($id <= 0 || $quantity === false || !is_finite((float)$quantity) || (float)$quantity <= 0 || (float)$quantity > 100000) {
+        $_SESSION['_buyer_flash'] = ['success' => false, 'message' => 'Please select a valid product and quantity.'];
+        redirect('Controller/Buyer/ProductController.php');
+    }
 
     if (!$productModel->getProductById($id)) {
         $_SESSION['_buyer_flash'] = ['success' => false, 'message' => 'This product is no longer available.'];
@@ -32,8 +35,11 @@ if (($_POST['action'] ?? '') === 'add_to_cart') {
 
 $search = trim((string)($_GET['search'] ?? ''));
 $district = trim((string)($_GET['district'] ?? ''));
-$maxPrice = isset($_GET['maxPrice']) && $_GET['maxPrice'] !== '' ? max(0, (float)$_GET['maxPrice']) : PHP_FLOAT_MAX;
+$maxPriceRaw = $_GET['maxPrice'] ?? '';
+$maxPrice = $maxPriceRaw !== '' && is_numeric($maxPriceRaw) && is_finite((float)$maxPriceRaw) ? max(0, (float)$maxPriceRaw) : PHP_FLOAT_MAX;
 $sort = trim((string)($_GET['sort'] ?? 'Newest'));
+$allowedSorts = ['Newest', 'Price: Low to High', 'Price: High to Low', 'Best Rated', 'Popular'];
+if (!in_array($sort, $allowedSorts, true)) $sort = 'Newest';
 $listingType = trim((string)($_GET['listingType'] ?? 'All Listing Types'));
 $growingMethod = trim((string)($_GET['growingMethod'] ?? 'All Growing Methods'));
 

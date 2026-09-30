@@ -16,6 +16,10 @@ $ordersModel = new Orders();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrfToken();
     $orderId = trim((string)($_POST['order_id'] ?? ''));
+    if ($orderId === '' || strlen($orderId) > 50 || !preg_match('/^[A-Za-z0-9_-]+$/', $orderId)) {
+        $_SESSION['_buyer_flash'] = ['success' => false, 'message' => 'Invalid order reference.'];
+        redirect('Controller/Buyer/OrdersController.php');
+    }
     $order = $ordersModel->cancel($orderId);
     $_SESSION['_buyer_flash'] = [
         'success' => $order !== null,

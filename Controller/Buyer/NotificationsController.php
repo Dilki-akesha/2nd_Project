@@ -11,10 +11,17 @@ $model = new Notifications();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrfToken();
     $action = (string)($_POST['action'] ?? '');
+    if (!in_array($action, ['read_all', 'read'], true)) {
+        redirect('Controller/Buyer/NotificationsController.php');
+    }
     if ($action === 'read_all') {
         $model->markAllRead();
     } elseif ($action === 'read') {
-        $model->markRead((int)($_POST['id'] ?? 0));
+        $notificationId = (int)($_POST['id'] ?? 0);
+        if ($notificationId <= 0) {
+            redirect('Controller/Buyer/NotificationsController.php');
+        }
+        $model->markRead($notificationId);
     }
     $query = [];
     if (!empty($_POST['filter'])) $query['filter'] = (string)$_POST['filter'];

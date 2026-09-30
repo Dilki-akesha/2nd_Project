@@ -13,6 +13,10 @@ $orderId = (string)($_GET['id'] ?? $_GET['order_id'] ?? '');
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     verifyCsrfToken();
     $postedOrderId = trim((string)($_POST['order_id'] ?? ''));
+    if ($postedOrderId === '' || strlen($postedOrderId) > 50 || !preg_match('/^[A-Za-z0-9_-]+$/', $postedOrderId)) {
+        $_SESSION['_buyer_flash'] = ['success' => false, 'message' => 'Invalid order reference.'];
+        redirect('Controller/Buyer/OrderTrackingController.php');
+    }
     $ok = $model->updateStatus($postedOrderId, 'COMPLETED');
     $_SESSION['_buyer_flash'] = [
         'success' => $ok,

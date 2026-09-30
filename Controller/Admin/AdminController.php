@@ -29,7 +29,8 @@ class AdminController {
                 $name = sanitize($_POST['category_name'] ?? '');
                 $desc = sanitize($_POST['description'] ?? '');
                 $status = ($_POST['status'] ?? 'active') === 'inactive' ? 'inactive' : 'active';
-                if (!empty($name)) {
+                if ($name !== '' && mb_strlen($name) <= 100 && mb_strlen($desc) <= 500 &&
+                    in_array($status, ['active', 'inactive'], true)) {
                     $ok = $this->model->createCategory($name, $desc, $status);
                     header("Location: index.php?page=admin_categories&" . ($ok ? 'success=Product+category+created+successfully.' : 'error=Unable+to+create+that+category.'));
                 } else {
@@ -43,7 +44,8 @@ class AdminController {
                 $name = sanitize($_POST['category_name'] ?? '');
                 $desc = sanitize($_POST['description'] ?? '');
                 $status = ($_POST['status'] ?? 'active') === 'inactive' ? 'inactive' : 'active';
-                if ($id > 0 && !empty($name)) {
+                if ($id > 0 && $name !== '' && mb_strlen($name) <= 100 && mb_strlen($desc) <= 500 &&
+                    in_array($status, ['active', 'inactive'], true)) {
                     $ok = $this->model->updateCategory($id, $name, $desc, $status);
                     header("Location: index.php?page=admin_categories&" . ($ok ? 'success=Product+category+updated+successfully.' : 'error=Unable+to+update+that+category.'));
                 } else {
@@ -87,8 +89,17 @@ class AdminController {
                     'address' => trim((string)($_POST['address'] ?? '')),
                     'contact_person' => trim((string)($_POST['contact_person'] ?? '')),
                 ];
-                $ok = $data['name'] !== ''
+                $allowedRoles = ['buyer', 'farmer', 'courier'];
+                $allowedStatuses = ['PENDING', 'ACTIVE', 'SUSPENDED', 'REJECTED'];
+                $phoneOk = $data['phone'] === '' || preg_match('/^(?:0|\+94)\d{9}$/', preg_replace('/[\s().-]+/', '', $data['phone']));
+                $ok = in_array($role, $allowedRoles, true)
+                    && in_array($data['status'], $allowedStatuses, true)
+                    && mb_strlen($data['name']) >= 2 && mb_strlen($data['name']) <= 120
                     && filter_var($data['email'], FILTER_VALIDATE_EMAIL)
+                    && mb_strlen($data['email']) <= 254
+                    && $phoneOk
+                    && mb_strlen($data['address']) <= 180
+                    && mb_strlen($data['contact_person']) <= 120
                     && $this->model->createUser($role, $data);
                 header('Location: index.php?page=admin_users&' . ($ok
                     ? 'success=User+account+created.'
@@ -107,9 +118,18 @@ class AdminController {
                     'address' => trim((string)($_POST['address'] ?? '')),
                     'contact_person' => trim((string)($_POST['contact_person'] ?? '')),
                 ];
+                $allowedRoles = ['buyer', 'farmer', 'courier'];
+                $allowedStatuses = ['PENDING', 'ACTIVE', 'SUSPENDED', 'REJECTED'];
+                $phoneOk = $data['phone'] === '' || preg_match('/^(?:0|\+94)\d{9}$/', preg_replace('/[\s().-]+/', '', $data['phone']));
                 $ok = $userId > 0
-                    && $data['name'] !== ''
+                    && in_array($role, $allowedRoles, true)
+                    && in_array($data['status'], $allowedStatuses, true)
+                    && mb_strlen($data['name']) >= 2 && mb_strlen($data['name']) <= 120
                     && filter_var($data['email'], FILTER_VALIDATE_EMAIL)
+                    && mb_strlen($data['email']) <= 254
+                    && $phoneOk
+                    && mb_strlen($data['address']) <= 180
+                    && mb_strlen($data['contact_person']) <= 120
                     && $this->model->updateUserDetails($role, $userId, $data);
                 header('Location: index.php?page=admin_users&' . ($ok
                     ? 'success=User+details+updated.'
@@ -136,7 +156,12 @@ class AdminController {
             case 'update_user_status':
                 $userType = $_POST['user_type'] ?? '';
                 $userId = intval($_POST['user_id'] ?? 0);
-                $status = $_POST['status'] ?? '';
+                $status = strtoupper((string)($_POST['status'] ?? ''));
+                if ($userId <= 0 || !in_array(strtolower((string)$userType), ['buyer', 'farmer', 'courier', 'courier_partner'], true) ||
+                    !in_array($status, ['ACTIVE', 'SUSPENDED', 'PENDING', 'REJECTED'], true)) {
+                    header("Location: index.php?page=admin_users&error=Invalid+user+status+or+user+id.");
+                    exit();
+                }
                 $ok = $this->model->updateUserStatus($userType, $userId, $status);
                 header("Location: index.php?page=admin_users&" . ($ok ? 'success=Account+status+updated.' : 'error=Invalid+account+status.'));
                 exit();
@@ -146,6 +171,10 @@ class AdminController {
                 $farmerId = intval($_POST['farmer_id'] ?? 0);
                 $status = $_POST['status'] ?? 'approved';
                 $reason = trim((string)($_POST['rejection_reason'] ?? ''));
+                if ($farmerId <= 0 || !in_array($status, ['approved', 'rejected'], true) || mb_strlen($reason) > 500) {
+                    header("Location: index.php?page=admin_farmer_approvals&error=Invalid+verification+data.");
+                    exit();
+                }
                 $ok = $this->model->updateFarmerVerification($farmerId, $status, $reason !== '' ? $reason : null);
                 header("Location: index.php?page=admin_farmer_approvals&" . ($ok ? 'success=Farmer+verification+updated.' : 'error=Farmer+could+not+be+updated.'));
                 exit();
@@ -154,6 +183,10 @@ class AdminController {
                 $courierId = intval($_POST['courier_id'] ?? 0);
                 $status = $_POST['status'] ?? 'approved';
                 $reason = trim((string)($_POST['rejection_reason'] ?? ''));
+                if ($courierId <= 0 || !in_array($status, ['approved', 'rejected'], true) || mb_strlen($reason) > 500) {
+                    header("Location: index.php?page=admin_courier_approvals&error=Invalid+verification+data.");
+                    exit();
+                }
                 $ok = $this->model->updateCourierVerification($courierId, $status, $reason !== '' ? $reason : null);
                 header("Location: index.php?page=admin_courier_approvals&" . ($ok ? 'success=Courier+Partner+verification+updated.' : 'error=Courier+Partner+could+not+be+updated.'));
                 exit();
@@ -162,7 +195,11 @@ class AdminController {
             case 'update_product_status':
                 $productId = intval($_POST['product_id'] ?? 0);
                 // products.listing_status is an ENUM: ACTIVE, INACTIVE, EXPIRED, SOLD_OUT
-                $status = $_POST['status'] ?? 'ACTIVE';
+                $status = strtoupper((string)($_POST['status'] ?? ''));
+                if ($productId <= 0 || !in_array($status, ['ACTIVE', 'INACTIVE', 'EXPIRED', 'SOLD_OUT'], true)) {
+                    header("Location: index.php?page=admin_listings&error=Invalid+listing+status+or+product.");
+                    exit();
+                }
                 $ok = $this->model->updateProductStatus($productId, $status);
                 header("Location: index.php?page=admin_listings&" . ($ok ? 'success=Listing+status+updated.' : 'error=Invalid+listing+status.'));
                 exit();
@@ -170,6 +207,10 @@ class AdminController {
             case 'override_delivery':
                 $orderId = intval($_POST['order_id'] ?? 0);
                 $courierId = intval($_POST['courier_id'] ?? 0);
+                if ($orderId <= 0 || $courierId <= 0) {
+                    header("Location: index.php?page=admin_pending_assignments&error=Invalid+order+or+courier.");
+                    exit();
+                }
                 $ok = $this->model->overrideDeliveryAssignment($orderId, $courierId);
                 header("Location: index.php?page=admin_pending_assignments&" . ($ok ? 'success=Courier+Partner+assignment+overridden.' : 'error=The+assignment+could+not+be+overridden.'));
                 exit();
@@ -178,8 +219,12 @@ class AdminController {
             case 'add_district_distance':
                 $from = sanitize($_POST['from_district'] ?? '');
                 $to = sanitize($_POST['to_district'] ?? '');
-                $km = floatval($_POST['distance_km'] ?? 0);
-                $ok = $this->model->createDistrictDistance($from, $to, $km);
+                $km = filter_var($_POST['distance_km'] ?? null, FILTER_VALIDATE_FLOAT);
+                if ($from === '' || $to === '' || $from === $to || $km === false || !is_finite((float)$km) || (float)$km <= 0 || (float)$km > 10000) {
+                    header("Location: index.php?page=admin_district_distances&error=Enter+two+different+districts+and+a+valid+distance.");
+                    exit();
+                }
+                $ok = $this->model->createDistrictDistance($from, $to, (float)$km);
                 header("Location: index.php?page=admin_district_distances&" . ($ok ? 'success=District+distance+pair+added.' : 'error=Check+both+district+names+and+the+distance.'));
                 exit();
 
@@ -187,8 +232,12 @@ class AdminController {
                 $id = intval($_POST['distance_id'] ?? 0);
                 $from = sanitize($_POST['from_district'] ?? '');
                 $to = sanitize($_POST['to_district'] ?? '');
-                $km = floatval($_POST['distance_km'] ?? 0);
-                $ok = $this->model->updateDistrictDistance($id, $from, $to, $km);
+                $km = filter_var($_POST['distance_km'] ?? null, FILTER_VALIDATE_FLOAT);
+                if ($id <= 0 || $from === '' || $to === '' || $from === $to || $km === false || !is_finite((float)$km) || (float)$km <= 0 || (float)$km > 10000) {
+                    header("Location: index.php?page=admin_district_distances&error=Enter+two+different+districts+and+a+valid+distance.");
+                    exit();
+                }
+                $ok = $this->model->updateDistrictDistance($id, $from, $to, (float)$km);
                 header("Location: index.php?page=admin_district_distances&" . ($ok ? 'success=District+distance+updated.' : 'error=The+distance+could+not+be+updated.'));
                 exit();
 
@@ -204,6 +253,10 @@ class AdminController {
                 // complaints.complaint_status is an ENUM: OPEN, UNDER_REVIEW, RESOLVED, REJECTED
                 $status = strtoupper($_POST['status'] ?? 'RESOLVED');
                 $notes = trim((string)($_POST['admin_response'] ?? ''));
+                if ($complaintId <= 0 || mb_strlen($notes) > 5000 || !in_array($status, ['RESOLVED', 'REJECTED', 'UNDER_REVIEW'], true)) {
+                    header("Location: index.php?page=admin_complaints&error=Invalid+complaint+update.");
+                    exit();
+                }
                 $ok = in_array($status, ['RESOLVED', 'REJECTED', 'UNDER_REVIEW'], true)
                     && $this->model->resolveComplaint($complaintId, $status, $notes);
                 header("Location: index.php?page=admin_complaints&" . ($ok ? 'success=Complaint+updated.' : 'error=The+complaint+could+not+be+updated.'));
@@ -214,6 +267,12 @@ class AdminController {
                 $recId = !empty($_POST['recipient_id']) ? intval($_POST['recipient_id']) : 0;
                 $subject = trim((string)($_POST['subject'] ?? ''));
                 $message = trim((string)($_POST['message'] ?? ''));
+                $validScopes = ['all', 'buyers', 'farmers', 'couriers', 'user'];
+                if (!in_array($scope, $validScopes, true) || ($scope === 'user' && $recId <= 0) ||
+                    $subject === '' || mb_strlen($subject) > 200 || $message === '' || mb_strlen($message) > 5000) {
+                    header("Location: index.php?page=admin_notifications&error=Check+recipient,+subject+and+message.");
+                    exit();
+                }
                 $created = $this->model->createNotification($scope, $recId, $subject, $message);
                 header("Location: index.php?page=admin_notifications&" . ($created > 0
                     ? 'success=Notification+sent+to+' . $created . '+recipient(s).'
@@ -228,6 +287,19 @@ class AdminController {
                     'delivery_base_fee' => trim((string)($_POST['delivery_base_fee'] ?? '')),
                     'delivery_per_km_rate' => trim((string)($_POST['delivery_per_km_rate'] ?? '')),
                 ];
+                $feeFields = ['farmer_marketplace_fee_percent', 'buyer_service_fee_percent'];
+                foreach ($feeFields as $field) {
+                    if (!is_numeric($settings[$field]) || (float)$settings[$field] < 0 || (float)$settings[$field] > 100) {
+                        header("Location: index.php?page=admin_settings&error=Fee+percentages+must+be+between+0+and+100.");
+                        exit();
+                    }
+                }
+                if (!is_numeric($settings['courier_assignment_response_minutes']) || (int)$settings['courier_assignment_response_minutes'] < 5 || (int)$settings['courier_assignment_response_minutes'] > 10080 ||
+                    !is_numeric($settings['delivery_base_fee']) || (float)$settings['delivery_base_fee'] < 0 ||
+                    !is_numeric($settings['delivery_per_km_rate']) || (float)$settings['delivery_per_km_rate'] < 0) {
+                    header("Location: index.php?page=admin_settings&error=Enter+valid+non-negative+delivery+settings.");
+                    exit();
+                }
                 $result = $this->model->updatePlatformSettings($settings, (int)($_SESSION['user_id'] ?? 1));
                 header("Location: index.php?page=admin_settings&" . ($result === true
                     ? 'success=Platform+settings+saved.'

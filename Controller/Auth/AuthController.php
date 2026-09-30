@@ -108,8 +108,11 @@ class AuthController
         $district = trim((string)($_POST['district'] ?? ''));
         $address = trim((string)($_POST['address'] ?? ''));
 
-        if ($fullName === '' || !$email) {
-            redirect('index.php?page=signup_buyer&error=' . urlencode('Please enter your full name and a valid email address.'));
+        if ($fullName === '' || mb_strlen($fullName) > 120 || !preg_match('/^[\p{L}][\p{L}\s.\'\-]{1,119}$/u', $fullName) || !$email) {
+            redirect('index.php?page=signup_buyer&error=' . urlencode('Please enter a valid full name (2-120 characters) and email address.'));
+        }
+        if (!preg_match('/^(?:0|\+94)\d{9}$/', preg_replace('/[\s().-]+/', '', $phone))) {
+            redirect('index.php?page=signup_buyer&error=' . urlencode('Please enter a valid Sri Lankan phone number.'));
         }
         if (strlen($password) < 8) {
             redirect('index.php?page=signup_buyer&error=' . urlencode('Your password must be at least 8 characters long.'));
@@ -159,8 +162,14 @@ class AuthController
         $district = trim((string)($_POST['district'] ?? ''));
         $nicNumber = trim((string)($_POST['nic_number'] ?? ''));
 
-        if ($fullName === '' || !$email) {
-            redirect('index.php?page=signup_farmer&error=' . urlencode('Please enter your full name and a valid email address.'));
+        if ($fullName === '' || mb_strlen($fullName) > 120 || !preg_match('/^[\p{L}][\p{L}\s.\'\-]{1,119}$/u', $fullName) || !$email) {
+            redirect('index.php?page=signup_farmer&error=' . urlencode('Please enter a valid full name (2-120 characters) and email address.'));
+        }
+        if (!preg_match('/^(?:0|\+94)\d{9}$/', preg_replace('/[\s().-]+/', '', $phone))) {
+            redirect('index.php?page=signup_farmer&error=' . urlencode('Please enter a valid Sri Lankan phone number.'));
+        }
+        if ($nicNumber !== '' && !preg_match('/^(?:\d{9}[vVxX]|\d{12})$/', $nicNumber)) {
+            redirect('index.php?page=signup_farmer&error=' . urlencode('Please enter a valid NIC number.'));
         }
         if (strlen($password) < 8) {
             redirect('index.php?page=signup_farmer&error=' . urlencode('Your password must be at least 8 characters long.'));
@@ -226,8 +235,15 @@ class AuthController
         $district = trim((string)($_POST['district'] ?? ''));
         $nicNumber = trim((string)($_POST['nic_number'] ?? ''));
 
-        if ($organisationName === '' || $contactPerson === '' || !$email) {
-            redirect('index.php?page=signup_courier&error=' . urlencode('Please enter the organisation name, contact person and a valid email address.'));
+        if ($organisationName === '' || mb_strlen($organisationName) > 160 ||
+            $contactPerson === '' || mb_strlen($contactPerson) > 120 || !$email) {
+            redirect('index.php?page=signup_courier&error=' . urlencode('Please enter valid organisation/contact details and email address.'));
+        }
+        if (!preg_match('/^(?:0|\+94)\d{9}$/', preg_replace('/[\s().-]+/', '', $phone))) {
+            redirect('index.php?page=signup_courier&error=' . urlencode('Please enter a valid Sri Lankan phone number.'));
+        }
+        if ($nicNumber !== '' && !preg_match('/^(?:\d{9}[vVxX]|\d{12})$/', $nicNumber)) {
+            redirect('index.php?page=signup_courier&error=' . urlencode('Please enter a valid NIC number.'));
         }
         if (strlen($password) < 8) {
             redirect('index.php?page=signup_courier&error=' . urlencode('Your password must be at least 8 characters long.'));

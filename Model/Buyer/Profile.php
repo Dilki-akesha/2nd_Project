@@ -59,8 +59,15 @@ final class Profile
         $address2 = trim((string)($data['address2'] ?? ''));
         $postal = trim((string)($data['postal'] ?? ''));
 
-        if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new RuntimeException('Please enter a valid name and email address.');
+        if ($name === '' || mb_strlen($name) > 120 || !preg_match('/^[\p{L}][\p{L}\s.\'\-]{1,119}$/u', $name) ||
+            !filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 254) {
+            throw new RuntimeException('Please enter a valid name (2-120 characters) and email address.');
+        }
+        if (!preg_match('/^(?:0|\+94)\d{9}$/', preg_replace('/[\s().-]+/', '', $phone))) {
+            throw new RuntimeException('Please enter a valid Sri Lankan phone number.');
+        }
+        if (mb_strlen($address) > 180 || mb_strlen($address2) > 180 || mb_strlen($city) > 100 || ($postal !== '' && !preg_match('/^\d{5}$/', $postal))) {
+            throw new RuntimeException('Please check the address, city and postal code lengths/formats.');
         }
 
         $duplicate = (int)db_scalar(

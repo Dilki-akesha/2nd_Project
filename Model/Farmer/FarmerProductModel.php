@@ -61,6 +61,14 @@ final class FarmerProductModel
         if ($method !== null && !in_array($method, ['ORGANIC', 'CONVENTIONAL', 'MIXED'], true)) {
             throw new RuntimeException('Choose a valid growing method.');
         }
+        $description = trim((string)($data['description'] ?? ''));
+        $storageGuidance = trim((string)($data['storage_guidance'] ?? ''));
+        if (mb_strlen($description) > 5000) {
+            throw new RuntimeException('Description must be 5000 characters or fewer.');
+        }
+        if (mb_strlen($storageGuidance) > 2000) {
+            throw new RuntimeException('Storage guidance must be 2000 characters or fewer.');
+        }
         if (!db_scalar('SELECT COUNT(*) FROM product_categories WHERE category_id = ? AND is_active = 1', 'i', [$category], 0)) {
             throw new RuntimeException('Choose an active product category.');
         }
@@ -72,6 +80,16 @@ final class FarmerProductModel
                 throw new RuntimeException('Enter valid dates in YYYY-MM-DD format.');
             }
             $dates[] = $value !== '' ? $value : null;
+        }
+
+        if ($dates[0] !== null && $dates[1] !== null && $dates[1] < $dates[0]) {
+            throw new RuntimeException('Available-from date cannot be before the harvest date.');
+        }
+        if ($dates[1] !== null && $dates[2] !== null && $dates[2] < $dates[1]) {
+            throw new RuntimeException('Best-before date cannot be before the available-from date.');
+        }
+        if ($dates[3] !== null && $dates[4] !== null && $dates[4] < $dates[3]) {
+            throw new RuntimeException('Season end date cannot be before the season start date.');
         }
 
         // A SEASONAL listing needs a season window to be meaningful.
@@ -99,7 +117,7 @@ final class FarmerProductModel
         $params = [
             $category,
             $name,
-            trim((string)($data['description'] ?? '')),
+            $description,
             (float)$price,
             (float)$quantity,
             $unit,
@@ -111,7 +129,7 @@ final class FarmerProductModel
             $dates[3],
             $dates[4],
             $shelfReference,
-            trim((string)($data['storage_guidance'] ?? '')),
+            $storageGuidance,
             $status,
         ];
 

@@ -162,9 +162,25 @@ final class Checkout
             }
         }
 
-        $phone = preg_replace('/\D+/', '', (string)$data['phone']);
-        if (strlen((string)$phone) < 9 || strlen((string)$phone) > 12) {
-            return ['valid' => false, 'message' => 'Please enter a valid phone number.'];
+        $fullName = trim((string)$data['fullName']);
+        $address = trim((string)$data['address']);
+        $address2 = trim((string)($data['address2'] ?? ''));
+        $city = trim((string)($data['city'] ?? ''));
+        $postal = trim((string)($data['postal'] ?? ''));
+        $phone = preg_replace('/[\s().-]+/', '', (string)$data['phone']);
+
+        if (mb_strlen($fullName) < 2 || mb_strlen($fullName) > 120 ||
+            !preg_match('/^[\p{L}][\p{L}\s.\'\-]{1,119}$/u', $fullName)) {
+            return ['valid' => false, 'message' => 'Please enter a valid recipient name.'];
+        }
+        if (!preg_match('/^(?:0|\+94)\d{9}$/', (string)$phone)) {
+            return ['valid' => false, 'message' => 'Please enter a valid Sri Lankan phone number.'];
+        }
+        if (mb_strlen($address) > 180 || mb_strlen($address2) > 180 || mb_strlen($city) > 100) {
+            return ['valid' => false, 'message' => 'Please check your address details.'];
+        }
+        if ($postal !== '' && !preg_match('/^\d{5}$/', $postal)) {
+            return ['valid' => false, 'message' => 'Postal code must contain 5 digits.'];
         }
 
         $exists = (int)db_scalar(

@@ -166,6 +166,8 @@ final class CourierModel {
     public function complaints(int $id): array { return db_fetch_all("SELECT c.*,o.order_id FROM complaints c JOIN orders o ON o.order_id=c.order_id WHERE c.complainant_user_id=? AND c.complainant_role='COURIER_PARTNER' ORDER BY c.created_at DESC",'i',[$id]); }
     public function complaintOrders(int $id): array { return db_fetch_all("SELECT DISTINCT o.order_id FROM orders o LEFT JOIN deliveries d ON d.order_id=o.order_id WHERE d.courier_partner_id=? ORDER BY o.created_at DESC",'i',[$id]); }
     public function addComplaint(int $id,int $orderId,string $category,string $description,?string $evidence): bool {
+        if ($orderId <= 0 || !in_array($category, ['Delivery issue', 'Payment issue', 'Product issue', 'Other'], true) ||
+            $description === '' || mb_strlen($description) > 5000) return false;
         $owns=(int)db_scalar("SELECT COUNT(*) FROM deliveries WHERE order_id=? AND courier_partner_id=?",'ii',[$orderId,$id],0)>0; if(!$owns) return false;
         return db_execute("INSERT INTO complaints(order_id,complainant_user_id,complainant_role,category,description,evidence_path,complaint_status) VALUES(?,?,'COURIER_PARTNER',?,?,?,'OPEN')",'iisss',[$orderId,$id,$category,$description,$evidence]);
     }
