@@ -305,7 +305,27 @@ body { font-family: var(--hv-font) }
 
 .sidebar {
     background: linear-gradient(180deg, var(--hv-deep) 0%, var(--hv-deep-2) 100%);
-    box-shadow: 4px 0 24px rgba(20, 32, 22, .18)
+    box-shadow: 4px 0 24px rgba(20, 32, 22, .18);
+    /* --- Scroll Fix Added Below --- */
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #2E7D32 #1b2e1c;
+}
+
+/* WebKit Scrollbar Fix */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: #1b2e1c;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: #2E7D32;
+    border-radius: 3px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #43A047;
 }
 
 .sidebar-brand { border-bottom-color: rgba(255, 255, 255, .12) }

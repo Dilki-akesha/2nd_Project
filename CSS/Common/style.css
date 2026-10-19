@@ -1647,3 +1647,36 @@ main section#categories a:hover {
     align-items: stretch;
   }
 }
+
+/* ============================================================ */
+/* GLOBAL SIDEBAR SCROLL FIX
+/* ============================================================ */
+
+.sidebar {
+    background: #1B2E1C !important;
+    background-color: #1B2E1C !important;
+    background-image: none !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar-nav,
+.sidebar-footer,
+.sidebar-brand {
+    background-color: #1B2E1C !important;
+}
+
+/* WebKit Scrollbar — dark green */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: #1B2E1C;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: #2E7D32;
+    border-radius: 3px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #43A047;
+}
