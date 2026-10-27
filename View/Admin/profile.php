@@ -45,17 +45,17 @@ $currentPage = 'admin_profile';
                 <div class="profile-form-fields">
                 <div class="form-group">
                     <label class="form-label">Full Name *</label>
-                    <input type="text" name="full_name" class="input-field" value="<?= sanitize($adminProfile['full_name'] ?? ''); ?>" required>
+                    <input type="text" name="full_name" class="input-field" maxlength="120" value="<?= sanitize($adminProfile['full_name'] ?? ''); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Email Address *</label>
-                    <input type="email" name="email" class="input-field" value="<?= sanitize($adminProfile['email'] ?? ''); ?>" required>
+                    <input type="email" name="email" class="input-field" maxlength="190" value="<?= sanitize($adminProfile['email'] ?? ''); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">New Password (leave blank to keep current)</label>
-                    <input type="password" name="new_password" class="input-field" placeholder="••••••••">
+                    <input type="password" name="new_password" class="input-field" minlength="8" maxlength="72" placeholder="Leave blank to keep current">
                 </div>
                 </div>
 

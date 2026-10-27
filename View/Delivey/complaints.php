@@ -40,7 +40,7 @@ $action = 'Controller/Courier/CourierController.php';
             </div>
             <div class="courier-field">
                 <span>Description</span>
-                <textarea name="description" required></textarea>
+                <textarea name="description" maxlength="2000" required></textarea>
             </div>
             <div class="courier-field">
                 <span>Optional evidence</span>

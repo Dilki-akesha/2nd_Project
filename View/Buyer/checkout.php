@@ -63,27 +63,27 @@ $perKm = (float)db_setting('delivery_per_km_rate', 0);
             <div class="buyer-form-grid">
                 <div class="buyer-field">
                     <span>Recipient name</span>
-                    <input type="text" name="fullName" value="<?= e((string)($profile['full_name'] ?? '')) ?>" required>
+                    <input type="text" name="fullName" value="<?= e((string)($profile['full_name'] ?? '')) ?>" maxlength="120" required>
                 </div>
                 <div class="buyer-field">
                     <span>Phone</span>
-                    <input type="tel" name="phone" value="<?= e((string)($profile['phone'] ?? '')) ?>" required>
+                    <input type="tel" name="phone" value="<?= e((string)($profile['phone'] ?? '')) ?>" pattern="[0-9+ \(\)\-]{9,25}" maxlength="25" required>
                 </div>
                 <div class="buyer-field buyer-field--wide">
                     <span>Street address</span>
-                    <input type="text" name="address" value="<?= e((string)($profile['default_address_line1'] ?? '')) ?>" required>
+                    <input type="text" name="address" value="<?= e((string)($profile['default_address_line1'] ?? '')) ?>" maxlength="180" required>
                 </div>
                 <div class="buyer-field buyer-field--wide">
                     <span>Apartment / landmark (optional)</span>
-                    <input type="text" name="address2" value="<?= e((string)($profile['default_address_line2'] ?? '')) ?>">
+                    <input type="text" name="address2" value="<?= e((string)($profile['default_address_line2'] ?? '')) ?>" maxlength="180">
                 </div>
                 <div class="buyer-field">
                     <span>City / town (optional)</span>
-                    <input type="text" name="city" value="<?= e((string)($profile['default_city_town'] ?? '')) ?>">
+                    <input type="text" name="city" value="<?= e((string)($profile['default_city_town'] ?? '')) ?>" maxlength="100">
                 </div>
                 <div class="buyer-field">
                     <span>Postal code (optional)</span>
-                    <input type="text" name="postal" value="<?= e((string)($profile['default_postal_code'] ?? '')) ?>">
+                    <input type="text" name="postal" value="<?= e((string)($profile['default_postal_code'] ?? '')) ?>" maxlength="20">
                 </div>
             </div>
 

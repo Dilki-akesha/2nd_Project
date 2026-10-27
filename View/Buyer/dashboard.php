@@ -63,7 +63,7 @@ buyer_page_top('Dashboard', 'DashboardController.php');
 <section class="buyer-panel">
     <h3>Find fresh produce</h3>
     <form class="buyer-search" method="get" action="<?= e(buyerRoute('ProductController.php')) ?>">
-        <input type="search" name="search" aria-label="Search products or farmers" placeholder="Search products or farmers">
+        <input type="search" name="search" aria-label="Search products or farmers" maxlength="150" placeholder="Search products or farmers">
         <button class="buyer-button" type="submit">
             <span class="material-symbols-outlined" aria-hidden="true">search</span>
             <span>Search</span>

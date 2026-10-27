@@ -26,7 +26,7 @@ $success = isset($_GET['success']) ? sanitize($_GET['success']) : null;
             <div class="form-group">
                 <label class="form-label" for="login-email">Email Address</label>
                 <input type="email" id="login-email" name="email" class="form-control"
-                       placeholder="name@domain.com" autocomplete="email" required>
+                       placeholder="name@domain.com" autocomplete="email" maxlength="190" required>
             </div>
 
             <div class="form-group">
@@ -37,7 +37,7 @@ $success = isset($_GET['success']) ? sanitize($_GET['success']) : null;
                     </a>
                 </div>
                 <input type="password" id="login-password" name="password" class="form-control"
-                       placeholder="Your password" autocomplete="current-password" required>
+                       placeholder="Your password" autocomplete="current-password" maxlength="72" required>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width:100%;margin-top:10px;padding:12px">

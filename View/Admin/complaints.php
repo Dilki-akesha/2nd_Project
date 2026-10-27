@@ -87,7 +87,7 @@
 
                                         <div class="form-group">
                                             <label class="form-label" for="disp-notes-<?= $c['id']; ?>">Resolution Findings & Notes</label>
-                                            <textarea id="complaint-notes-<?= $c['id']; ?>" name="resolution_notes" class="form-control" rows="3" placeholder="Enter resolution findings or notes..." required></textarea>
+                                            <textarea id="complaint-notes-<?= $c['id']; ?>" name="resolution_notes" class="form-control" rows="3" maxlength="2000" placeholder="Enter resolution findings or notes..." required></textarea>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
