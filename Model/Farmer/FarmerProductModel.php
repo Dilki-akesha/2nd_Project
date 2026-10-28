@@ -98,6 +98,27 @@ final class FarmerProductModel
         }
 
         /*
+         * Date ordering. Each pair is only compared when both ends are set, so a
+         * listing with a single date is still valid. This is enforced here rather
+         * than with a client-side min attribute because a Farmer must still be
+         * able to edit a listing whose harvest date has already passed.
+         */
+        // $dates is indexed: 0 harvest, 1 available_from, 2 best_before,
+        // 3 season_start, 4 season_end.
+        $orderedPairs = [
+            ['Available from date', $dates[1], 'Harvest date', $dates[0]],
+            ['Season end date', $dates[4], 'Season start date', $dates[3]],
+            ['Best before date', $dates[2], 'Harvest date', $dates[0]],
+        ];
+        foreach ($orderedPairs as [$laterLabel, $later, $earlierLabel, $earlier]) {
+            if ($later !== null && $earlier !== null && $later < $earlier) {
+                throw new RuntimeException(
+                    "The $laterLabel cannot be earlier than the $earlierLabel."
+                );
+            }
+        }
+
+        /*
          * Storage / shelf-life reference is optional and may only be set when a
          * real, active row exists in shelf_life_references. When no reference is
          * chosen, shelf_life_reference_id stays NULL and Harvestly shows no

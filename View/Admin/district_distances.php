@@ -34,12 +34,12 @@ $allDistricts = $allDistricts ?? [];
             <input type="hidden" name="page" value="admin_district_distances">
             <div style="flex:1;min-width:200px">
                 <label class="form-label" for="from-district">From District</label>
-                <input type="search" id="from-district" name="from_district" class="input-field"
+                <input type="search" id="from-district" name="from_district" class="input-field" maxlength="60"
                        value="<?= sanitize($fromDistrict) ?>" placeholder="e.g. Kandy">
             </div>
             <div style="flex:1;min-width:200px">
                 <label class="form-label" for="to-district">To District</label>
-                <input type="search" id="to-district" name="to_district" class="input-field"
+                <input type="search" id="to-district" name="to_district" class="input-field" maxlength="60"
                        value="<?= sanitize($toDistrict) ?>" placeholder="e.g. Colombo">
             </div>
             <button type="submit" class="btn btn-primary">Search</button>

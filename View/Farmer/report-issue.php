@@ -74,7 +74,7 @@ page_top('Report Issue', 'report-issue');
             </div>
             <div class="field full">
                 <label>Description</label>
-                <textarea class="textarea" name="description" rows="4" required></textarea>
+                <textarea class="textarea" name="description" rows="4" maxlength="2000" required></textarea>
             </div>
             <div class="field full">
                 <label>Evidence (optional)</label>

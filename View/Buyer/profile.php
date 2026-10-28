@@ -38,15 +38,15 @@ buyer_page_top('My Profile', 'ProfileController.php');
     <div class="buyer-form-grid">
         <div class="buyer-field">
             <span>Full name</span>
-            <input type="text" name="name" value="<?= e((string)($buyer['name'] ?? '')) ?>" required>
+            <input type="text" name="name" value="<?= e((string)($buyer['name'] ?? '')) ?>" maxlength="120" required>
         </div>
         <div class="buyer-field">
             <span>Email</span>
-            <input type="email" name="email" value="<?= e((string)($buyer['email'] ?? '')) ?>" required>
+            <input type="email" name="email" value="<?= e((string)($buyer['email'] ?? '')) ?>" maxlength="190" required>
         </div>
         <div class="buyer-field">
             <span>Phone</span>
-            <input type="tel" name="phone" value="<?= e((string)($buyer['phone'] ?? '')) ?>" required>
+            <input type="tel" name="phone" value="<?= e((string)($buyer['phone'] ?? '')) ?>" pattern="[0-9+ \(\)\-]{9,25}" maxlength="25" required>
         </div>
         <div class="buyer-field">
             <span>Default district</span>
@@ -66,19 +66,19 @@ buyer_page_top('My Profile', 'ProfileController.php');
     <div class="buyer-form-grid">
         <div class="buyer-field buyer-field--wide">
             <span>Street address</span>
-            <input type="text" name="address" value="<?= e((string)($buyer['address'] ?? '')) ?>" required>
+            <input type="text" name="address" value="<?= e((string)($buyer['address'] ?? '')) ?>" maxlength="180" required>
         </div>
         <div class="buyer-field buyer-field--wide">
             <span>Apartment / landmark (optional)</span>
-            <input type="text" name="address2" value="<?= e((string)($buyer['address2'] ?? '')) ?>">
+            <input type="text" name="address2" value="<?= e((string)($buyer['address2'] ?? '')) ?>" maxlength="180">
         </div>
         <div class="buyer-field">
             <span>City / town (optional)</span>
-            <input type="text" name="city" value="<?= e((string)($buyer['city'] ?? '')) ?>">
+            <input type="text" name="city" value="<?= e((string)($buyer['city'] ?? '')) ?>" maxlength="100">
         </div>
         <div class="buyer-field">
             <span>Postal code (optional)</span>
-            <input type="text" name="postal" value="<?= e((string)($buyer['postal'] ?? '')) ?>">
+            <input type="text" name="postal" value="<?= e((string)($buyer['postal'] ?? '')) ?>" maxlength="20">
         </div>
     </div>
 
