@@ -1647,3 +1647,120 @@ main section#categories a:hover {
     align-items: stretch;
   }
 }
+
+
+/* Public navigation toggle (tablet and mobile) */
+.public-nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.public-nav-toggle:focus-visible,
+.public-header a:focus-visible {
+  outline: 3px solid rgba(46, 125, 50, 0.35);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .public-header {
+    height: auto;
+    min-height: 72px;
+  }
+
+  .public-header-inner {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 20px;
+  }
+
+  .public-nav-toggle {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+  .public-header .nav-links {
+    display: none;
+    order: 3;
+    flex: 0 0 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px 0 4px;
+    border-top: 1px solid var(--color-outline-variant);
+  }
+
+  .public-header-inner.menu-open .nav-links {
+    display: flex;
+  }
+
+  .public-header .nav-pill {
+    justify-content: flex-start;
+    width: 100%;
+    padding: 11px 14px;
+  }
+
+  .public-header .header-actions {
+    display: flex;
+    order: 4;
+    flex: 0 0 100%;
+    gap: 10px;
+  }
+
+  .public-header .header-actions > a,
+  .public-header .header-actions > form {
+    flex: 1 1 0;
+  }
+
+  .public-header .header-actions > form button,
+  .public-header .header-actions > a {
+    width: 100%;
+  }
+
+  .public-header .header-actions form {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .public-header-inner {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .public-header .logo-brand {
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .public-header .logo-brand img {
+    height: 38px !important;
+  }
+
+  .public-header .logo-title {
+    font-size: 19px;
+  }
+
+  .public-header .logo-subtitle {
+    font-size: 10px;
+  }
+
+  .public-header .header-actions {
+    gap: 8px;
+  }
+
+  .public-header .header-actions .btn {
+    padding: 9px 10px;
+    font-size: 13px;
+  }
+}
