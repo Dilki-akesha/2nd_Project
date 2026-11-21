@@ -35,21 +35,21 @@ $token = trim((string)($_GET['token'] ?? ''));
             <a href="index.php?page=login" style="color:var(--color-primary);font-weight:700">Back to Sign In</a>
         </div>
         <?php else: ?>
-        <form action="index.php?action=reset_password" method="POST" id="resetPasswordForm" novalidate>
+        <form action="index.php?action=reset_password" method="POST" id="resetPasswordForm">
             <?= csrfField() ?>
             <input type="hidden" name="token" value="<?= sanitize($token) ?>">
 
             <div class="form-group">
                 <label class="form-label" for="new-password">New Password</label>
                 <input type="password" id="new-password" name="new_password" class="form-control"
-                       minlength="8" autocomplete="new-password" required>
+                       minlength="8" maxlength="72" autocomplete="new-password" required>
                 <small class="muted">At least 8 characters.</small>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="confirm-password">Confirm New Password</label>
                 <input type="password" id="confirm-password" name="confirm_password" class="form-control"
-                       minlength="8" autocomplete="new-password" required>
+                       minlength="8" maxlength="72" autocomplete="new-password" required>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width:100%;margin-top:10px;padding:12px">

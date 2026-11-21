@@ -19,7 +19,7 @@ $districts = db_fetch_all(
         <div class="alert alert-danger"><?= $error ?></div>
         <?php endif; ?>
 
-        <form action="index.php?action=signup_buyer" method="POST" id="buyerSignupForm" novalidate>
+        <form action="index.php?action=signup_buyer" method="POST" id="buyerSignupForm">
             <?= csrfField() ?>
 
             <div class="form-group">
@@ -29,26 +29,27 @@ $districts = db_fetch_all(
 
             <div class="form-group">
                 <label class="form-label" for="b-email">Email Address *</label>
-                <input type="email" id="b-email" name="email" class="form-control" autocomplete="email" required>
+                <input type="email" id="b-email" name="email" class="form-control" autocomplete="email" maxlength="190" required>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                 <div class="form-group">
                     <label class="form-label" for="b-pass">Password *</label>
                     <input type="password" id="b-pass" name="password" class="form-control"
-                           minlength="8" autocomplete="new-password" required>
+                           minlength="8" maxlength="72" autocomplete="new-password" required>
                     <small class="muted">At least 8 characters.</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="b-confirm-pass">Confirm Password *</label>
                     <input type="password" id="b-confirm-pass" name="confirm_password" class="form-control"
-                           minlength="8" autocomplete="new-password" required>
+                           minlength="8" maxlength="72" autocomplete="new-password" required>
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="b-phone">Phone Number *</label>
-                <input type="tel" id="b-phone" name="phone" class="form-control" placeholder="0771234567" required>
+                <input type="tel" id="b-phone" name="phone" class="form-control" placeholder="0771234567"
+                       pattern="[0-9+ \(\)\-]{9,25}" maxlength="25" required>
             </div>
 
             <div class="form-group">
@@ -64,7 +65,7 @@ $districts = db_fetch_all(
 
             <div class="form-group">
                 <label class="form-label" for="b-address">Delivery Address *</label>
-                <textarea id="b-address" name="address" class="form-control" rows="2" required></textarea>
+                <textarea id="b-address" name="address" class="form-control" rows="2" maxlength="180" required></textarea>
             </div>
 
             <div class="alert alert-success" style="font-size:13px">

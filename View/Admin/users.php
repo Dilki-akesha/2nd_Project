@@ -42,7 +42,7 @@ $roleLabel = [
     <div class="card-table-wrapper">
         <div class="table-toolbar">
             <div class="search-box">
-                <input type="text" placeholder="Search name, email or phone" data-table-search="users-table">
+                <input type="text" placeholder="Search name, email or phone" maxlength="190" data-table-search="users-table">
             </div>
 
             <form action="index.php" method="GET" class="filter-group">
@@ -217,13 +217,13 @@ $roleLabel = [
 
                 <div class="form-group">
                     <label class="form-label" for="e-email-<?= $uid ?>">Email</label>
-                    <input type="email" id="e-email-<?= $uid ?>" name="email" class="form-control" required
+                    <input type="email" id="e-email-<?= $uid ?>" name="email" class="form-control" maxlength="190" required
                            value="<?= sanitize($u['email']) ?>">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="e-phone-<?= $uid ?>">Phone</label>
-                    <input type="text" id="e-phone-<?= $uid ?>" name="phone" class="form-control" maxlength="25"
+                    <input type="text" id="e-phone-<?= $uid ?>" name="phone" class="form-control" pattern="[0-9+ \(\)\-]{0,25}" maxlength="25"
                            value="<?= sanitize($u['phone']) ?>">
                 </div>
 
@@ -241,7 +241,7 @@ $roleLabel = [
 
                 <div class="form-group">
                     <label class="form-label" for="e-addr-<?= $uid ?>">Address</label>
-                    <textarea id="e-addr-<?= $uid ?>" name="address" class="form-control" rows="2"><?= sanitize($u['detail'] ?? '') ?></textarea>
+                    <textarea id="e-addr-<?= $uid ?>" name="address" class="form-control" rows="2" maxlength="180"><?= sanitize($u['detail'] ?? '') ?></textarea>
                 </div>
 
                 <?php if ($role === 'COURIER_PARTNER'): ?>
@@ -331,18 +331,18 @@ $roleLabel = [
 
                 <div class="form-group">
                     <label class="form-label" for="c-email">Email Address</label>
-                    <input type="email" id="c-email" name="email" class="form-control" autocomplete="off" required>
+                    <input type="email" id="c-email" name="email" class="form-control" autocomplete="off" maxlength="190" required>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="c-pass">Initial Password</label>
-                    <input type="password" id="c-pass" name="password" class="form-control" minlength="8" autocomplete="new-password" required>
+                    <input type="password" id="c-pass" name="password" class="form-control" minlength="8" maxlength="72" autocomplete="new-password" required>
                     <small class="muted">At least 8 characters. The user should change it after signing in.</small>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="c-phone">Phone Number</label>
-                    <input type="tel" id="c-phone" name="phone" class="form-control" required>
+                    <input type="tel" id="c-phone" name="phone" class="form-control" pattern="[0-9+ \(\)\-]{9,25}" maxlength="25" required>
                 </div>
 
                 <div class="form-group">
@@ -357,7 +357,7 @@ $roleLabel = [
 
                 <div class="form-group">
                     <label class="form-label" for="c-addr">Address</label>
-                    <textarea id="c-addr" name="address" class="form-control" rows="2" required></textarea>
+                    <textarea id="c-addr" name="address" class="form-control" rows="2" maxlength="180" required></textarea>
                 </div>
 
                 <div id="role-extra-courier" style="display:none">

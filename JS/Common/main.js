@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCSVExport();
   initPDFPrint();
   initAdminSidebar();
+  initPublicNavigation();
 });
 
 initSidebarScroll();
@@ -39,6 +40,45 @@ function initAdminSidebar() {
   // Following a link navigates anyway, but close first so a restored page
   // never comes back with the drawer still covering the content.
   sidebar.querySelectorAll('a').forEach(link => link.addEventListener('click', () => setOpen(false)));
+}
+
+
+/**
+ * Accessible public-site navigation drawer for tablet and mobile screens.
+ */
+function initPublicNavigation() {
+  const toggle = document.getElementById('publicNavToggle');
+  const headerInner = document.querySelector('.public-header-inner');
+  const navigation = document.getElementById('publicNavigation');
+  if (!toggle || !headerInner || !navigation) return;
+
+  const setOpen = (open) => {
+    headerInner.classList.toggle('menu-open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+    const icon = toggle.querySelector('.public-nav-toggle-icon');
+    if (icon) icon.textContent = open ? '\u00d7' : '\u2630';
+  };
+
+  toggle.addEventListener('click', () => {
+    setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+  });
+
+  navigation.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => setOpen(false));
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') setOpen(false);
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!headerInner.contains(event.target)) setOpen(false);
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 900) setOpen(false);
+  });
 }
 
 function initSidebarScroll() {

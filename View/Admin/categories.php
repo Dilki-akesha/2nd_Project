@@ -41,7 +41,7 @@ function getCategoryIcon($name) {
             <input type="hidden" name="page" value="admin_categories">
             
             <div class="flex-1 min-w-[240px]">
-                <input type="text" name="search" class="input-field" placeholder="Search categories..." value="<?= isset($_GET['search']) ? sanitize($_GET['search']) : ''; ?>">
+                <input type="text" name="search" class="input-field" maxlength="80" placeholder="Search categories..." value="<?= isset($_GET['search']) ? sanitize($_GET['search']) : ''; ?>">
             </div>
 
             <div class="w-48">
@@ -142,11 +142,11 @@ function getCategoryIcon($name) {
             <?= csrfField(); ?>
             <div class="mb-4">
                 <label class="form-label">Category Name *</label>
-                <input type="text" name="category_name" class="input-field" required placeholder="e.g. Organic Produce, Spices, Grains">
+                <input type="text" name="category_name" class="input-field" maxlength="80" required placeholder="e.g. Organic Produce, Spices, Grains">
             </div>
             <div class="mb-4">
                 <label class="form-label">Description</label>
-                <textarea name="description" class="input-field" rows="3" placeholder="Brief details regarding this produce category..."></textarea>
+                <textarea name="description" class="input-field" rows="3" maxlength="500" placeholder="Brief details regarding this produce category..."></textarea>
             </div>
             <div class="mb-6">
                 <label class="form-label">Status</label>
@@ -175,11 +175,11 @@ function getCategoryIcon($name) {
             <input type="hidden" name="category_id" id="edit_category_id">
             <div class="mb-4">
                 <label class="form-label">Category Name *</label>
-                <input type="text" name="category_name" id="edit_category_name" class="input-field" required>
+                <input type="text" name="category_name" id="edit_category_name" class="input-field" maxlength="80" required>
             </div>
             <div class="mb-4">
                 <label class="form-label">Description</label>
-                <textarea name="description" id="edit_description" class="input-field" rows="3"></textarea>
+                <textarea name="description" id="edit_description" class="input-field" rows="3" maxlength="500"></textarea>
             </div>
             <div class="mb-6">
                 <label class="form-label">Status</label>

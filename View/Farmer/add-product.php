@@ -31,7 +31,7 @@ page_top('Add Product', 'products');
         </div>
         <div class="field full">
             <label>Description</label>
-            <textarea class="textarea" name="description" rows="3"><?= e((string)($product['description'] ?? '')) ?></textarea>
+            <textarea class="textarea" name="description" rows="3" maxlength="2000"><?= e((string)($product['description'] ?? '')) ?></textarea>
         </div>
         <div class="field">
             <label>Price (Rs.)</label>
@@ -108,7 +108,7 @@ page_top('Add Product', 'products');
         </div>
         <div class="field full">
             <label>Own Storage Guidance (optional)</label>
-            <input class="input" name="storage_guidance" value="<?= e((string)($product['storage_guidance'] ?? '')) ?>">
+            <input class="input" name="storage_guidance" maxlength="2000" value="<?= e((string)($product['storage_guidance'] ?? '')) ?>">
         </div>
         <div class="field full">
             <label>Primary Product Image (JPG or PNG, 5 MB maximum)</label>

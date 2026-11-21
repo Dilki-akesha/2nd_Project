@@ -62,19 +62,70 @@ Run these from the project root to confirm a change did not break anything:
 
 | Script | What it does |
 | --- | --- |
-| `php scripts/smoke_test.php` | 169 HTTP assertions over the real pages: every actor's login, dashboard, one full CRUD per actor, the out-of-scope sweep, cross-role access control, CSRF rejection and a PHP-diagnostic check. |
+| `php scripts/smoke_test.php` | 175 HTTP assertions over the real pages: every actor's login, dashboard, one full CRUD per actor, the out-of-scope sweep, cross-role access control, CSRF rejection and a PHP-diagnostic check. |
 | `php scripts/integration-test.php` | 78 model-level assertions driving the whole order lifecycle directly against the database. Creates and deletes only its own fixtures. |
 | `php scripts/page_diagnostics.php` | Requests all 46 role pages as a logged-in actor and reports any page with problems. |
 | `php scripts/check_prepared_statements.php` | Static check that every prepared statement has matching placeholders, type string and value count. |
 | `php scripts/check_css_classes.php` | Static check that every CSS class used in a view is defined by the stylesheets that view loads. Catches layouts that silently collapse. |
 | `php scripts/check_navigation.php` | Signs in as all four actors and crawls every page, reporting dead links, broken images, unresolvable form actions, pages that bounce to login and any PHP diagnostic in the output. |
 | `php scripts/check_model_queries.php` | Invokes every read-only method on all 17 models as each of the four roles and reports any that fail at the SQL level. Catches the case where a model swallows a query error and the page renders as empty instead of erroring. |
+| `php scripts/check_form_validation.php` | Walks all 89 forms and 293 controls and reports any input missing the constraint the backend enforces (maxlength, min, type=email, minlength), and any POST form that uploads a file without `enctype="multipart/form-data"`. |
 | `php scripts/reset_demo_passwords.php` | Resets the demo accounts to `testpass123`. |
 | `php scripts/issue_password_reset.php <email>` | Support utility: issues a single-use password reset link for a verified account owner. |
 
 `bindMysqliParams()` in `config/app.php` throws on any type/value mismatch, so these scripts fail loudly on a broken write instead of silently skipping it.
 
 `scripts/` is command-line only — `scripts/.htaccess` denies web access, and every script refuses to run outside the CLI SAPI.
+
+## Validation
+Every write is guarded at three independent layers, so no single failure can store bad data.
+
+| Layer | Enforces |
+| --- | --- |
+| **Browser** (`View/`) | `required`, `type="email"`, `minlength`, `maxlength` matching the column length, `min` on every number field, `pattern` on phone numbers. Verified by `scripts/check_form_validation.php`. |
+| **Server** (`Controller/`, `Model/`) | `filter_var(FILTER_VALIDATE_EMAIL)`, length and range checks, enum whitelists, existence checks for every referenced id, and date-ordering rules such as *available from ≥ harvest date* and *season end ≥ season start*. |
+| **Database** | 26 `CHECK` constraints plus 51 foreign keys, 14 unique keys and the `ENUM` columns. See `database/validation_constraints.sql`. |
+
+**Strict SQL mode is required.** Without `STRICT_TRANS_TABLES` the server silently truncates an over-long value and accepts an out-of-range number instead of raising an error, so bad data is stored without any warning. `mysql/bin/my.ini` sets:
+
+```ini
+sql_mode=STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION
+```
+
+Verify a running server picked it up:
+
+```
+mysql -u root -e "SELECT @@GLOBAL.sql_mode"
+```
+
+The `CHECK` constraints are part of `harvestly_final_schema.sql` and `harvestly_final_clean_install.sql`, so a fresh import already has them. To add them to an existing install:
+
+```
+mysql -u root harvestly < database/validation_constraints.sql
+```
+
+The constraints cover: strictly positive cart, pre-order and order-line quantities; non-negative prices, stock, fees, order totals, payments, earnings, settlements and route distances; `reviews.rating` within 1–5; boolean flags restricted to 0 or 1; and ordered `shelf_life_references` min/max ranges.
+
+### A `pattern` that silently does nothing
+Modern browsers compile the `pattern` attribute with the RegExp **`v` flag**. Inside a character class, an unescaped `-`, `(` or `)` makes the **whole pattern invalid, and the browser then ignores it silently** — the field looks validated but accepts anything. This bit the phone fields during development:
+
+```html
+<!-- WRONG: \s plus bare ( ) make this invalid, so it is never enforced -->
+<input type="tel" name="phone" pattern="[0-9+()\-\s]{9,25}">
+
+<!-- RIGHT: every class metacharacter is escaped, so it is actually enforced -->
+<input type="tel" name="phone" pattern="[0-9+ \(\)\-]{9,25}" minlength="9" maxlength="25" required>
+```
+
+`scripts/check_form_validation.php` deliberately does not try to detect this, because telling a range dash (`[0-9]`) from a literal one requires a real character-class parser and a naive check produces false positives. Every `pattern` in the project was verified in a real browser instead.
+
+A useful self-test in the browser console:
+
+```js
+const el = document.querySelector('[name="phone"]');
+el.value = 'abcdefghij';
+console.log(el.validity.patternMismatch);   // must be true
+```
 
 ## Folder naming note
 The Courier Partner views live in `View/Delivey/`. The misspelling is deliberately kept so the existing include paths keep working; the actor is always labelled **Courier Partner** in the UI, the code and the documentation.

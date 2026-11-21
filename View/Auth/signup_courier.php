@@ -25,7 +25,7 @@ $districts = db_fetch_all(
         <div class="alert alert-danger"><?= $error ?></div>
         <?php endif; ?>
 
-        <form action="index.php?action=signup_courier" method="POST" enctype="multipart/form-data" id="courierSignupForm" novalidate>
+        <form action="index.php?action=signup_courier" method="POST" enctype="multipart/form-data" id="courierSignupForm">
             <?= csrfField() ?>
 
             <div class="form-group">
@@ -40,26 +40,27 @@ $districts = db_fetch_all(
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="c-phone">Contact Number *</label>
-                    <input type="tel" id="c-phone" name="phone" class="form-control" placeholder="0112345678" required>
+                    <input type="tel" id="c-phone" name="phone" class="form-control" placeholder="0112345678"
+                           pattern="[0-9+ \(\)\-]{9,25}" maxlength="25" required>
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="c-email">Organisation Email Address *</label>
-                <input type="email" id="c-email" name="email" class="form-control" autocomplete="email" required>
+                <input type="email" id="c-email" name="email" class="form-control" autocomplete="email" maxlength="190" required>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                 <div class="form-group">
                     <label class="form-label" for="c-pass">Password *</label>
                     <input type="password" id="c-pass" name="password" class="form-control"
-                           minlength="8" autocomplete="new-password" required>
+                           minlength="8" maxlength="72" autocomplete="new-password" required>
                     <small class="muted">At least 8 characters.</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="c-confirm-pass">Confirm Password *</label>
                     <input type="password" id="c-confirm-pass" name="confirm_password" class="form-control"
-                           minlength="8" autocomplete="new-password" required>
+                           minlength="8" maxlength="72" autocomplete="new-password" required>
                 </div>
             </div>
 
@@ -75,7 +76,7 @@ $districts = db_fetch_all(
 
             <div class="form-group">
                 <label class="form-label" for="c-address">Office Address *</label>
-                <textarea id="c-address" name="business_address" class="form-control" rows="2" required></textarea>
+                <textarea id="c-address" name="business_address" class="form-control" rows="2" maxlength="180" required></textarea>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">

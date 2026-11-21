@@ -25,7 +25,7 @@ $productImage = static function (array $p): string {
         <input type="hidden" name="page" value="products">
 
         <div style="flex:1;min-width:240px">
-            <input type="search" name="search" class="form-control" placeholder="Search produce, Farmer or category" value="<?= sanitize($search) ?>">
+            <input type="search" name="search" class="form-control" maxlength="150" placeholder="Search produce, Farmer or category" value="<?= sanitize($search) ?>">
         </div>
 
         <div style="width:220px">

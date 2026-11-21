@@ -22,7 +22,7 @@ buyer_page_top('Browse Products', 'ProductController.php');
     <div class="buyer-filter-grid">
         <div>
             <label class="buyer-field" for="search"><span>Search products or Farmers</span></label>
-            <input id="search" type="search" name="search" value="<?= e($search) ?>" placeholder="Try carrots or a Farmer's name">
+            <input id="search" type="search" name="search" value="<?= e($search) ?>" maxlength="150" placeholder="Try carrots or a Farmer's name">
         </div>
         <div>
             <label class="buyer-field" for="district"><span>Farmer pickup district</span></label>
@@ -51,7 +51,7 @@ buyer_page_top('Browse Products', 'ProductController.php');
         </div>
         <div>
             <label class="buyer-field" for="maxPrice"><span>Maximum unit price (Rs.)</span></label>
-            <input id="maxPrice" type="number" min="0" step="0.01" name="maxPrice"
+            <input id="maxPrice" type="number" min="0.01" step="0.01" name="maxPrice"
                    value="<?= $maxPrice === PHP_FLOAT_MAX ? '' : e($maxPrice) ?>" placeholder="Any price">
         </div>
         <div>

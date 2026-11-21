@@ -49,7 +49,7 @@ $confirmHours = buyerConfirmationHours();
             </div>
             <div class="buyer-field">
                 <span>Your review</span>
-                <textarea name="review_text" rows="4" required></textarea>
+                <textarea name="review_text" rows="4" maxlength="2000" required></textarea>
             </div>
             <button class="buyer-button" type="submit">
                 <span class="material-symbols-outlined" aria-hidden="true">rate_review</span>
@@ -92,7 +92,7 @@ $confirmHours = buyerConfirmationHours();
             </div>
             <div class="buyer-field">
                 <span>Description</span>
-                <textarea name="details" rows="4" required></textarea>
+                <textarea name="details" rows="4" maxlength="2000" required></textarea>
             </div>
             <div class="buyer-field">
                 <span>Optional evidence</span>
@@ -143,7 +143,7 @@ $confirmHours = buyerConfirmationHours();
                     </div>
                     <div class="buyer-field">
                         <span>Review</span>
-                        <textarea name="review_text" rows="3" required><?= e((string)$r['review_text']) ?></textarea>
+                        <textarea name="review_text" rows="3" maxlength="2000" required><?= e((string)$r['review_text']) ?></textarea>
                     </div>
                     <button class="buyer-button buyer-secondary buyer-small" type="submit">Save Review</button>
                 </form>
@@ -195,11 +195,11 @@ $confirmHours = buyerConfirmationHours();
                     <input type="hidden" name="id" value="<?= (int)$c['complaint_id'] ?>">
                     <div class="buyer-field">
                         <span>Category</span>
-                        <input type="text" name="category" value="<?= e((string)$c['category']) ?>" required>
+                        <input type="text" name="category" value="<?= e((string)$c['category']) ?>" maxlength="100" required>
                     </div>
                     <div class="buyer-field">
                         <span>Description</span>
-                        <textarea name="details" rows="3" required><?= e((string)$c['description']) ?></textarea>
+                        <textarea name="details" rows="3" maxlength="2000" required><?= e((string)$c['description']) ?></textarea>
                     </div>
                     <button class="buyer-button buyer-secondary buyer-small" type="submit">Save Issue</button>
                 </form>

@@ -31,12 +31,12 @@
 
                 <div class="form-group">
                     <label class="form-label" for="notif-subj">Subject Line</label>
-                    <input type="text" id="notif-subj" name="subject" class="form-control" placeholder="e.g. Weather Alert & Route Update" required>
+                    <input type="text" id="notif-subj" name="subject" class="form-control" maxlength="160" placeholder="e.g. Weather Alert & Route Update" required>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="notif-msg">Message Body</label>
-                    <textarea id="notif-msg" name="message" class="form-control" rows="4" placeholder="Enter broadcast message details..." required></textarea>
+                    <textarea id="notif-msg" name="message" class="form-control" rows="4" maxlength="2000" placeholder="Enter broadcast message details..." required></textarea>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">

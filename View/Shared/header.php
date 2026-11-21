@@ -53,7 +53,12 @@ $roleLabel = [
             </span>
         </a>
 
-        <nav class="nav-links">
+        <button class="public-nav-toggle" id="publicNavToggle" type="button"
+                aria-label="Open navigation menu" aria-expanded="false" aria-controls="publicNavigation">
+            <span class="public-nav-toggle-icon" aria-hidden="true">&#9776;</span>
+        </button>
+
+        <nav class="nav-links" id="publicNavigation" aria-label="Main navigation">
             <a href="index.php" class="nav-pill <?= $currentPage === 'landing' ? 'active' : '' ?>">Home</a>
             <a href="index.php?page=products" class="nav-pill <?= $currentPage === 'products' ? 'active' : '' ?>">Browse Products</a>
             <a href="index.php#how-it-works" class="nav-pill">How It Works</a>
